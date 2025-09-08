@@ -103,6 +103,16 @@ export class Game {
     }
     
     /**
+     * Start the game (wrapper for compatibility with index.html)
+     */
+    start() {
+        console.log("🎮 Starting Philosopher's Quest...");
+        this.running = true;
+        // The game loop is already started in initialize()
+        // This method exists for compatibility with index.html
+    }
+    
+    /**
      * Generate a level
      */
     async generateLevel(levelNumber) {
