@@ -31,7 +31,7 @@ export class Player {
         this.charisma = 10;
         
         // Combat stats
-        this.ac = 10;  // Armor class
+        this.ac = 10;  // Base armor class
         this.damage = '1d4';  // Base damage
         this.attackBonus = 0;
         
@@ -40,21 +40,21 @@ export class Player {
         this.carryingCapacity = CONFIG.CARRYING_CAPACITY_BASE || 50;
         this.gold = 0;
         
-        // Equipment slots
+        // Equipment slots - proper armor slots
         this.equipped = {
             weapon: null,
             armor: {
-                head: null,
-                body: null,
-                cloak: null,
-                gloves: null,
-                boots: null,
-                shield: null
+                head: null,    // Helmet
+                body: null,    // Chest armor
+                arms: null,    // Gauntlets/bracers
+                legs: null,    // Greaves/boots
+                shield: null   // Shield (off-hand)
             },
             accessories: {
                 ring1: null,
                 ring2: null,
-                amulet: null
+                amulet: null,
+                cloak: null    // Back slot
             }
         };
         
@@ -164,29 +164,81 @@ export class Player {
             this.sp = Math.min(this.maxSp, this.sp + 2);
         }
         
-        // Regenerate MP
+        // Regenerate MP based on wisdom
         if (this.mp < this.maxMp) {
-            this.mp = Math.min(this.maxMp, this.mp + 1);
+            const mpRegen = 1 + Math.floor(this.wisdom / 20);
+            this.mp = Math.min(this.maxMp, this.mp + mpRegen);
         }
     }
     
     /**
-     * Get total defense value
+     * Get total defense value from all armor pieces
      */
     getDefense() {
         let defense = 0;
         
-        // Add armor values
-        Object.values(this.equipped.armor).forEach(item => {
-            if (item && item.defense) {
-                defense += item.defense;
-            }
-        });
+        // Add armor values from all equipped pieces
+        if (this.equipped.armor.head) {
+            defense += this.equipped.armor.head.defense || 0;
+        }
+        if (this.equipped.armor.body) {
+            defense += this.equipped.armor.body.defense || 0;
+        }
+        if (this.equipped.armor.arms) {
+            defense += this.equipped.armor.arms.defense || 0;
+        }
+        if (this.equipped.armor.legs) {
+            defense += this.equipped.armor.legs.defense || 0;
+        }
+        if (this.equipped.armor.shield) {
+            defense += this.equipped.armor.shield.defense || 0;
+        }
         
         // Add dexterity bonus
         defense += Math.floor((this.dexterity - 10) / 2);
         
         return Math.max(0, defense);
+    }
+    
+    /**
+     * Get current armor class (AC)
+     * This is what UIManager calls
+     */
+    getAC() {
+        let ac = this.ac || 10;  // Base AC
+        
+        // Add AC bonuses from all armor pieces
+        if (this.equipped.armor.head) {
+            ac += this.equipped.armor.head.ac || 0;
+        }
+        if (this.equipped.armor.body) {
+            ac += this.equipped.armor.body.ac || 0;
+        }
+        if (this.equipped.armor.arms) {
+            ac += this.equipped.armor.arms.ac || 0;
+        }
+        if (this.equipped.armor.legs) {
+            ac += this.equipped.armor.legs.ac || 0;
+        }
+        if (this.equipped.armor.shield) {
+            ac += this.equipped.armor.shield.ac || 0;
+        }
+        
+        // Add dexterity modifier
+        ac += Math.floor((this.dexterity - 10) / 2);
+        
+        // Add any magical bonuses from accessories
+        if (this.equipped.accessories.ring1?.ac) {
+            ac += this.equipped.accessories.ring1.ac;
+        }
+        if (this.equipped.accessories.ring2?.ac) {
+            ac += this.equipped.accessories.ring2.ac;
+        }
+        if (this.equipped.accessories.amulet?.ac) {
+            ac += this.equipped.accessories.amulet.ac;
+        }
+        
+        return ac;
     }
     
     /**
@@ -203,6 +255,11 @@ export class Player {
         if (this.hasEffect('darkness')) radius = Math.max(1, radius - 3);
         if (this.hasEffect('see_invisible')) radius += 2;
         
+        // Check for light-giving items
+        if (this.equipped.accessories.amulet?.light) {
+            radius += this.equipped.accessories.amulet.light;
+        }
+        
         return Math.max(0, radius);
     }
     
@@ -212,7 +269,7 @@ export class Player {
      */
     addItem(item) {
         // Check weight limit
-        if (this.getCurrentWeight() + item.weight > this.carryingCapacity) {
+        if (this.getCurrentWeight() + (item.weight || 1) > this.carryingCapacity) {
             EventBus.emit(EVENTS.MESSAGE, {
                 text: 'You cannot carry that much weight!',
                 type: 'warning'
@@ -228,7 +285,7 @@ export class Player {
         );
         
         if (existing) {
-            existing.quantity += item.quantity || 1;
+            existing.quantity = (existing.quantity || 1) + (item.quantity || 1);
         } else {
             this.inventory.push(item);
         }
@@ -320,15 +377,46 @@ export class Player {
      */
     getEquipmentSlot(item) {
         if (item.type === 'weapon') return 'weapon';
+        
         if (item.type === 'armor') {
-            return `armor.${item.subtype || 'body'}`;
-        }
-        if (item.type === 'accessory') {
-            if (item.subtype === 'ring') {
-                return this.equipped.accessories.ring1 ? 'accessories.ring2' : 'accessories.ring1';
+            // Map armor subtypes to proper slots
+            switch(item.subtype) {
+                case 'helmet':
+                case 'head':
+                    return 'armor.head';
+                case 'chestplate':
+                case 'mail':
+                case 'body':
+                    return 'armor.body';
+                case 'gauntlets':
+                case 'gloves':
+                case 'arms':
+                    return 'armor.arms';
+                case 'greaves':
+                case 'boots':
+                case 'legs':
+                    return 'armor.legs';
+                case 'shield':
+                    return 'armor.shield';
+                default:
+                    return 'armor.body';  // Default to body
             }
-            return `accessories.${item.subtype}`;
         }
+        
+        if (item.type === 'accessory') {
+            switch(item.subtype) {
+                case 'ring':
+                    // Try ring1 first, then ring2
+                    return !this.equipped.accessories.ring1 ? 'accessories.ring1' : 'accessories.ring2';
+                case 'amulet':
+                    return 'accessories.amulet';
+                case 'cloak':
+                    return 'accessories.cloak';
+                default:
+                    return null;
+            }
+        }
+        
         return null;
     }
     
@@ -432,6 +520,7 @@ export class Player {
             totalWeight += this.equipped.weapon.weight || 1;
         }
         
+        // Count all armor pieces
         Object.values(this.equipped.armor).forEach(item => {
             if (item) totalWeight += item.weight || 1;
         });
@@ -552,15 +641,15 @@ export class Player {
                 armor: {
                     head: this.equipped.armor.head?.serialize ? this.equipped.armor.head.serialize() : this.equipped.armor.head,
                     body: this.equipped.armor.body?.serialize ? this.equipped.armor.body.serialize() : this.equipped.armor.body,
-                    cloak: this.equipped.armor.cloak?.serialize ? this.equipped.armor.cloak.serialize() : this.equipped.armor.cloak,
-                    gloves: this.equipped.armor.gloves?.serialize ? this.equipped.armor.gloves.serialize() : this.equipped.armor.gloves,
-                    boots: this.equipped.armor.boots?.serialize ? this.equipped.armor.boots.serialize() : this.equipped.armor.boots,
+                    arms: this.equipped.armor.arms?.serialize ? this.equipped.armor.arms.serialize() : this.equipped.armor.arms,
+                    legs: this.equipped.armor.legs?.serialize ? this.equipped.armor.legs.serialize() : this.equipped.armor.legs,
                     shield: this.equipped.armor.shield?.serialize ? this.equipped.armor.shield.serialize() : this.equipped.armor.shield
                 },
                 accessories: {
                     ring1: this.equipped.accessories.ring1?.serialize ? this.equipped.accessories.ring1.serialize() : this.equipped.accessories.ring1,
                     ring2: this.equipped.accessories.ring2?.serialize ? this.equipped.accessories.ring2.serialize() : this.equipped.accessories.ring2,
-                    amulet: this.equipped.accessories.amulet?.serialize ? this.equipped.accessories.amulet.serialize() : this.equipped.accessories.amulet
+                    amulet: this.equipped.accessories.amulet?.serialize ? this.equipped.accessories.amulet.serialize() : this.equipped.accessories.amulet,
+                    cloak: this.equipped.accessories.cloak?.serialize ? this.equipped.accessories.cloak.serialize() : this.equipped.accessories.cloak
                 }
             },
             
@@ -618,23 +707,25 @@ export class Player {
         this.gold = data.gold || 0;
         this.inventory = data.inventory || [];
         
-        // Equipment
-        this.equipped = data.equipped || {
-            weapon: null,
-            armor: {
-                head: null,
-                body: null,
-                cloak: null,
-                gloves: null,
-                boots: null,
-                shield: null
-            },
-            accessories: {
-                ring1: null,
-                ring2: null,
-                amulet: null
-            }
-        };
+        // Equipment - handle both old and new formats
+        if (data.equipped) {
+            this.equipped = {
+                weapon: data.equipped.weapon || null,
+                armor: {
+                    head: data.equipped.armor?.head || null,
+                    body: data.equipped.armor?.body || null,
+                    arms: data.equipped.armor?.arms || data.equipped.armor?.gloves || null,
+                    legs: data.equipped.armor?.legs || data.equipped.armor?.boots || null,
+                    shield: data.equipped.armor?.shield || null
+                },
+                accessories: {
+                    ring1: data.equipped.accessories?.ring1 || null,
+                    ring2: data.equipped.accessories?.ring2 || null,
+                    amulet: data.equipped.accessories?.amulet || null,
+                    cloak: data.equipped.accessories?.cloak || data.equipped.armor?.cloak || null
+                }
+            };
+        }
         
         // Status effects
         this.effects = new Set(data.effects || []);
