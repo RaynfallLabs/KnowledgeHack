@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Philosopher's Quest - Educational Roguelike</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Intro Screen -->
+    <div id="intro-screen" class="screen active">
+        <div class="intro-container">
+            <h1 class="game-title">🏛️ Philosopher's Quest 🏛️</h1>
+            <h2 class="game-subtitle">An Educational Roguelike Adventure</h2>
+            <div class="intro-text">
+                <p>Welcome, young scholar! In this mystical dungeon, knowledge is your greatest weapon.</p>
+                <p>Every action requires learning - from wielding swords with mathematics to identifying treasures through philosophy.</p>
+                <p>Your quest: Descend to level 100, retrieve the Philosopher's Stone, and return!</p>
+            </div>
+            <div class="character-creation">
+                <label for="player-name">Enter your name, scholar:</label>
+                <input type="text" id="player-name" maxlength="20" placeholder="Your name...">
+                <button id="start-button" class="btn-primary">Begin Your Quest!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-layout">
+            <!-- Main Game Canvas -->
+            <div class="game-viewport">
+                <canvas id="game-canvas"></canvas>
+            </div>
+            
+            <!-- Right Sidebar -->
+            <div class="sidebar">
+                <!-- Player Stats -->
+                <div class="stats-panel">
+                    <h3>Stats</h3>
+                    <div class="stat-bars">
+                        <div class="stat-row">
+                            <span>HP:</span>
+                            <div class="bar-container">
+                                <div id="hp-bar" class="bar hp"></div>
+                                <span id="hp-text">100/100</span>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <span>SP:</span>
+                            <div class="bar-container">
+                                <div id="sp-bar" class="bar sp"></div>
+                                <span id="sp-text">100/100</span>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <span>MP:</span>
+                            <div class="bar-container">
+                                <div id="mp-bar" class="bar mp"></div>
+                                <span id="mp-text">20/20</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-info">
+                        <div>Level: <span id="dungeon-level">1</span></div>
+                        <div>WIS: <span id="wisdom">15</span></div>
+                        <div>AC: <span id="armor-class">10</span></div>
+                    </div>
+                </div>
+                
+                <!-- Equipment Display -->
+                <div class="equipment-panel">
+                    <h3>Equipment</h3>
+                    <div id="equipment-list">
+                        <div>Weapon: <span id="equipped-weapon">None</span></div>
+                        <div>Armor: <span id="equipped-armor">None</span></div>
+                        <div>Ring: <span id="equipped-ring">None</span></div>
+                    </div>
+                </div>
+                
+                <!-- Inventory -->
+                <div class="inventory-panel">
+                    <h3>Inventory (<span id="carry-weight">0/50</span>)</h3>
+                    <div id="inventory-list"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Message Log -->
+        <div class="message-log">
+            <div id="messages"></div>
+        </div>
+        
+        <!-- Controls Help -->
+        <div class="controls-help">
+            <span>Move: Arrow/HJKL</span> | 
+            <span>Pickup: g</span> | 
+            <span>Inventory: i</span> | 
+            <span>Equipment: e</span> | 
+            <span>Identify: Shift+I</span> | 
+            <span>Help: ?</span>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="modal">
+        <div class="modal-content quiz-content">
+            <h2 id="quiz-title">Quiz Time!</h2>
+            <div class="quiz-header">
+                <div id="quiz-subject" class="quiz-subject"></div>
+                <div id="quiz-timer" class="quiz-timer">15</div>
+            </div>
+            <div id="quiz-question" class="quiz-question"></div>
+            <div id="quiz-input-area"></div>
+            <div id="quiz-feedback" class="quiz-feedback"></div>
+        </div>
+    </div>
+
+    <!-- Inventory Modal -->
+    <div id="inventory-modal" class="modal">
+        <div class="modal-content">
+            <h2>Inventory</h2>
+            <div id="inventory-modal-content"></div>
+            <button class="btn-secondary close-modal">Close (ESC)</button>
+        </div>
+    </div>
+
+    <!-- Load all JavaScript modules -->
+    <script type="module">
+        // Import all modules
+        import { CONFIG } from './js/config.js';
+        import { EventBus } from './js/core/event-bus.js';
+        import { QuestionLoader } from './js/core/question-loader.js';
+        import { Game } from './js/core/game.js';
+        import { QuizEngine } from './js/systems/quiz-engine.js';
+        import { Renderer } from './js/ui/renderer.js';
+        import { MessageLog } from './js/ui/message-log.js';
+        import { UIManager } from './js/ui/ui-manager.js';
+        
+        // Make game globally accessible for debugging
+        window.PhilosophersQuest = {
+            CONFIG,
+            EventBus,
+            QuestionLoader,
+            Game: null, // Will be initialized on start
+            QuizEngine,
+            Renderer,
+            MessageLog,
+            UIManager
+        };
+        
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🏛️ Philosopher\'s Quest - Initializing...');
+            
+            // Load questions
+            console.log('📚 Loading question banks...');
+            await QuestionLoader.loadAllQuestions();
+            
+            // Setup intro screen
+            const startButton = document.getElementById('start-button');
+            const playerNameInput = document.getElementById('player-name');
+            
+            startButton.addEventListener('click', startGame);
+            playerNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') startGame();
+            });
+            
+            async function startGame() {
+                const playerName = playerNameInput.value.trim() || 'Scholar';
+                
+                // Hide intro, show game
+                document.getElementById('intro-screen').classList.remove('active');
+                document.getElementById('game-screen').classList.add('active');
+                
+                // Initialize game
+                console.log(`⚔️ Starting game for ${playerName}...`);
+                window.PhilosophersQuest.Game = new Game(playerName);
+                await window.PhilosophersQuest.Game.initialize();
+                
+                // Start game loop
+                window.PhilosophersQuest.Game.start();
+            }
+            
+            console.log('✅ Ready to play!');
+        });
+    </script>
+</body>
+</html>
