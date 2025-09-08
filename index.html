@@ -130,7 +130,7 @@
         // Import all modules
         import { CONFIG } from './js/config.js';
         import { EventBus } from './js/core/event-bus.js';
-        import { QuestionLoader } from './js/core/question-loader.js';
+        import questionLoader from './js/core/question-loader.js';
         import { Game } from './js/core/game.js';
         import { QuizEngine } from './js/systems/quiz-engine.js';
         import { Renderer } from './js/ui/renderer.js';
@@ -141,7 +141,7 @@
         window.PhilosophersQuest = {
             CONFIG,
             EventBus,
-            QuestionLoader,
+            questionLoader,
             Game: null, // Will be initialized on start
             QuizEngine,
             Renderer,
@@ -155,7 +155,7 @@
             
             // Load questions
             console.log('📚 Loading question banks...');
-            await QuestionLoader.loadAllQuestions();
+            await questionLoader.loadAllQuestions();
             
             // Setup intro screen
             const startButton = document.getElementById('start-button');
@@ -175,11 +175,19 @@
                 
                 // Initialize game
                 console.log(`⚔️ Starting game for ${playerName}...`);
-                window.PhilosophersQuest.Game = new Game(playerName);
-                await window.PhilosophersQuest.Game.initialize();
                 
-                // Start game loop
-                window.PhilosophersQuest.Game.start();
+                try {
+                    window.PhilosophersQuest.Game = new Game(playerName);
+                    await window.PhilosophersQuest.Game.initialize();
+                    
+                    // Start game loop  
+                    if (window.PhilosophersQuest.Game.start) {
+                        window.PhilosophersQuest.Game.start();
+                    }
+                } catch (error) {
+                    console.error('Failed to initialize game:', error);
+                    alert('Failed to start game. Check console for errors.');
+                }
             }
             
             console.log('✅ Ready to play!');
