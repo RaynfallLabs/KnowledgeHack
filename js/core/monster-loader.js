@@ -1,159 +1,365 @@
 /**
  * monster-loader.js - Loads and manages monster data
- * Handles loading monster definitions from JSON
+ * Handles spawn weights, level distribution, and monster creation
  */
+
+import { CONFIG } from '../config.js';
+import { EventBus, EVENTS } from '../core/event-bus.js';
 
 export class MonsterLoader {
     constructor() {
-        this.monsters = [];
-        this.monstersByLevel = new Map();
+        this.monsters = {};
+        this.monstersByLevel = new Map(); // Cache for spawn pools
         this.loaded = false;
     }
     
     /**
-     * Load monster data
+     * Load monster data from JSON
      */
-    async loadMonsters() {
-        console.log('👾 Loading monster data...');
+    async load() {
+        if (this.loaded) return;
         
         try {
+            console.log('Loading monster data...');
             const response = await fetch('/data/monsters.json');
             if (!response.ok) {
-                throw new Error(`Failed to load monsters: ${response.status}`);
+                throw new Error(`Failed to load monsters: ${response.statusText}`);
             }
             
             const data = await response.json();
-            this.monsters = data.monsters || [];
             
-            // Organize monsters by level for quick lookup
-            this.organizeByLevel();
+            // Store monsters by ID for quick lookup
+            data.monsters.forEach(monster => {
+                this.monsters[monster.id] = monster;
+            });
             
             this.loaded = true;
-            console.log(`✅ Loaded ${this.monsters.length} monster types`);
-            return true;
-        } catch (error) {
-            console.error('❌ Failed to load monster data:', error);
-            // Provide fallback monsters if file is missing
-            this.loadFallbackMonsters();
-            return false;
-        }
-    }
-    
-    /**
-     * Organize monsters by appropriate level
-     */
-    organizeByLevel() {
-        this.monstersByLevel.clear();
-        
-        for (const monster of this.monsters) {
-            const minLevel = monster.minLevel || 1;
-            const maxLevel = monster.maxLevel || 100;
+            console.log(`✓ Loaded ${Object.keys(this.monsters).length} monsters`);
             
-            for (let level = minLevel; level <= maxLevel; level++) {
-                if (!this.monstersByLevel.has(level)) {
-                    this.monstersByLevel.set(level, []);
-                }
-                this.monstersByLevel.get(level).push(monster);
-            }
+            // Pre-calculate spawn pools for each level
+            this.precalculateSpawnPools();
+            
+            EventBus.emit(EVENTS.DATA_LOADED, { type: 'monsters' });
+            
+        } catch (error) {
+            console.error('Failed to load monsters:', error);
+            // Load minimal fallback data
+            this.loadFallbackMonsters();
         }
     }
     
     /**
-     * Load fallback monsters if JSON fails
+     * Fallback monsters if JSON fails to load
      */
     loadFallbackMonsters() {
-        console.log('⚠️ Loading fallback monsters...');
-        this.monsters = [
-            {
+        console.log('Loading fallback monster data...');
+        
+        this.monsters = {
+            'rat': {
                 id: 'rat',
-                name: 'Rat',
+                name: 'giant rat',
                 symbol: 'r',
                 color: '#8B4513',
-                hp: 5,
-                damage: '1d3',
-                defense: 0,
-                xp: 10,
-                minLevel: 1,
-                maxLevel: 5
+                hp: '1d6',
+                thac0: 19,
+                attacks: [
+                    { type: 'bite', damage: '1d3' }
+                ],
+                speed: 12,
+                movementType: 'walk',
+                size: 'small',
+                defaultStatus: 'wandering',
+                sightRange: 4,
+                hearingRange: 6,
+                alertRadius: 3,
+                aiPattern: 'aggressive',
+                identTier: 1,
+                identThreshold: 1,
+                description: 'A rat of unusual size.',
+                creatureType: 'animal',
+                abilities: [],
+                resistances: [],
+                weaknesses: [],
+                packSize: '1d3',
+                spawnRange: {
+                    minLevel: 1,
+                    maxLevel: 20,
+                    weightCurve: {
+                        '1-5': 100,
+                        '6-10': 60,
+                        '11-15': 30,
+                        '16-20': 10
+                    }
+                },
+                lootTable: {
+                    corpse: 'rat_corpse',
+                    gold: '1d3'
+                },
+                frequency: 'common'
             },
-            {
+            'goblin': {
                 id: 'goblin',
-                name: 'Goblin',
+                name: 'goblin',
                 symbol: 'g',
-                color: '#00ff00',
-                hp: 10,
-                damage: '1d6',
-                defense: 1,
-                xp: 25,
-                minLevel: 2,
-                maxLevel: 10
+                color: '#228B22',
+                hp: '2d8',
+                thac0: 19,
+                attacks: [
+                    { type: 'weapon', damage: '1d6' }
+                ],
+                speed: 10,
+                movementType: 'walk',
+                size: 'small',
+                defaultStatus: 'wandering',
+                sightRange: 5,
+                hearingRange: 8,
+                alertRadius: 5,
+                aiPattern: 'intelligent',
+                identTier: 1,
+                identThreshold: 2,
+                description: 'A small, green humanoid with a nasty disposition.',
+                creatureType: 'humanoid',
+                abilities: ['steal'],
+                resistances: [],
+                weaknesses: ['fire'],
+                packSize: '1d4+1',
+                spawnRange: {
+                    minLevel: 1,
+                    maxLevel: 50,
+                    weightCurve: {
+                        '1-5': 80,
+                        '6-15': 100,
+                        '16-25': 60,
+                        '26-35': 30,
+                        '36-45': 15,
+                        '46-50': 5
+                    }
+                },
+                lootTable: {
+                    corpse: 'goblin_corpse',
+                    gold: '2d10',
+                    items: [
+                        { id: 'crude_dagger', chance: 0.25 },
+                        { id: 'leather_armor', chance: 0.1 }
+                    ]
+                },
+                frequency: 'common'
             },
-            {
+            'skeleton': {
                 id: 'skeleton',
-                name: 'Skeleton',
+                name: 'skeleton',
                 symbol: 's',
-                color: '#ffffff',
-                hp: 15,
-                damage: '1d8',
-                defense: 2,
-                xp: 40,
-                minLevel: 5,
-                maxLevel: 15
+                color: '#F5F5DC',
+                hp: '3d8',
+                thac0: 18,
+                attacks: [
+                    { type: 'claw', damage: '1d4' },
+                    { type: 'claw', damage: '1d4' }
+                ],
+                speed: 10,
+                movementType: 'walk',
+                size: 'medium',
+                defaultStatus: 'wandering',
+                sightRange: 5,
+                hearingRange: 0, // Undead don't hear
+                alertRadius: 3,
+                aiPattern: 'aggressive',
+                identTier: 2,
+                identThreshold: 2,
+                description: 'Animated bones held together by dark magic.',
+                creatureType: 'undead',
+                abilities: [],
+                resistances: ['pierce', 'cold'],
+                weaknesses: ['bludgeon', 'holy'],
+                packSize: '1',
+                spawnRange: {
+                    minLevel: 5,
+                    maxLevel: 60,
+                    weightCurve: {
+                        '5-10': 40,
+                        '11-20': 80,
+                        '21-30': 60,
+                        '31-40': 40,
+                        '41-50': 20,
+                        '51-60': 10
+                    }
+                },
+                lootTable: {
+                    corpse: 'pile_of_bones'
+                },
+                frequency: 'common'
             }
-        ];
-        this.organizeByLevel();
+        };
+        
         this.loaded = true;
+        this.precalculateSpawnPools();
     }
     
     /**
-     * Get all monsters
+     * Pre-calculate spawn pools for each dungeon level
      */
-    getAllMonsters() {
-        return this.monsters;
+    precalculateSpawnPools() {
+        console.log('Pre-calculating spawn pools...');
+        
+        for (let level = 1; level <= 100; level++) {
+            const pool = [];
+            
+            Object.values(this.monsters).forEach(monster => {
+                const weight = this.getMonsterSpawnWeight(monster, level);
+                if (weight > 0) {
+                    pool.push({
+                        monster: monster,
+                        weight: weight
+                    });
+                }
+            });
+            
+            this.monstersByLevel.set(level, pool);
+        }
+        
+        console.log('✓ Spawn pools calculated for levels 1-100');
     }
     
     /**
-     * Get monster by ID
+     * Get spawn weight for a monster at a specific level
      */
-    getMonster(id) {
-        return this.monsters.find(m => m.id === id);
+    getMonsterSpawnWeight(monster, level) {
+        if (!monster.spawnRange) return 0;
+        
+        const { minLevel, maxLevel, weightCurve } = monster.spawnRange;
+        
+        // Outside spawn range?
+        if (level < minLevel || level > maxLevel) return 0;
+        
+        // Find applicable weight from curve
+        for (const [range, weight] of Object.entries(weightCurve)) {
+            const [min, max] = range.split('-').map(Number);
+            if (level >= min && level <= max) {
+                return weight;
+            }
+        }
+        
+        return 0;
     }
     
     /**
-     * Get monsters appropriate for a level
+     * Get all monsters that can spawn on a level
      */
     getMonstersForLevel(level) {
+        if (!this.loaded) {
+            console.warn('Monsters not loaded yet!');
+            return [];
+        }
+        
         return this.monstersByLevel.get(level) || [];
     }
     
     /**
-     * Get a random monster for a level
+     * Pick a random monster for a level using weighted selection
      */
     getRandomMonsterForLevel(level) {
-        const monsters = this.getMonstersForLevel(level);
-        if (monsters.length === 0) {
-            // Try adjacent levels if no exact match
-            const nearbyMonsters = [
-                ...this.getMonstersForLevel(level - 1),
-                ...this.getMonstersForLevel(level + 1)
-            ];
-            if (nearbyMonsters.length > 0) {
-                return nearbyMonsters[Math.floor(Math.random() * nearbyMonsters.length)];
-            }
+        const pool = this.getMonstersForLevel(level);
+        if (pool.length === 0) {
+            console.warn(`No monsters available for level ${level}`);
             return null;
         }
-        return monsters[Math.floor(Math.random() * monsters.length)];
+        
+        // Calculate total weight
+        const totalWeight = pool.reduce((sum, entry) => sum + entry.weight, 0);
+        
+        // Pick random weight
+        let random = Math.random() * totalWeight;
+        
+        // Find selected monster
+        for (const entry of pool) {
+            random -= entry.weight;
+            if (random <= 0) {
+                return entry.monster;
+            }
+        }
+        
+        // Fallback (shouldn't happen)
+        return pool[0].monster;
     }
     
     /**
-     * Get boss monster for a level
+     * Get multiple monsters for a room/area
      */
-    getBossForLevel(level) {
-        const bosses = this.monsters.filter(m => m.isBoss && m.bossLevel === level);
-        if (bosses.length > 0) {
-            return bosses[0];
+    getMonsterGroupForLevel(level, count = 1) {
+        const monsters = [];
+        
+        for (let i = 0; i < count; i++) {
+            const monster = this.getRandomMonsterForLevel(level);
+            if (monster) {
+                monsters.push(monster);
+            }
         }
-        return null;
+        
+        return monsters;
+    }
+    
+    /**
+     * Get a specific monster by ID
+     */
+    getMonster(id) {
+        if (!this.loaded) {
+            console.warn('Monsters not loaded yet!');
+            return null;
+        }
+        
+        return this.monsters[id] || null;
+    }
+    
+    /**
+     * Get all monsters of a specific type
+     */
+    getMonstersByType(creatureType) {
+        return Object.values(this.monsters).filter(m => 
+            m.creatureType === creatureType
+        );
+    }
+    
+    /**
+     * Get all unique/boss monsters
+     */
+    getUniqueMonsters() {
+        return Object.values(this.monsters).filter(m => 
+            m.frequency === 'unique'
+        );
+    }
+    
+    /**
+     * Get spawn statistics for debugging
+     */
+    getSpawnStats(level) {
+        const pool = this.getMonstersForLevel(level);
+        const stats = {
+            level: level,
+            totalMonsters: pool.length,
+            totalWeight: pool.reduce((sum, entry) => sum + entry.weight, 0),
+            monsters: pool.map(entry => ({
+                name: entry.monster.name,
+                weight: entry.weight,
+                chance: `${(entry.weight / pool.reduce((sum, e) => sum + e.weight, 0) * 100).toFixed(1)}%`
+            })).sort((a, b) => b.weight - a.weight)
+        };
+        
+        return stats;
+    }
+    
+    /**
+     * Validate monster data structure
+     */
+    validateMonster(monster) {
+        const required = ['id', 'name', 'symbol', 'hp', 'thac0', 'attacks'];
+        const missing = required.filter(field => !monster[field]);
+        
+        if (missing.length > 0) {
+            console.warn(`Monster ${monster.id} missing fields:`, missing);
+            return false;
+        }
+        
+        return true;
     }
     
     /**
@@ -162,8 +368,27 @@ export class MonsterLoader {
     isLoaded() {
         return this.loaded;
     }
+    
+    /**
+     * Get total monster count
+     */
+    getMonsterCount() {
+        return Object.keys(this.monsters).length;
+    }
+    
+    /**
+     * Debug: List all monsters
+     */
+    listAllMonsters() {
+        return Object.values(this.monsters).map(m => ({
+            id: m.id,
+            name: m.name,
+            levels: `${m.spawnRange?.minLevel || 0}-${m.spawnRange?.maxLevel || 0}`,
+            type: m.creatureType,
+            frequency: m.frequency
+        }));
+    }
 }
 
-// Create singleton instance
-const monsterLoader = new MonsterLoader();
-export default monsterLoader;
+// Export singleton instance
+export const monsterLoader = new MonsterLoader();

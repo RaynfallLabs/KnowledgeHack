@@ -5,6 +5,8 @@
 
 import { CONFIG } from '../config.js';
 import { EventBus, EVENTS } from '../core/event-bus.js';
+import { monsterLoader } from '../systems/monster-loader.js';
+import { Monster } from '../entities/monster.js';
 
 export class DungeonGenerator {
     constructor() {
@@ -25,7 +27,7 @@ export class DungeonGenerator {
         this.SECRET_DOOR_CHANCE = 0.2;  // 20% chance per connection
         
         // Boss level IDs
-        this.BOSS_LEVELS = CONFIG.BOSS_LEVELS;
+        this.BOSS_LEVELS = CONFIG.BOSS_LEVELS || [15, 30, 45, 60, 75, 90, 100];
     }
     
     /**
@@ -36,6 +38,11 @@ export class DungeonGenerator {
      * @returns {Object} Dungeon object
      */
     async generate(level, width, height) {
+        // Ensure monsters are loaded
+        if (!monsterLoader.isLoaded()) {
+            await monsterLoader.load();
+        }
+        
         // Check if this is a boss level
         if (this.BOSS_LEVELS.includes(level)) {
             return await this.generateBossLevel(level, width, height);
@@ -91,8 +98,8 @@ export class DungeonGenerator {
         // Place items
         this.placeItems(dungeon);
         
-        // Place monsters
-        this.placeMonsters(dungeon);
+        // Place monsters with new system
+        await this.placeMonsters(dungeon);
         
         // Place traps
         this.placeTraps(dungeon);
@@ -356,7 +363,7 @@ export class DungeonGenerator {
         const room = dungeon.rooms[Math.floor(1 + Math.random() * (dungeon.rooms.length - 2))];
         
         // Special room types
-        const types = ['shop', 'library', 'armory', 'treasury', 'temple'];
+        const types = ['shop', 'library', 'armory', 'treasury', 'temple', 'vault'];
         room.type = types[Math.floor(Math.random() * types.length)];
         
         // Mark tiles as special
@@ -440,35 +447,159 @@ export class DungeonGenerator {
     }
     
     /**
-     * Place monsters
+     * Place monsters using the new MonsterLoader system
      */
-    placeMonsters(dungeon) {
-        // Scale with level (NetHack style)
-        const monsterCount = Math.floor(3 + dungeon.level * 0.5);
+    async placeMonsters(dungeon) {
+        console.log(`Spawning monsters for level ${dungeon.level}...`);
         
-        for (let i = 0; i < monsterCount; i++) {
-            const room = dungeon.rooms[Math.floor(Math.random() * dungeon.rooms.length)];
-            const x = room.x + Math.floor(Math.random() * room.width);
-            const y = room.y + Math.floor(Math.random() * room.height);
+        // Calculate number of monsters based on level
+        const baseCount = Math.floor(this.MIN_ROOMS * 0.7);
+        const levelBonus = Math.floor(dungeon.level / 10);
+        const monsterCount = baseCount + levelBonus + Math.floor(Math.random() * 5);
+        
+        const monsters = [];
+        
+        // Don't spawn in the entrance room
+        const availableRooms = dungeon.rooms.slice(1);
+        
+        // Place monsters in rooms
+        for (const room of availableRooms) {
+            // Special rooms have different spawn chances
+            let spawnChance = 0.4; // Base 40% chance per room
             
-            dungeon.monsters.push({
-                x, y,
-                type: this.getMonsterType(dungeon.level),
-                asleep: Math.random() < 0.3  // 30% sleeping
-            });
+            if (room.type === 'treasury' || room.type === 'vault') {
+                spawnChance = 0.8; // Higher chance, and guards
+            } else if (room.type === 'temple') {
+                spawnChance = 0.2; // Lower chance in temples
+            }
+            
+            if (Math.random() < spawnChance && monsters.length < monsterCount) {
+                const monsterData = monsterLoader.getRandomMonsterForLevel(dungeon.level);
+                if (!monsterData) continue;
+                
+                // Check for pack spawning
+                const packSize = monsterData.packSize ? 
+                    this.rollDice(monsterData.packSize) : 1;
+                
+                for (let i = 0; i < packSize && monsters.length < monsterCount; i++) {
+                    const pos = this.getRandomRoomPosition(room, dungeon);
+                    if (pos && !this.hasMonsterAt(monsters, pos.x, pos.y)) {
+                        const monster = new Monster(monsterData, pos.x, pos.y);
+                        
+                        // Special room modifications
+                        if (room.type === 'vault' || room.type === 'treasury') {
+                            monster.status = 'guarding';
+                            monster.guardPost = { x: pos.x, y: pos.y };
+                        }
+                        
+                        // Some monsters start sleeping
+                        if (monster.defaultStatus === 'sleeping' || 
+                            (Math.random() < 0.3 && monster.status !== 'guarding')) {
+                            monster.status = 'sleeping';
+                            monster.currentSightRange = 0;
+                            monster.currentHearingRange = 0;
+                        }
+                        
+                        monsters.push(monster);
+                    }
+                }
+            }
+        }
+        
+        // Place some monsters in corridors (fewer, and only wandering types)
+        const corridorMonsters = Math.floor(monsterCount * 0.2);
+        for (let i = 0; i < corridorMonsters && monsters.length < monsterCount; i++) {
+            const monsterData = monsterLoader.getRandomMonsterForLevel(dungeon.level);
+            if (!monsterData) continue;
+            
+            // Don't put pack monsters in corridors
+            if (monsterData.packSize && this.rollDice(monsterData.packSize) > 1) {
+                continue;
+            }
+            
+            const pos = this.getRandomCorridorPosition(dungeon);
+            if (pos && !this.hasMonsterAt(monsters, pos.x, pos.y)) {
+                const monster = new Monster(monsterData, pos.x, pos.y);
+                monsters.push(monster);
+            }
+        }
+        
+        dungeon.monsters = monsters;
+        console.log(`✓ Spawned ${monsters.length} monsters`);
+        
+        // Debug spawn distribution
+        if (CONFIG.DEBUG_MODE) {
+            const stats = monsterLoader.getSpawnStats(dungeon.level);
+            console.log('Spawn distribution:', stats);
         }
     }
     
     /**
-     * Get appropriate monster type for level
+     * Get random position in a room
      */
-    getMonsterType(level) {
-        // Simplified - would load from monster tables
-        if (level < 5) return 'rat';
-        if (level < 10) return 'goblin';
-        if (level < 20) return 'orc';
-        if (level < 30) return 'troll';
-        return 'dragon';
+    getRandomRoomPosition(room, dungeon) {
+        // Try to find an empty floor tile
+        for (let attempts = 0; attempts < 10; attempts++) {
+            const x = room.x + Math.floor(Math.random() * room.width);
+            const y = room.y + Math.floor(Math.random() * room.height);
+            
+            if (dungeon.tiles[y][x].type === 'floor' && 
+                dungeon.tiles[y][x].type !== 'stairs_up' &&
+                dungeon.tiles[y][x].type !== 'stairs_down') {
+                return { x, y };
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get random position in a corridor
+     */
+    getRandomCorridorPosition(dungeon) {
+        const corridorTiles = [];
+        
+        for (let y = 1; y < dungeon.height - 1; y++) {
+            for (let x = 1; x < dungeon.width - 1; x++) {
+                if (dungeon.tiles[y][x].type === 'corridor') {
+                    corridorTiles.push({x, y});
+                }
+            }
+        }
+        
+        if (corridorTiles.length === 0) return null;
+        
+        return corridorTiles[Math.floor(Math.random() * corridorTiles.length)];
+    }
+    
+    /**
+     * Check if position has a monster
+     */
+    hasMonsterAt(monsters, x, y) {
+        return monsters.some(m => m.x === x && m.y === y);
+    }
+    
+    /**
+     * Roll dice notation (e.g., "2d8+3")
+     */
+    rollDice(notation) {
+        if (typeof notation === 'number') return notation;
+        if (!notation) return 0;
+        
+        const match = notation.match(/(\d+)d(\d+)([+-]\d+)?/);
+        if (!match) return parseInt(notation) || 1;
+        
+        const [, num, sides, mod] = match;
+        let total = 0;
+        
+        for (let i = 0; i < parseInt(num); i++) {
+            total += Math.floor(Math.random() * parseInt(sides)) + 1;
+        }
+        
+        if (mod) {
+            total += parseInt(mod);
+        }
+        
+        return Math.max(1, total); // At least 1
     }
     
     /**
@@ -615,7 +746,7 @@ export class DungeonGenerator {
                 tiles: bossData.tiles || [],
                 rooms: bossData.rooms || [],
                 corridors: [],
-                monsters: bossData.monsters || [],
+                monsters: [],
                 items: bossData.items || [],
                 traps: bossData.traps || [],
                 stairs: bossData.stairs || {},
@@ -625,9 +756,21 @@ export class DungeonGenerator {
                 boss: bossData.boss
             };
             
-            // Add random monsters and items on top of static layout
+            // Add boss monster
+            if (bossData.boss) {
+                const bossMonsterData = monsterLoader.getMonster(bossData.boss.id);
+                if (bossMonsterData) {
+                    const boss = new Monster(bossMonsterData, bossData.boss.x, bossData.boss.y);
+                    boss.hp *= 3; // Boss has triple HP
+                    boss.maxHp *= 3;
+                    boss.status = 'guarding';
+                    dungeon.monsters.push(boss);
+                }
+            }
+            
+            // Add random monsters on top of static layout
+            await this.placeMonsters(dungeon);
             this.placeItems(dungeon);
-            this.placeMonsters(dungeon);
             
             return this.wrapDungeon(dungeon);
         } catch (error) {
@@ -648,9 +791,33 @@ export class DungeonGenerator {
                 }
                 return null;
             },
+            isWall(x, y) {
+                const tile = this.getTile(x, y);
+                return tile && tile.type === 'wall';
+            },
+            isPassable(x, y) {
+                const tile = this.getTile(x, y);
+                return tile && !tile.blocked && tile.type !== 'wall';
+            },
             isWalkable(x, y) {
                 const tile = this.getTile(x, y);
                 return tile && !tile.blocked;
+            },
+            getMonsterAt(x, y) {
+                return dungeon.monsters.find(m => m.x === x && m.y === y && m.hp > 0);
+            },
+            getMonstersInRadius(x, y, radius) {
+                const monsters = [];
+                for (const monster of dungeon.monsters) {
+                    if (monster.hp <= 0) continue;
+                    const dx = monster.x - x;
+                    const dy = monster.y - y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance <= radius) {
+                        monsters.push(monster);
+                    }
+                }
+                return monsters;
             },
             updateVisibility(x, y, radius) {
                 // Update visible/explored tiles

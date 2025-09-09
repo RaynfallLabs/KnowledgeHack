@@ -1,1 +1,688 @@
-{"monsters": []}
+{
+  "monsters": [
+    {
+      "id": "giant_rat",
+      "name": "giant rat",
+      "symbol": "r",
+      "color": "#8B4513",
+      "hp": "1d8",
+      "thac0": 20,
+      "attacks": [
+        { "type": "bite", "damage": "1d3" }
+      ],
+      "speed": 12,
+      "movementType": "walk",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 4,
+      "hearingRange": 6,
+      "alertRadius": 5,
+      "aiPattern": "aggressive",
+      "identTier": 1,
+      "identThreshold": 1,
+      "description": "A rat of unusual size, its red eyes gleam with hunger.",
+      "creatureType": "animal",
+      "abilities": [],
+      "resistances": [],
+      "weaknesses": [],
+      "packSize": "1d4",
+      "spawnRange": {
+        "minLevel": 1,
+        "maxLevel": 15,
+        "weightCurve": {
+          "1-3": 100,
+          "4-6": 80,
+          "7-9": 60,
+          "10-12": 40,
+          "13-15": 20
+        }
+      },
+      "lootTable": {
+        "corpse": "rat_corpse",
+        "gold": null,
+        "items": []
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "goblin",
+      "name": "goblin",
+      "symbol": "g",
+      "color": "#228B22",
+      "hp": "1d8",
+      "thac0": 19,
+      "attacks": [
+        { "type": "weapon", "damage": "1d6" }
+      ],
+      "speed": 10,
+      "movementType": "walk",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 5,
+      "hearingRange": 8,
+      "alertRadius": 6,
+      "aiPattern": "intelligent",
+      "identTier": 1,
+      "identThreshold": 2,
+      "description": "A small, vicious humanoid that delights in mischief and cruelty.",
+      "creatureType": "humanoid",
+      "abilities": ["steal"],
+      "resistances": [],
+      "weaknesses": [],
+      "packSize": "1d3",
+      "spawnRange": {
+        "minLevel": 1,
+        "maxLevel": 50,
+        "weightCurve": {
+          "1-5": 80,
+          "6-10": 100,
+          "11-20": 80,
+          "21-30": 60,
+          "31-40": 40,
+          "41-50": 20
+        }
+      },
+      "lootTable": {
+        "corpse": "goblin_corpse",
+        "gold": "1d10",
+        "items": [
+          { "id": "crude_dagger", "chance": 0.25 },
+          { "id": "leather_cap", "chance": 0.1 }
+        ]
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "giant_bat",
+      "name": "giant bat",
+      "symbol": "B",
+      "color": "#4B0082",
+      "hp": "1d8",
+      "thac0": 20,
+      "attacks": [
+        { "type": "bite", "damage": "1d4" }
+      ],
+      "speed": 22,
+      "movementType": "fly",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 3,
+      "hearingRange": 10,
+      "alertRadius": 4,
+      "aiPattern": "aggressive",
+      "identTier": 1,
+      "identThreshold": 1,
+      "description": "A large bat with leathery wings, navigating by echolocation.",
+      "creatureType": "animal",
+      "abilities": [],
+      "resistances": [],
+      "weaknesses": ["light"],
+      "packSize": "1d3",
+      "spawnRange": {
+        "minLevel": 1,
+        "maxLevel": 25,
+        "weightCurve": {
+          "1-5": 80,
+          "6-10": 90,
+          "11-15": 70,
+          "16-20": 50,
+          "21-25": 30
+        }
+      },
+      "lootTable": {
+        "corpse": "bat_corpse",
+        "gold": null,
+        "items": []
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "jackal",
+      "name": "jackal",
+      "symbol": "d",
+      "color": "#D2691E",
+      "hp": "1d8",
+      "thac0": 19,
+      "attacks": [
+        { "type": "bite", "damage": "1d2" }
+      ],
+      "speed": 12,
+      "movementType": "walk",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 6,
+      "hearingRange": 8,
+      "alertRadius": 8,
+      "aiPattern": "pack_hunter",
+      "identTier": 1,
+      "identThreshold": 1,
+      "description": "A scavenging canine that hunts in coordinated packs.",
+      "creatureType": "animal",
+      "abilities": [],
+      "resistances": [],
+      "weaknesses": [],
+      "packSize": "2d3",
+      "spawnRange": {
+        "minLevel": 1,
+        "maxLevel": 20,
+        "weightCurve": {
+          "1-4": 90,
+          "5-8": 100,
+          "9-12": 70,
+          "13-16": 50,
+          "17-20": 30
+        }
+      },
+      "lootTable": {
+        "corpse": "jackal_corpse",
+        "gold": null,
+        "items": []
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "kobold",
+      "name": "kobold",
+      "symbol": "k",
+      "color": "#A0522D",
+      "hp": "1d8",
+      "thac0": 19,
+      "attacks": [
+        { "type": "weapon", "damage": "1d4" },
+        { "type": "thrown", "damage": "1d3" }
+      ],
+      "speed": 9,
+      "movementType": "walk",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 5,
+      "hearingRange": 7,
+      "alertRadius": 5,
+      "aiPattern": "ranged",
+      "identTier": 1,
+      "identThreshold": 2,
+      "description": "A small reptilian humanoid, known for setting traps and throwing darts.",
+      "creatureType": "humanoid",
+      "abilities": [],
+      "resistances": ["poison"],
+      "weaknesses": [],
+      "packSize": "1d4",
+      "spawnRange": {
+        "minLevel": 1,
+        "maxLevel": 30,
+        "weightCurve": {
+          "1-5": 70,
+          "6-10": 90,
+          "11-15": 80,
+          "16-20": 60,
+          "21-25": 40,
+          "26-30": 20
+        }
+      },
+      "lootTable": {
+        "corpse": "kobold_corpse",
+        "gold": "1d6",
+        "items": [
+          { "id": "dart", "chance": 0.4 },
+          { "id": "crude_dagger", "chance": 0.2 }
+        ]
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "newt",
+      "name": "newt",
+      "symbol": ":",
+      "color": "#90EE90",
+      "hp": "1d2",
+      "thac0": 20,
+      "attacks": [
+        { "type": "bite", "damage": "1d2" }
+      ],
+      "speed": 6,
+      "movementType": "walk",
+      "size": "tiny",
+      "defaultStatus": "wandering",
+      "sightRange": 3,
+      "hearingRange": 4,
+      "alertRadius": 2,
+      "aiPattern": "cowardly",
+      "identTier": 1,
+      "identThreshold": 1,
+      "description": "A small amphibian, mostly harmless but surprisingly tenacious.",
+      "creatureType": "animal",
+      "abilities": [],
+      "resistances": [],
+      "weaknesses": [],
+      "packSize": "1",
+      "spawnRange": {
+        "minLevel": 1,
+        "maxLevel": 10,
+        "weightCurve": {
+          "1-2": 100,
+          "3-4": 80,
+          "5-6": 60,
+          "7-8": 40,
+          "9-10": 20
+        }
+      },
+      "lootTable": {
+        "corpse": "newt_corpse",
+        "gold": null,
+        "items": []
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "grid_bug",
+      "name": "grid bug",
+      "symbol": "x",
+      "color": "#FF00FF",
+      "hp": "1d1",
+      "thac0": 20,
+      "attacks": [
+        { "type": "zap", "damage": "1d1" }
+      ],
+      "speed": 12,
+      "movementType": "walk",
+      "size": "tiny",
+      "defaultStatus": "wandering",
+      "sightRange": 4,
+      "hearingRange": 0,
+      "alertRadius": 0,
+      "aiPattern": "aggressive",
+      "identTier": 1,
+      "identThreshold": 1,
+      "description": "An electric insect that can only move orthogonally, never diagonally.",
+      "creatureType": "animal",
+      "abilities": [],
+      "resistances": ["electric"],
+      "weaknesses": [],
+      "packSize": "1",
+      "spawnRange": {
+        "minLevel": 1,
+        "maxLevel": 8,
+        "weightCurve": {
+          "1-2": 90,
+          "3-4": 70,
+          "5-6": 50,
+          "7-8": 30
+        }
+      },
+      "lootTable": {
+        "corpse": "grid_bug_corpse",
+        "gold": null,
+        "items": []
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "hobgoblin",
+      "name": "hobgoblin",
+      "symbol": "g",
+      "color": "#8B4513",
+      "hp": "1d8+1",
+      "thac0": 18,
+      "attacks": [
+        { "type": "weapon", "damage": "1d8" }
+      ],
+      "speed": 10,
+      "movementType": "walk",
+      "size": "medium",
+      "defaultStatus": "wandering",
+      "sightRange": 6,
+      "hearingRange": 8,
+      "alertRadius": 6,
+      "aiPattern": "intelligent",
+      "identTier": 2,
+      "identThreshold": 2,
+      "description": "A larger, more disciplined cousin of the goblin, often found leading goblin bands.",
+      "creatureType": "humanoid",
+      "abilities": [],
+      "resistances": [],
+      "weaknesses": [],
+      "packSize": "1",
+      "spawnRange": {
+        "minLevel": 3,
+        "maxLevel": 40,
+        "weightCurve": {
+          "3-8": 60,
+          "9-15": 80,
+          "16-22": 70,
+          "23-30": 50,
+          "31-40": 30
+        }
+      },
+      "lootTable": {
+        "corpse": "hobgoblin_corpse",
+        "gold": "2d10",
+        "items": [
+          { "id": "short_sword", "chance": 0.3 },
+          { "id": "leather_armor", "chance": 0.15 }
+        ]
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "orc",
+      "name": "orc",
+      "symbol": "o",
+      "color": "#556B2F",
+      "hp": "1d8",
+      "thac0": 18,
+      "attacks": [
+        { "type": "weapon", "damage": "1d8" }
+      ],
+      "speed": 9,
+      "movementType": "walk",
+      "size": "medium",
+      "defaultStatus": "wandering",
+      "sightRange": 5,
+      "hearingRange": 7,
+      "alertRadius": 8,
+      "aiPattern": "aggressive",
+      "identTier": 2,
+      "identThreshold": 2,
+      "description": "A brutish humanoid warrior, strong but not particularly bright.",
+      "creatureType": "humanoid",
+      "abilities": ["rage"],
+      "resistances": [],
+      "weaknesses": [],
+      "packSize": "1d3",
+      "spawnRange": {
+        "minLevel": 4,
+        "maxLevel": 50,
+        "weightCurve": {
+          "4-10": 60,
+          "11-20": 90,
+          "21-30": 80,
+          "31-40": 60,
+          "41-50": 40
+        }
+      },
+      "lootTable": {
+        "corpse": "orc_corpse",
+        "gold": "3d10",
+        "items": [
+          { "id": "orcish_dagger", "chance": 0.25 },
+          { "id": "orcish_helm", "chance": 0.15 }
+        ]
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "zombie",
+      "name": "zombie",
+      "symbol": "Z",
+      "color": "#8B7355",
+      "hp": "2d8",
+      "thac0": 19,
+      "attacks": [
+        { "type": "claw", "damage": "1d6" }
+      ],
+      "speed": 6,
+      "movementType": "walk",
+      "size": "medium",
+      "defaultStatus": "wandering",
+      "sightRange": 3,
+      "hearingRange": 0,
+      "alertRadius": 0,
+      "aiPattern": "aggressive",
+      "identTier": 2,
+      "identThreshold": 2,
+      "description": "A shambling corpse animated by dark magic, slow but relentless.",
+      "creatureType": "undead",
+      "abilities": [],
+      "resistances": ["cold", "poison"],
+      "weaknesses": ["fire", "holy"],
+      "packSize": "1",
+      "spawnRange": {
+        "minLevel": 3,
+        "maxLevel": 40,
+        "weightCurve": {
+          "3-8": 40,
+          "9-15": 70,
+          "16-25": 80,
+          "26-35": 60,
+          "36-40": 40
+        }
+      },
+      "lootTable": {
+        "corpse": "rotting_corpse",
+        "gold": null,
+        "items": []
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "floating_eye",
+      "name": "floating eye",
+      "symbol": "e",
+      "color": "#00FFFF",
+      "hp": "1d10",
+      "thac0": 20,
+      "attacks": [
+        { "type": "gaze", "damage": "0" }
+      ],
+      "speed": 1,
+      "movementType": "fly",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 8,
+      "hearingRange": 0,
+      "alertRadius": 0,
+      "aiPattern": "defensive",
+      "identTier": 2,
+      "identThreshold": 3,
+      "description": "A bizarre floating orb with a paralyzing gaze. Looking at it is dangerous.",
+      "creatureType": "aberration",
+      "abilities": ["paralyzing_gaze"],
+      "resistances": [],
+      "weaknesses": [],
+      "packSize": "1",
+      "spawnRange": {
+        "minLevel": 2,
+        "maxLevel": 30,
+        "weightCurve": {
+          "2-6": 40,
+          "7-12": 60,
+          "13-18": 50,
+          "19-24": 40,
+          "25-30": 30
+        }
+      },
+      "lootTable": {
+        "corpse": "floating_eye_corpse",
+        "gold": null,
+        "items": []
+      },
+      "frequency": "uncommon"
+    },
+    {
+      "id": "acid_blob",
+      "name": "acid blob",
+      "symbol": "b",
+      "color": "#32CD32",
+      "hp": "1d8",
+      "thac0": 20,
+      "attacks": [
+        { "type": "touch", "damage": "1d8" }
+      ],
+      "speed": 3,
+      "movementType": "walk",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 0,
+      "hearingRange": 0,
+      "alertRadius": 0,
+      "aiPattern": "aggressive",
+      "identTier": 2,
+      "identThreshold": 2,
+      "description": "A mindless mass of corrosive jelly that dissolves anything it touches.",
+      "creatureType": "ooze",
+      "abilities": ["acid_spit"],
+      "resistances": ["acid", "poison", "cold"],
+      "weaknesses": [],
+      "packSize": "1",
+      "spawnRange": {
+        "minLevel": 2,
+        "maxLevel": 25,
+        "weightCurve": {
+          "2-5": 30,
+          "6-10": 50,
+          "11-15": 60,
+          "16-20": 40,
+          "21-25": 20
+        }
+      },
+      "lootTable": {
+        "corpse": "acid_blob_glob",
+        "gold": null,
+        "items": []
+      },
+      "frequency": "uncommon"
+    },
+    {
+      "id": "giant_ant",
+      "name": "giant ant",
+      "symbol": "a",
+      "color": "#000000",
+      "hp": "2d8",
+      "thac0": 18,
+      "attacks": [
+        { "type": "bite", "damage": "1d6" }
+      ],
+      "speed": 18,
+      "movementType": "walk",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 4,
+      "hearingRange": 6,
+      "alertRadius": 10,
+      "aiPattern": "pack_hunter",
+      "identTier": 1,
+      "identThreshold": 2,
+      "description": "A worker ant the size of a dog, fiercely protective of its colony.",
+      "creatureType": "animal",
+      "abilities": [],
+      "resistances": [],
+      "weaknesses": ["fire"],
+      "packSize": "2d3",
+      "spawnRange": {
+        "minLevel": 3,
+        "maxLevel": 35,
+        "weightCurve": {
+          "3-8": 50,
+          "9-15": 80,
+          "16-22": 70,
+          "23-29": 50,
+          "30-35": 30
+        }
+      },
+      "lootTable": {
+        "corpse": "giant_ant_corpse",
+        "gold": null,
+        "items": []
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "dwarf",
+      "name": "dwarf",
+      "symbol": "h",
+      "color": "#CD853F",
+      "hp": "1d8",
+      "thac0": 18,
+      "attacks": [
+        { "type": "weapon", "damage": "1d8" }
+      ],
+      "speed": 6,
+      "movementType": "walk",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 6,
+      "hearingRange": 8,
+      "alertRadius": 5,
+      "aiPattern": "intelligent",
+      "identTier": 2,
+      "identThreshold": 3,
+      "description": "A stout mountain dweller, skilled in mining and metalwork.",
+      "creatureType": "humanoid",
+      "abilities": [],
+      "resistances": [],
+      "weaknesses": [],
+      "packSize": "1",
+      "spawnRange": {
+        "minLevel": 5,
+        "maxLevel": 60,
+        "weightCurve": {
+          "5-10": 40,
+          "11-20": 70,
+          "21-30": 80,
+          "31-40": 70,
+          "41-50": 50,
+          "51-60": 30
+        }
+      },
+      "lootTable": {
+        "corpse": "dwarf_corpse",
+        "gold": "5d10",
+        "items": [
+          { "id": "dwarvish_short_sword", "chance": 0.3 },
+          { "id": "dwarvish_iron_helm", "chance": 0.2 },
+          { "id": "pickaxe", "chance": 0.1 }
+        ]
+      },
+      "frequency": "common"
+    },
+    {
+      "id": "gnome",
+      "name": "gnome",
+      "symbol": "G",
+      "color": "#A52A2A",
+      "hp": "1d8",
+      "thac0": 19,
+      "attacks": [
+        { "type": "weapon", "damage": "1d6" }
+      ],
+      "speed": 7,
+      "movementType": "walk",
+      "size": "small",
+      "defaultStatus": "wandering",
+      "sightRange": 5,
+      "hearingRange": 8,
+      "alertRadius": 4,
+      "aiPattern": "intelligent",
+      "identTier": 2,
+      "identThreshold": 2,
+      "description": "A small humanoid with a talent for illusion and tinkering.",
+      "creatureType": "humanoid",
+      "abilities": [],
+      "resistances": [],
+      "weaknesses": [],
+      "packSize": "1d2",
+      "spawnRange": {
+        "minLevel": 3,
+        "maxLevel": 50,
+        "weightCurve": {
+          "3-8": 50,
+          "9-15": 70,
+          "16-25": 80,
+          "26-35": 60,
+          "36-45": 40,
+          "46-50": 20
+        }
+      },
+      "lootTable": {
+        "corpse": "gnome_corpse",
+        "gold": "3d10",
+        "items": [
+          { "id": "gnomish_dagger", "chance": 0.25 },
+          { "id": "gnomish_cap", "chance": 0.15 },
+          { "id": "candle", "chance": 0.1 }
+        ]
+      },
+      "frequency": "common"
+    }
+  ]
+}
