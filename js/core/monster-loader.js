@@ -21,7 +21,13 @@ export class MonsterLoader {
         
         try {
             console.log('Loading monster data...');
-            const response = await fetch('/data/monsters.json');
+            
+            // Use correct path for GitHub Pages
+            const basePath = window.location.hostname === 'localhost' 
+                ? '/data' 
+                : '/KnowledgeHack/data';
+            
+            const response = await fetch(`${basePath}/monsters.json`);
             if (!response.ok) {
                 throw new Error(`Failed to load monsters: ${response.statusText}`);
             }
@@ -29,9 +35,18 @@ export class MonsterLoader {
             const data = await response.json();
             
             // Store monsters by ID for quick lookup
-            data.monsters.forEach(monster => {
-                this.monsters[monster.id] = monster;
-            });
+            if (data.monsters) {
+                data.monsters.forEach(monster => {
+                    this.monsters[monster.id] = monster;
+                });
+            } else if (Array.isArray(data)) {
+                data.forEach(monster => {
+                    this.monsters[monster.id] = monster;
+                });
+            } else {
+                // Assume the data is an object with monster IDs as keys
+                this.monsters = data;
+            }
             
             this.loaded = true;
             console.log(`✓ Loaded ${Object.keys(this.monsters).length} monsters`);
@@ -333,14 +348,16 @@ export class MonsterLoader {
      */
     getSpawnStats(level) {
         const pool = this.getMonstersForLevel(level);
+        const totalWeight = pool.reduce((sum, entry) => sum + entry.weight, 0);
+        
         const stats = {
             level: level,
             totalMonsters: pool.length,
-            totalWeight: pool.reduce((sum, entry) => sum + entry.weight, 0),
+            totalWeight: totalWeight,
             monsters: pool.map(entry => ({
                 name: entry.monster.name,
                 weight: entry.weight,
-                chance: `${(entry.weight / pool.reduce((sum, e) => sum + e.weight, 0) * 100).toFixed(1)}%`
+                chance: totalWeight > 0 ? `${(entry.weight / totalWeight * 100).toFixed(1)}%` : '0%'
             })).sort((a, b) => b.weight - a.weight)
         };
         
