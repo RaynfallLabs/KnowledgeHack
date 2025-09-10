@@ -16,7 +16,9 @@ export class ItemLoader {
             food: [],
             corpses: [],
             tools: [],
-            artifacts: []
+            artifacts: [],
+            ammo: [],
+            containers: []
         };
         this.loaded = false;
     }
@@ -30,7 +32,7 @@ export class ItemLoader {
         const itemTypes = [
             'weapons', 'armor', 'accessories', 'potions', 
             'scrolls', 'wands', 'books', 'food', 
-            'corpses', 'tools', 'artifacts'
+            'corpses', 'tools', 'artifacts', 'ammo', 'containers'
         ];
         
         try {
@@ -52,16 +54,27 @@ export class ItemLoader {
      */
     async loadItemType(type) {
         try {
-            const response = await fetch(`/data/items/${type}.json`);
+            // Use correct relative path for GitHub Pages
+            const basePath = window.location.hostname === 'localhost' 
+                ? '/data/items' 
+                : '/KnowledgeHack/data/items';
+            
+            const response = await fetch(`${basePath}/${type}.json`);
             if (!response.ok) {
+                // Some files don't exist yet, that's okay
+                if (response.status === 404) {
+                    console.log(`  - ${type}: Not yet implemented`);
+                    this.items[type] = [];
+                    return;
+                }
                 throw new Error(`Failed to load ${type}: ${response.status}`);
             }
             
             const data = await response.json();
-            this.items[type] = data[type] || [];
-            console.log(`  - Loaded ${this.items[type].length} ${type}`);
+            this.items[type] = data[type] || data || [];
+            console.log(`  ✓ Loaded ${this.items[type].length} ${type}`);
         } catch (error) {
-            console.warn(`⚠️ Could not load ${type}:`, error.message);
+            console.warn(`  ⚠️ Could not load ${type}:`, error.message);
             this.items[type] = [];
         }
     }

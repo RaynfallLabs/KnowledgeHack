@@ -1,23 +1,23 @@
 /**
  * game.js - Main game orchestrator
- * Updated with cooking, harvesting, and food progression systems
+ * Coordinates all game systems and manages game state
  */
 
 import { CONFIG } from '../config.js';
-import { EventBus, EVENTS } from './event-bus.js';
-import { QuestionLoader } from './question-loader.js';
-import { ItemLoader } from './item-loader.js';
-import { MonsterLoader } from './monster-loader.js';
+import { EventBus, EVENTS } from '../core/event-bus.js';
+import { QuestionLoader } from '../core/question-loader.js';
+import { ItemLoader } from '../core/item-loader.js';
+import { monsterLoader } from '../core/monster-loader.js';
 import { Player } from '../entities/player.js';
+import { Monster } from '../entities/monster.js';
 import { DungeonGenerator } from '../world/dungeon-generator.js';
+import { Dungeon } from '../world/dungeon.js';
 import { QuizEngine } from '../systems/quiz-engine.js';
 import { CombatSystem } from '../systems/combat.js';
 import { InventorySystem } from '../systems/inventory.js';
 import { EquipmentSystem } from '../systems/equipment.js';
-import { IdentificationSystem } from '../systems/identification.js';
 import { CookingSystem } from '../systems/cooking.js';
 import { HarvestingSystem } from '../systems/harvesting.js';
-import { SaveLoadSystem } from '../systems/save-load.js';
 import { Renderer } from '../ui/renderer.js';
 import { MessageLog } from '../ui/message-log.js';
 import { UIManager } from '../ui/ui-manager.js';
@@ -33,32 +33,29 @@ export class Game {
         // Core components
         this.player = null;
         this.dungeon = null;
-        this.monsters = [];
-        this.items = [];
+        this.dungeonGenerator = null;
+        this.currentLevel = 1;
         
         // Data loaders
-        this.questionLoader = null;
-        this.itemLoader = null;
-        this.monsterLoader = null;
+        this.questionLoader = new QuestionLoader();
+        this.itemLoader = new ItemLoader();
+        this.monsterLoader = monsterLoader; // Use the singleton instance
         
-        // Systems
+        // Game systems
         this.quizEngine = null;
         this.combatSystem = null;
         this.inventorySystem = null;
         this.equipmentSystem = null;
-        this.identificationSystem = null;
         this.cookingSystem = null;
         this.harvestingSystem = null;
-        this.saveLoadSystem = null;
         
-        // UI
+        // UI components
         this.renderer = null;
         this.messageLog = null;
         this.uiManager = null;
         this.inputHandler = null;
         
         // Game state
-        this.currentLevel = 1;
         this.gameOver = false;
         this.victory = false;
     }
@@ -67,19 +64,54 @@ export class Game {
      * Initialize all game systems
      */
     async initialize() {
-        console.log('🎮 Initializing game systems...');
-        
         try {
-            // Load all data first
+            console.log('🎮 Initializing game systems...');
+            
+            // Load all game data first
             await this.loadGameData();
             
-            // Create player with starting stats
-            this.createPlayer();
+            // Create player with 6-stat system
+            this.player = new Player(this.playerName);
             
-            // Initialize all systems
-            this.initializeSystems();
+            // Initialize dungeon systems
+            this.dungeonGenerator = new DungeonGenerator();
+            this.dungeon = new Dungeon(this);
             
-            // Initialize UI
+            // Initialize game systems
+            this.quizEngine = new QuizEngine();
+            
+            // Initialize systems that exist
+            try {
+                this.combatSystem = new CombatSystem(this);
+            } catch (e) {
+                console.log('Combat system not ready:', e.message);
+            }
+            
+            try {
+                this.inventorySystem = new InventorySystem(this);
+            } catch (e) {
+                console.log('Inventory system not ready:', e.message);
+            }
+            
+            try {
+                this.equipmentSystem = new EquipmentSystem(this);
+            } catch (e) {
+                console.log('Equipment system not ready:', e.message);
+            }
+            
+            try {
+                this.cookingSystem = new CookingSystem(this);
+            } catch (e) {
+                console.log('Cooking system not ready:', e.message);
+            }
+            
+            try {
+                this.harvestingSystem = new HarvestingSystem(this);
+            } catch (e) {
+                console.log('Harvesting system not ready:', e.message);
+            }
+            
+            // Initialize UI components
             this.initializeUI();
             
             // Generate first level
@@ -88,24 +120,13 @@ export class Game {
             // Setup event listeners
             this.setupEventListeners();
             
-            // Initial messages
-            this.showWelcomeMessages();
-            
-            // Give starting equipment
-            this.giveStartingEquipment();
+            // Start the game
+            this.start();
             
             console.log('✅ Game initialized successfully!');
-            
-            // Start render loop
-            this.renderer.startRenderLoop();
-            
-            // Start game loop
-            this.running = true;
-            this.gameLoop();
-            
         } catch (error) {
             console.error('Failed to initialize game:', error);
-            this.messageLog?.add('Failed to initialize game! Check console for errors.', 'danger');
+            this.messageLog?.add('Failed to initialize game. Please refresh.', 'danger');
         }
     }
     
@@ -116,192 +137,58 @@ export class Game {
         console.log('📚 Loading game data...');
         
         // Load questions
-        this.questionLoader = new QuestionLoader();
         await this.questionLoader.loadAllQuestions();
         
         // Load items
-        this.itemLoader = new ItemLoader();
         await this.itemLoader.loadAllItems();
         
-        // Load monsters
-        this.monsterLoader = new MonsterLoader();
-        await this.monsterLoader.loadMonsters();
-        
-        console.log('✅ All game data loaded');
-    }
-    
-    /**
-     * Create player with starting stats
-     */
-    createPlayer() {
-        this.player = new Player(this.playerName);
-        
-        // Set starting position (will be updated when dungeon generates)
-        this.player.x = 0;
-        this.player.y = 0;
-        
-        console.log('👤 Player created:', this.playerName);
-    }
-    
-    /**
-     * Initialize all game systems
-     */
-    initializeSystems() {
-        console.log('⚙️ Initializing game systems...');
-        
-        // Core systems
-        this.quizEngine = new QuizEngine(this);
-        this.combatSystem = new CombatSystem(this);
-        this.inventorySystem = new InventorySystem(this);
-        this.equipmentSystem = new EquipmentSystem(this);
-        this.identificationSystem = new IdentificationSystem(this);
-        
-        // Food systems (critical for progression)
-        this.cookingSystem = new CookingSystem(this);
-        this.harvestingSystem = new HarvestingSystem(this);
-        
-        // Save/Load
-        this.saveLoadSystem = new SaveLoadSystem(this);
-        
-        console.log('✅ All systems initialized');
+        // Load monsters - use the correct method name
+        await this.monsterLoader.load(); // Changed from loadMonsters() to load()
     }
     
     /**
      * Initialize UI components
      */
     initializeUI() {
-        console.log('🎨 Initializing UI...');
-        
         this.renderer = new Renderer('game-canvas');
         this.messageLog = new MessageLog('messages');
         this.uiManager = new UIManager(this);
         this.inputHandler = new InputHandler(this);
         
-        console.log('✅ UI initialized');
+        // Initial messages
+        this.messageLog.add(`Welcome ${this.playerName}! Your quest for the Philosopher's Stone begins...`, 'success');
+        this.messageLog.add('Use arrow keys or HJKL to move. Press ? for help.', 'info');
+        this.messageLog.add('Knowledge is power - every action requires answering questions!', 'warning');
     }
     
     /**
-     * Generate a level
+     * Generate a dungeon level
      */
     async generateLevel(levelNumber) {
         console.log(`🏰 Generating level ${levelNumber}...`);
         
-        const generator = new DungeonGenerator();
-        this.dungeon = await generator.generateLevel(levelNumber);
+        this.currentLevel = levelNumber;
+        await this.dungeon.generateLevel(levelNumber);
         
-        // Place player at starting position
-        const startPos = this.dungeon.getEntrance();
-        this.player.x = startPos.x;
-        this.player.y = startPos.y;
-        
-        // Clear and spawn monsters
-        this.monsters = [];
-        this.spawnMonsters(levelNumber);
-        
-        // Clear and place items
-        this.items = [];
-        this.placeItems(levelNumber);
-        
-        // Update renderer with new dungeon state
-        this.updateRendererState();
-        
-        // Emit level enter event
-        EventBus.emit(EVENTS.LEVEL_ENTER, {
-            level: levelNumber
-        });
+        // Update UI
+        this.uiManager?.updateLevel(levelNumber);
         
         console.log(`✅ Level ${levelNumber} generated!`);
     }
     
     /**
-     * Spawn monsters for the level
+     * Start the game loop
      */
-    spawnMonsters(levelNumber) {
-        // Use monster loader to get appropriate monsters
-        const monsterCount = 5 + Math.floor(levelNumber / 2);
+    start() {
+        this.running = true;
+        this.gameLoop();
         
-        for (let i = 0; i < monsterCount; i++) {
-            const monster = this.monsterLoader.spawnMonsterForLevel(levelNumber);
-            if (monster) {
-                // Find random position
-                const pos = this.dungeon.getRandomEmptyPosition();
-                if (pos) {
-                    monster.x = pos.x;
-                    monster.y = pos.y;
-                    this.monsters.push(monster);
-                }
-            }
+        // Start renderer
+        if (this.renderer) {
+            this.renderer.startRenderLoop();
         }
         
-        console.log(`🐾 Spawned ${this.monsters.length} monsters`);
-    }
-    
-    /**
-     * Place items on the level
-     */
-    placeItems(levelNumber) {
-        // Place some random items
-        const itemCount = 3 + Math.floor(levelNumber / 3);
-        
-        for (let i = 0; i < itemCount; i++) {
-            const item = this.itemLoader.getRandomItem(levelNumber);
-            if (item) {
-                const pos = this.dungeon.getRandomEmptyPosition();
-                if (pos) {
-                    item.x = pos.x;
-                    item.y = pos.y;
-                    this.items.push(item);
-                }
-            }
-        }
-        
-        // Always place at least one container (for lockpicking)
-        const container = this.itemLoader.getContainer(levelNumber);
-        if (container) {
-            const pos = this.dungeon.getRandomEmptyPosition();
-            if (pos) {
-                container.x = pos.x;
-                container.y = pos.y;
-                this.items.push(container);
-            }
-        }
-        
-        console.log(`📦 Placed ${this.items.length} items`);
-    }
-    
-    /**
-     * Show welcome messages
-     */
-    showWelcomeMessages() {
-        this.messageLog.add(`Welcome ${this.playerName}! Your quest for the Philosopher's Stone begins...`, 'success');
-        this.messageLog.add('Use arrow keys or HJKL to move. Press ? for help.', 'info');
-        this.messageLog.add('Kill monsters and cook their corpses to grow stronger!', 'info');
-        this.messageLog.add('Your SP (Stamina Points) is your hunger - keep it above 0!', 'warning');
-    }
-    
-    /**
-     * Give starting equipment
-     */
-    giveStartingEquipment() {
-        // Give a basic weapon
-        const startingWeapon = this.itemLoader.getItem('crude_dagger');
-        if (startingWeapon) {
-            this.inventorySystem.addItem(startingWeapon);
-            this.equipmentSystem.equipItem(startingWeapon);
-            this.messageLog.add('You start with a crude dagger.', 'info');
-        }
-        
-        // Give some starting food
-        const ration = {
-            id: 'ration',
-            name: 'Food Ration',
-            type: 'food',
-            weight: 1,
-            restoreSP: 50,
-            quantity: 2
-        };
-        this.inventorySystem.addItem(ration);
-        this.messageLog.add('You have 2 food rations for emergencies.', 'info');
+        EventBus.emit(EVENTS.GAME_START);
     }
     
     /**
@@ -310,60 +197,59 @@ export class Game {
     gameLoop() {
         if (!this.running || this.gameOver) return;
         
-        // Don't process if paused (quiz active, etc)
-        if (!this.paused) {
-            // Process any pending monster turns
-            this.processMonsterTurns();
-            
-            // Check win/lose conditions
-            this.checkGameEnd();
-        }
+        // Update game state
+        this.update();
         
         // Continue loop
         requestAnimationFrame(() => this.gameLoop());
     }
     
     /**
-     * Process a player turn
+     * Update game state
      */
-    processTurn() {
-        // Increment turn counter
-        this.turnNumber++;
+    update() {
+        // Update player
+        this.player?.update();
         
-        // Process player effects
-        this.player.processEffects();
+        // Update dungeon (monsters, effects, etc.)
+        this.dungeon?.update();
         
-        // Update UI
-        this.uiManager.updateAll();
-        
-        // Emit turn end event
-        EventBus.emit(EVENTS.TURN_END, {
-            turn: this.turnNumber
-        });
+        // Update renderer with current state
+        this.updateRenderer();
     }
     
     /**
-     * Process monster turns
+     * Process a game turn
      */
-    processMonsterTurns() {
-        // Monsters act after player
-        // This will be handled by combat system when ready
+    processTurn() {
+        this.turnNumber++;
+        
+        // Process player effects
+        this.player?.processEffects();
+        
+        // Process monster turns
+        this.dungeon?.processMonsterTurns();
+        
+        // Check win/lose conditions
+        this.checkGameEnd();
+        
+        // Emit turn end event
+        EventBus.emit(EVENTS.TURN_END, { turn: this.turnNumber });
     }
     
     /**
      * Update renderer with current game state
      */
-    updateRendererState() {
-        const gameState = {
+    updateRenderer() {
+        if (!this.renderer || !this.dungeon) return;
+        
+        const renderData = this.dungeon.getRenderData();
+        this.renderer.updateGameState({
             player: this.player,
-            dungeon: this.dungeon,
-            monsters: this.monsters,
-            items: this.items,
+            dungeon: renderData,
             currentLevel: this.currentLevel,
             turnNumber: this.turnNumber
-        };
-        
-        this.renderer.updateGameState(gameState);
+        });
     }
     
     /**
@@ -372,261 +258,7 @@ export class Game {
     handlePlayerMove(direction) {
         if (this.gameOver || this.paused) return;
         
-        const { dx, dy } = this.getDirectionVector(direction);
-        const newX = this.player.x + dx;
-        const newY = this.player.y + dy;
-        
-        // Check if movement is valid
-        if (!this.canMoveTo(newX, newY)) {
-            // Check if there's a monster to attack
-            const monster = this.getMonsterAt(newX, newY);
-            if (monster) {
-                this.combatSystem.playerAttack(monster);
-                this.processTurn();
-            }
-            return;
-        }
-        
-        // Move player (consumes SP)
-        this.player.move(newX, newY);
-        
-        // Check for items at new position
-        this.checkForItems();
-        
-        // Process turn
-        this.processTurn();
-        
-        // Update renderer
-        this.updateRendererState();
-    }
-    
-    /**
-     * Check if player can move to position
-     */
-    canMoveTo(x, y) {
-        // Check bounds
-        if (x < 0 || y < 0 || x >= CONFIG.MAP_WIDTH || y >= CONFIG.MAP_HEIGHT) {
-            return false;
-        }
-        
-        // Check dungeon walls
-        if (this.dungeon) {
-            const tile = this.dungeon.getTile(x, y);
-            if (tile && tile.type === 'wall') {
-                return false;
-            }
-        }
-        
-        // Check for monsters
-        if (this.getMonsterAt(x, y)) {
-            return false;
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Get monster at position
-     */
-    getMonsterAt(x, y) {
-        return this.monsters.find(m => m.x === x && m.y === y && m.hp > 0);
-    }
-    
-    /**
-     * Check for items at player position
-     */
-    checkForItems() {
-        const itemsHere = this.items.filter(item => 
-            item.x === this.player.x && item.y === this.player.y
-        );
-        
-        if (itemsHere.length > 0) {
-            if (itemsHere.length === 1) {
-                this.messageLog.add(`You see here: ${itemsHere[0].name}`, 'info');
-            } else {
-                this.messageLog.add(`You see here: ${itemsHere.length} items`, 'info');
-            }
-        }
-    }
-    
-    /**
-     * Handle item pickup
-     */
-    handlePickup() {
-        const itemsHere = this.items.filter(item => 
-            item.x === this.player.x && item.y === this.player.y
-        );
-        
-        if (itemsHere.length === 0) {
-            this.messageLog.add('There is nothing here to pick up.', 'warning');
-            return;
-        }
-        
-        // Pick up all items (or show menu if multiple)
-        itemsHere.forEach(item => {
-            if (this.inventorySystem.addItem(item)) {
-                // Remove from world
-                const index = this.items.indexOf(item);
-                if (index > -1) {
-                    this.items.splice(index, 1);
-                }
-                this.messageLog.add(`You pick up the ${item.name}.`, 'info');
-            } else {
-                this.messageLog.add(`Your inventory is full!`, 'warning');
-            }
-        });
-        
-        this.updateRendererState();
-    }
-    
-    /**
-     * Handle monster death
-     */
-    handleMonsterDeath(monster) {
-        this.messageLog.add(`You have slain the ${monster.name}!`, 'success');
-        
-        // Update player stats
-        this.player.monstersKilled++;
-        
-        // Drop corpse
-        const corpseId = monster.lootTable?.corpse;
-        if (corpseId) {
-            const corpse = {
-                id: corpseId,
-                name: `${monster.name} corpse`,
-                type: 'corpse',
-                x: monster.x,
-                y: monster.y,
-                weight: 50 // Default corpse weight
-            };
-            
-            this.items.push(corpse);
-            this.messageLog.add(`The ${monster.name} leaves a corpse.`, 'info');
-        }
-        
-        // Drop gold
-        if (monster.lootTable?.gold) {
-            const goldAmount = this.rollDice(monster.lootTable.gold);
-            if (goldAmount > 0) {
-                this.player.gold += goldAmount;
-                this.messageLog.add(`You find ${goldAmount} gold pieces!`, 'success');
-            }
-        }
-        
-        // Drop items
-        if (monster.lootTable?.items) {
-            monster.lootTable.items.forEach(itemDrop => {
-                if (Math.random() < itemDrop.chance) {
-                    const item = this.itemLoader.getItem(itemDrop.id);
-                    if (item) {
-                        item.x = monster.x;
-                        item.y = monster.y;
-                        this.items.push(item);
-                        this.messageLog.add(`The ${monster.name} drops ${item.name}!`, 'info');
-                    }
-                }
-            });
-        }
-        
-        // Remove from monsters array
-        const index = this.monsters.indexOf(monster);
-        if (index > -1) {
-            this.monsters.splice(index, 1);
-        }
-        
-        // Emit event
-        EventBus.emit(EVENTS.MONSTER_DEATH, {
-            monster: monster,
-            x: monster.x,
-            y: monster.y
-        });
-        
-        this.updateRendererState();
-    }
-    
-    /**
-     * Roll dice notation (e.g., "2d6+3")
-     */
-    rollDice(notation) {
-        if (typeof notation === 'number') return notation;
-        if (!notation) return 0;
-        
-        const match = notation.match(/(\d+)d(\d+)([+-]\d+)?/);
-        if (!match) return parseInt(notation) || 0;
-        
-        const count = parseInt(match[1]);
-        const sides = parseInt(match[2]);
-        const modifier = parseInt(match[3]) || 0;
-        
-        let total = modifier;
-        for (let i = 0; i < count; i++) {
-            total += Math.floor(Math.random() * sides) + 1;
-        }
-        
-        return total;
-    }
-    
-    /**
-     * Handle harvest action
-     */
-    handleHarvest() {
-        // Check for corpse at current position
-        const corpseHere = this.items.find(item => 
-            item.x === this.player.x && 
-            item.y === this.player.y && 
-            item.type === 'corpse'
-        );
-        
-        if (corpseHere) {
-            // Start harvesting from ground
-            this.harvestingSystem.startHarvestingFromGround(this.player.x, this.player.y);
-        } else {
-            // Check inventory for corpses
-            const corpses = this.harvestingSystem.getHarvestableItems();
-            if (corpses.length > 0) {
-                // If only one, harvest it. Otherwise show menu
-                if (corpses.length === 1) {
-                    this.harvestingSystem.startHarvestingFromInventory(corpses[0]);
-                } else {
-                    // TODO: Show selection menu
-                    this.messageLog.add('Multiple corpses available. Harvesting first one.', 'info');
-                    this.harvestingSystem.startHarvestingFromInventory(corpses[0]);
-                }
-            } else {
-                this.messageLog.add('No corpses to harvest here or in inventory.', 'warning');
-            }
-        }
-    }
-    
-    /**
-     * Handle cook action
-     */
-    handleCook() {
-        // Get cookable items from inventory
-        const cookableItems = this.player.inventory.filter(item => 
-            this.cookingSystem.canCook(item)
-        );
-        
-        if (cookableItems.length === 0) {
-            this.messageLog.add('You have no food to cook.', 'warning');
-            return;
-        }
-        
-        // If only one, cook it. Otherwise show menu
-        if (cookableItems.length === 1) {
-            this.cookingSystem.startCooking(cookableItems[0]);
-        } else {
-            // TODO: Show cooking menu
-            this.messageLog.add(`You have ${cookableItems.length} items to cook. Cooking first one.`, 'info');
-            this.cookingSystem.startCooking(cookableItems[0]);
-        }
-    }
-    
-    /**
-     * Get direction vector from direction string
-     */
-    getDirectionVector(direction) {
-        const directions = {
+        const movements = {
             'north': { dx: 0, dy: -1 },
             'south': { dx: 0, dy: 1 },
             'east': { dx: 1, dy: 0 },
@@ -637,35 +269,97 @@ export class Game {
             'southwest': { dx: -1, dy: 1 }
         };
         
-        return directions[direction] || { dx: 0, dy: 0 };
+        const move = movements[direction];
+        if (!move) return;
+        
+        const newX = this.player.x + move.dx;
+        const newY = this.player.y + move.dy;
+        
+        // Check if movement is valid
+        if (!this.dungeon.isWalkable(newX, newY)) {
+            // Check if there's a monster to attack
+            const monster = this.dungeon.getMonsterAt(newX, newY);
+            if (monster && this.combatSystem) {
+                EventBus.emit(EVENTS.PLAYER_ATTACK, {
+                    targetX: newX,
+                    targetY: newY,
+                    direction: direction
+                });
+            } else {
+                this.messageLog.add("You can't go that way.", 'info');
+            }
+            return;
+        }
+        
+        // Move player
+        this.player.move(newX, newY);
+        
+        // Consume SP for movement
+        this.player.consumeSP(1);
+        
+        // Update vision
+        this.dungeon.updatePlayerVision(newX, newY);
+        
+        // Check for items at new position
+        const items = this.dungeon.getItemsAt(newX, newY);
+        if (items.length > 0) {
+            this.messageLog.add(`You see here: ${items.map(i => i.name).join(', ')}`, 'info');
+        }
+        
+        // Process turn
+        this.processTurn();
+        
+        EventBus.emit(EVENTS.PLAYER_MOVED, { x: newX, y: newY });
     }
     
     /**
-     * Check for game end conditions
+     * Check game end conditions
      */
     checkGameEnd() {
         // Check player death
         if (this.player.hp <= 0) {
             this.gameOver = true;
             this.victory = false;
-            EventBus.emit(EVENTS.GAME_OVER);
             this.messageLog.add('You have died. Game Over.', 'danger');
-            this.messageLog.add(`You survived ${this.turnNumber} turns and reached level ${this.currentLevel}.`, 'info');
-            return;
+            EventBus.emit(EVENTS.GAME_OVER);
         }
         
-        // Check for victory (found Philosopher's Stone)
-        const philosopherStone = this.player.inventory.find(item => 
-            item.id === 'philosophers_stone'
-        );
-        
-        if (philosopherStone) {
+        // Check victory (has Philosopher's Stone and on level 1)
+        if (this.currentLevel === 1 && this.playerHasPhilosophersStone()) {
             this.gameOver = true;
             this.victory = true;
-            EventBus.emit(EVENTS.GAME_VICTORY);
-            this.messageLog.add('You have found the Philosopher\'s Stone! Victory!', 'success');
-            this.messageLog.add(`You won in ${this.turnNumber} turns!`, 'success');
+            this.messageLog.add('Victory! You have retrieved the Philosopher\'s Stone!', 'success');
+            EventBus.emit(EVENTS.GAME_OVER);
         }
+    }
+    
+    /**
+     * Check if player has the Philosopher's Stone
+     */
+    playerHasPhilosophersStone() {
+        // TODO: Check inventory for Philosopher's Stone
+        return false;
+    }
+    
+    /**
+     * Handle monster death
+     */
+    handleMonsterDeath(monster) {
+        // Drop corpse for food system
+        const corpseId = `${monster.id}_corpse`;
+        const corpse = this.itemLoader.getItem('corpses', corpseId);
+        
+        if (corpse) {
+            this.dungeon.addItem(monster.x, monster.y, {
+                ...corpse,
+                x: monster.x,
+                y: monster.y
+            });
+            this.messageLog.add(`The ${monster.name} leaves a corpse.`, 'info');
+        }
+        
+        // Remove monster from dungeon
+        this.dungeon.removeMonster(monster);
     }
     
     /**
@@ -674,100 +368,171 @@ export class Game {
     setupEventListeners() {
         // Player actions
         EventBus.on(EVENTS.PLAYER_ACTION, (action) => {
-            this.handlePlayerAction(action);
+            switch (action.type) {
+                case 'move':
+                    this.handlePlayerMove(action.direction);
+                    break;
+                case 'pickup':
+                    this.handlePickup();
+                    break;
+                case 'drop':
+                    this.handleDrop();
+                    break;
+                case 'inventory':
+                    this.openInventory();
+                    break;
+                case 'harvest':
+                    this.handleHarvest();
+                    break;
+                case 'cook':
+                    this.handleCook();
+                    break;
+            }
         });
         
-        // Quiz events
-        EventBus.on(EVENTS.QUIZ_START, () => {
-            this.paused = true;
-        });
-        
-        EventBus.on(EVENTS.QUIZ_COMPLETE, (result) => {
-            this.paused = false;
-            // Quiz results are handled by the respective systems
-        });
-        
-        // Monster death
+        // Combat events
         EventBus.on(EVENTS.MONSTER_DEATH, (data) => {
             this.handleMonsterDeath(data.monster);
         });
         
-        // Item removal (for harvesting)
-        EventBus.on(EVENTS.ITEM_REMOVED, (data) => {
-            const index = this.items.findIndex(item => 
-                item === data.item
-            );
-            if (index > -1) {
-                this.items.splice(index, 1);
-            }
-            this.updateRendererState();
+        // Quiz events
+        EventBus.on(EVENTS.QUIZ_COMPLETE, (result) => {
+            this.paused = false;
         });
         
-        // Level change
-        EventBus.on(EVENTS.LEVEL_EXIT, async () => {
-            this.currentLevel++;
-            await this.generateLevel(this.currentLevel);
+        EventBus.on(EVENTS.QUIZ_START, () => {
+            this.paused = true;
         });
     }
     
     /**
-     * Handle player actions
+     * Handle pickup action
      */
-    handlePlayerAction(action) {
-        switch (action.type) {
-            case 'move':
-                this.handlePlayerMove(action.direction);
-                break;
-                
-            case 'pickup':
-                this.handlePickup();
-                break;
-                
-            case 'harvest':
-                this.handleHarvest();
-                break;
-                
-            case 'cook':
-                this.handleCook();
-                break;
-                
-            case 'inventory':
-                this.uiManager.showInventory();
-                break;
-                
-            case 'equipment':
-                this.uiManager.showEquipment();
-                break;
-                
-            case 'save':
-                this.saveLoadSystem.save();
-                this.messageLog.add('Game saved.', 'success');
-                break;
-                
-            case 'load':
-                if (this.saveLoadSystem.load()) {
-                    this.messageLog.add('Game loaded.', 'success');
-                } else {
-                    this.messageLog.add('No save game found.', 'warning');
-                }
-                break;
-                
-            default:
-                console.warn(`Unknown player action: ${action.type}`);
+    handlePickup() {
+        const items = this.dungeon.getItemsAt(this.player.x, this.player.y);
+        if (items.length === 0) {
+            this.messageLog.add("There's nothing here to pick up.", 'info');
+            return;
+        }
+        
+        // For now, pick up first item
+        const item = items[0];
+        if (this.inventorySystem) {
+            this.inventorySystem.addItem(item);
+            this.dungeon.removeItem(this.player.x, this.player.y, item);
+            this.messageLog.add(`Picked up ${item.name}.`, 'success');
         }
     }
     
     /**
-     * Cleanup
+     * Handle drop action
+     */
+    handleDrop() {
+        if (this.inventorySystem) {
+            this.inventorySystem.openDropMenu();
+        }
+    }
+    
+    /**
+     * Open inventory
+     */
+    openInventory() {
+        if (this.inventorySystem) {
+            this.inventorySystem.openInventory();
+        }
+    }
+    
+    /**
+     * Handle harvest action
+     */
+    handleHarvest() {
+        if (this.harvestingSystem) {
+            this.harvestingSystem.startHarvest();
+        }
+    }
+    
+    /**
+     * Handle cook action
+     */
+    handleCook() {
+        if (this.cookingSystem) {
+            this.cookingSystem.startCooking();
+        }
+    }
+    
+    /**
+     * Pause the game
+     */
+    pause() {
+        this.paused = true;
+        EventBus.emit(EVENTS.GAME_PAUSE);
+    }
+    
+    /**
+     * Resume the game
+     */
+    resume() {
+        this.paused = false;
+        EventBus.emit(EVENTS.GAME_RESUME);
+    }
+    
+    /**
+     * Save game state
+     */
+    save() {
+        const saveData = {
+            version: '1.0.0',
+            playerName: this.playerName,
+            turnNumber: this.turnNumber,
+            currentLevel: this.currentLevel,
+            player: this.player.serialize(),
+            dungeon: this.dungeon.save()
+        };
+        
+        localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify(saveData));
+        this.messageLog.add('Game saved.', 'success');
+        EventBus.emit(EVENTS.SAVE_GAME);
+    }
+    
+    /**
+     * Load game state
+     */
+    load() {
+        try {
+            const saveData = JSON.parse(localStorage.getItem(CONFIG.SAVE_KEY));
+            if (!saveData) {
+                this.messageLog.add('No save game found.', 'warning');
+                return false;
+            }
+            
+            this.playerName = saveData.playerName;
+            this.turnNumber = saveData.turnNumber;
+            this.currentLevel = saveData.currentLevel;
+            this.player.deserialize(saveData.player);
+            this.dungeon.load(saveData.dungeon);
+            
+            this.messageLog.add('Game loaded.', 'success');
+            EventBus.emit(EVENTS.LOAD_GAME);
+            return true;
+        } catch (error) {
+            console.error('Failed to load game:', error);
+            this.messageLog.add('Failed to load save game.', 'danger');
+            return false;
+        }
+    }
+    
+    /**
+     * Clean up resources
      */
     destroy() {
         this.running = false;
         
-        if (this.renderer) {
-            this.renderer.destroy();
-        }
+        // Clean up systems
+        this.renderer?.destroy();
+        this.combatSystem?.destroy();
+        this.dungeon?.destroy();
         
-        // Cleanup all systems
-        // Each system should have its own cleanup if needed
+        // Clear event listeners
+        EventBus.clear();
     }
 }
