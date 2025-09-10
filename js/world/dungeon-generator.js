@@ -5,7 +5,7 @@
 
 import { CONFIG } from '../config.js';
 import { EventBus, EVENTS } from '../core/event-bus.js';
-import { monsterLoader } from '../systems/monster-loader.js';
+import { monsterLoader } from '../core/monster-loader.js';
 import { Monster } from '../entities/monster.js';
 
 export class DungeonGenerator {
