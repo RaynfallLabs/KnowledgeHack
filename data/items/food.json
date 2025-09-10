@@ -1,1 +1,928 @@
-{"food": []}
+{
+  "foods": [
+    {
+      "id": "rat_meat",
+      "name": "Rat Meat",
+      "symbol": "%",
+      "color": "#8B4513",
+      "weight": 10,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the meat completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Charred Rat Bits",
+          "message": "You made Charred Rat Bits! The meat is barely edible.",
+          "effects": [
+            { "type": "restoreSP", "value": 20 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Rat Kebab",
+          "message": "You made Rat Kebab! It's actually not bad.",
+          "effects": [
+            { "type": "restoreSP", "value": 30 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Roasted Rat",
+          "message": "You made Roasted Rat! The meat is tender and filling.",
+          "effects": [
+            { "type": "restoreSP", "value": 35 },
+            { "type": "effect", "name": "swiftness", "duration": 50 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Rat Roulade",
+          "message": "You made Rat Roulade! A surprisingly sophisticated dish.",
+          "effects": [
+            { "type": "restoreSP", "value": 40 },
+            { "type": "increaseAttribute", "attribute": "dexterity", "value": 1 },
+            { "type": "effect", "name": "swiftness", "duration": 100 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Rat Wellington",
+          "message": "You made Rat Wellington! A masterpiece of rodent cuisine!",
+          "effects": [
+            { "type": "restoreSP", "value": 50 },
+            { "type": "increaseAttribute", "attribute": "dexterity", "value": 1 },
+            { "type": "effect", "name": "swiftness", "duration": 150 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "goblin_meat",
+      "name": "Goblin Meat",
+      "symbol": "%",
+      "color": "#228B22",
+      "weight": 15,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the meat completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Goblin Chunks",
+          "message": "You made Goblin Chunks! It's tough and gamey.",
+          "effects": [
+            { "type": "restoreSP", "value": 25 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Goblin Stew",
+          "message": "You made Goblin Stew! The long cooking has softened the meat.",
+          "effects": [
+            { "type": "restoreSP", "value": 35 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Goblin Steaks",
+          "message": "You made Goblin Steaks! Properly seasoned and grilled.",
+          "effects": [
+            { "type": "restoreSP", "value": 40 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Goblin Tartare",
+          "message": "You made Goblin Tartare! Raw but expertly prepared.",
+          "effects": [
+            { "type": "restoreSP", "value": 45 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "effect", "name": "detectTraps", "duration": 100 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Goblin Fricassee",
+          "message": "You made Goblin Fricassee! A delicate balance of flavors!",
+          "effects": [
+            { "type": "restoreSP", "value": 55 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "increaseAttribute", "attribute": "dexterity", "value": 1 },
+            { "type": "effect", "name": "detectTraps", "duration": 150 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bat_wings",
+      "name": "Bat Wings",
+      "symbol": "%",
+      "color": "#4B0082",
+      "weight": 8,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the wings completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Crispy Wing Tips",
+          "message": "You made Crispy Wing Tips! Crunchy but not very filling.",
+          "effects": [
+            { "type": "restoreSP", "value": 15 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Bat Wing Soup",
+          "message": "You made Bat Wing Soup! Light and energizing.",
+          "effects": [
+            { "type": "restoreSP", "value": 25 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Glazed Bat Wings",
+          "message": "You made Glazed Bat Wings! Sweet and savory.",
+          "effects": [
+            { "type": "restoreSP", "value": 30 },
+            { "type": "increaseAttribute", "attribute": "perception", "value": 1 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Bat Wing Tempura",
+          "message": "You made Bat Wing Tempura! Light, crispy perfection.",
+          "effects": [
+            { "type": "restoreSP", "value": 35 },
+            { "type": "increaseAttribute", "attribute": "perception", "value": 1 },
+            { "type": "effect", "name": "echolocation", "duration": 100 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Bat Wing Confit",
+          "message": "You made Bat Wing Confit! Your echolocation sharpens!",
+          "effects": [
+            { "type": "restoreSP", "value": 40 },
+            { "type": "increaseAttribute", "attribute": "perception", "value": 2 },
+            { "type": "effect", "name": "echolocation", "duration": 200 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jackal_meat",
+      "name": "Jackal Meat",
+      "symbol": "%",
+      "color": "#D2691E",
+      "weight": 12,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the meat completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Jackal Jerky",
+          "message": "You made Jackal Jerky! Tough but preserved.",
+          "effects": [
+            { "type": "restoreSP", "value": 20 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Jackal Meatballs",
+          "message": "You made Jackal Meatballs! Seasoned and hearty.",
+          "effects": [
+            { "type": "restoreSP", "value": 30 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Jackal Curry",
+          "message": "You made Jackal Curry! Spicy and invigorating.",
+          "effects": [
+            { "type": "restoreSP", "value": 35 },
+            { "type": "increaseAttribute", "attribute": "dexterity", "value": 1 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Jackal Bourguignon",
+          "message": "You made Jackal Bourguignon! Rich and complex flavors.",
+          "effects": [
+            { "type": "restoreSP", "value": 40 },
+            { "type": "increaseAttribute", "attribute": "dexterity", "value": 1 },
+            { "type": "effect", "name": "packInstinct", "duration": 150 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Jackal Osso Buco",
+          "message": "You made Jackal Osso Buco! You feel the pack hunter's instincts!",
+          "effects": [
+            { "type": "restoreSP", "value": 50 },
+            { "type": "increaseAttribute", "attribute": "dexterity", "value": 2 },
+            { "type": "effect", "name": "packInstinct", "duration": 200 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kobold_meat",
+      "name": "Kobold Meat",
+      "symbol": "%",
+      "color": "#A0522D",
+      "weight": 10,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the meat completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Kobold Strips",
+          "message": "You made Kobold Strips! The scales are still a bit crunchy.",
+          "effects": [
+            { "type": "restoreSP", "value": 22 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Kobold Skewers",
+          "message": "You made Kobold Skewers! Properly descaled and grilled.",
+          "effects": [
+            { "type": "restoreSP", "value": 32 },
+            { "type": "effect", "name": "poisonResistance", "duration": 50 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Kobold Casserole",
+          "message": "You made Kobold Casserole! The reptilian flavor is masked well.",
+          "effects": [
+            { "type": "restoreSP", "value": 37 },
+            { "type": "effect", "name": "poisonResistance", "duration": 100 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Kobold Scaloppine",
+          "message": "You made Kobold Scaloppine! Thinly sliced and perfectly cooked.",
+          "effects": [
+            { "type": "restoreSP", "value": 42 },
+            { "type": "increaseAttribute", "attribute": "intelligence", "value": 1 },
+            { "type": "effect", "name": "poisonResistance", "duration": 150 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Kobold Thermidor",
+          "message": "You made Kobold Thermidor! You gain the cunning of trapmakers!",
+          "effects": [
+            { "type": "restoreSP", "value": 52 },
+            { "type": "increaseAttribute", "attribute": "intelligence", "value": 1 },
+            { "type": "effect", "name": "trapDetection", "duration": 200 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "newt_tail",
+      "name": "Newt Tail",
+      "symbol": "%",
+      "color": "#90EE90",
+      "weight": 2,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the tail completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Newt Nugget",
+          "message": "You made a Newt Nugget! It's tiny but nutritious.",
+          "effects": [
+            { "type": "restoreSP", "value": 10 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Newt Broth",
+          "message": "You made Newt Broth! Light and regenerative.",
+          "effects": [
+            { "type": "restoreSP", "value": 15 },
+            { "type": "restoreHP", "value": 2 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Pickled Newt",
+          "message": "You made Pickled Newt! The preservation enhances its properties.",
+          "effects": [
+            { "type": "restoreSP", "value": 20 },
+            { "type": "restoreHP", "value": 3 },
+            { "type": "effect", "name": "regeneration", "duration": 30 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Newt Essence",
+          "message": "You made Newt Essence! You feel your wounds closing.",
+          "effects": [
+            { "type": "restoreSP", "value": 25 },
+            { "type": "restoreHP", "value": 5 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "effect", "name": "regeneration", "duration": 60 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Newt Elixir",
+          "message": "You made Newt Elixir! Regenerative powers course through you!",
+          "effects": [
+            { "type": "restoreSP", "value": 30 },
+            { "type": "restoreHP", "value": 8 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "effect", "name": "regeneration", "duration": 100 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "electric_thorax",
+      "name": "Electric Thorax",
+      "symbol": "%",
+      "color": "#FF00FF",
+      "weight": 1,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the thorax completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Zapped Bits",
+          "message": "You made Zapped Bits! They tingle on your tongue.",
+          "effects": [
+            { "type": "restoreSP", "value": 8 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Static Salad",
+          "message": "You made Static Salad! Your hair stands on end.",
+          "effects": [
+            { "type": "restoreSP", "value": 12 },
+            { "type": "restoreMP", "value": 2 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Thunder Bites",
+          "message": "You made Thunder Bites! Electric energy flows through you.",
+          "effects": [
+            { "type": "restoreSP", "value": 15 },
+            { "type": "restoreMP", "value": 3 },
+            { "type": "effect", "name": "electricResistance", "duration": 50 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Lightning Crisp",
+          "message": "You made Lightning Crisp! You feel charged with power.",
+          "effects": [
+            { "type": "restoreSP", "value": 18 },
+            { "type": "restoreMP", "value": 5 },
+            { "type": "increaseAttribute", "attribute": "intelligence", "value": 1 },
+            { "type": "effect", "name": "electricResistance", "duration": 100 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Grid Bug Galvanic",
+          "message": "You made Grid Bug Galvanic! Electricity obeys your will!",
+          "effects": [
+            { "type": "restoreSP", "value": 22 },
+            { "type": "restoreMP", "value": 8 },
+            { "type": "increaseAttribute", "attribute": "intelligence", "value": 1 },
+            { "type": "effect", "name": "electricAura", "duration": 150 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hobgoblin_meat",
+      "name": "Hobgoblin Meat",
+      "symbol": "%",
+      "color": "#8B4513",
+      "weight": 20,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the meat completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Hobgoblin Hash",
+          "message": "You made Hobgoblin Hash! It's filling but tough.",
+          "effects": [
+            { "type": "restoreSP", "value": 30 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Hobgoblin Roast",
+          "message": "You made Hobgoblin Roast! Well-seasoned and hearty.",
+          "effects": [
+            { "type": "restoreSP", "value": 40 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Hobgoblin Medallions",
+          "message": "You made Hobgoblin Medallions! Tender and disciplined cuts.",
+          "effects": [
+            { "type": "restoreSP", "value": 45 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 1 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Hobgoblin Prime Rib",
+          "message": "You made Hobgoblin Prime Rib! Military precision in every bite.",
+          "effects": [
+            { "type": "restoreSP", "value": 50 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 1 },
+            { "type": "effect", "name": "tacticalAwareness", "duration": 100 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Hobgoblin Crown Roast",
+          "message": "You made Hobgoblin Crown Roast! You gain a warrior's discipline!",
+          "effects": [
+            { "type": "restoreSP", "value": 60 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 1 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "effect", "name": "tacticalAwareness", "duration": 200 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "orc_meat",
+      "name": "Orc Meat",
+      "symbol": "%",
+      "color": "#556B2F",
+      "weight": 25,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the meat completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Orc Chops",
+          "message": "You made Orc Chops! Tough and rage-infused.",
+          "effects": [
+            { "type": "restoreSP", "value": 35 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Orc Brisket",
+          "message": "You made Orc Brisket! The slow cooking has tamed the rage.",
+          "effects": [
+            { "type": "restoreSP", "value": 45 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Orc Tenderloin",
+          "message": "You made Orc Tenderloin! Surprisingly tender for such a brutal creature.",
+          "effects": [
+            { "type": "restoreSP", "value": 50 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 1 },
+            { "type": "effect", "name": "berserkRage", "duration": 30 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Orc Ribeye",
+          "message": "You made Orc Ribeye! The marbling of rage makes it delicious.",
+          "effects": [
+            { "type": "restoreSP", "value": 55 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 2 },
+            { "type": "effect", "name": "berserkRage", "duration": 60 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Orc Tomahawk Steak",
+          "message": "You made Orc Tomahawk Steak! Primal fury fills your muscles!",
+          "effects": [
+            { "type": "restoreSP", "value": 65 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 2 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "effect", "name": "berserkRage", "duration": 100 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "preserved_flesh",
+      "name": "Preserved Flesh",
+      "symbol": "%",
+      "color": "#8B7355",
+      "weight": 18,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the flesh completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Zombie Jerky",
+          "message": "You made Zombie Jerky! Unnaturally preserved.",
+          "effects": [
+            { "type": "restoreSP", "value": 25 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Undead Pâté",
+          "message": "You made Undead Pâté! The dark magic adds flavor.",
+          "effects": [
+            { "type": "restoreSP", "value": 35 },
+            { "type": "effect", "name": "poisonResistance", "duration": 100 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Necro-Nuggets",
+          "message": "You made Necro-Nuggets! Death energy tingles on your tongue.",
+          "effects": [
+            { "type": "restoreSP", "value": 40 },
+            { "type": "effect", "name": "poisonResistance", "duration": 150 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Lich Loaf",
+          "message": "You made Lich Loaf! You feel resistant to death itself.",
+          "effects": [
+            { "type": "restoreSP", "value": 45 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "effect", "name": "undeadResistance", "duration": 200 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Death's Delicacy",
+          "message": "You made Death's Delicacy! Undeath courses through your veins!",
+          "effects": [
+            { "type": "restoreSP", "value": 55 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 2 },
+            { "type": "effect", "name": "lifeDrain", "duration": 250 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eye_jelly",
+      "name": "Eye Jelly",
+      "symbol": "%",
+      "color": "#00FFFF",
+      "weight": 8,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the jelly completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Eye Drops",
+          "message": "You made Eye Drops! Your vision clears slightly.",
+          "effects": [
+            { "type": "restoreSP", "value": 18 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Ocular Aspic",
+          "message": "You made Ocular Aspic! Your perception sharpens.",
+          "effects": [
+            { "type": "restoreSP", "value": 28 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Vision Gelato",
+          "message": "You made Vision Gelato! You see things more clearly.",
+          "effects": [
+            { "type": "restoreSP", "value": 33 },
+            { "type": "increaseAttribute", "attribute": "perception", "value": 1 },
+            { "type": "effect", "name": "seeInvisible", "duration": 100 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Third Eye Terrine",
+          "message": "You made Third Eye Terrine! Hidden things reveal themselves.",
+          "effects": [
+            { "type": "restoreSP", "value": 38 },
+            { "type": "increaseAttribute", "attribute": "perception", "value": 2 },
+            { "type": "effect", "name": "seeInvisible", "duration": 200 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Omniscient Consommé",
+          "message": "You made Omniscient Consommé! Total awareness floods your mind!",
+          "effects": [
+            { "type": "restoreSP", "value": 48 },
+            { "type": "increaseAttribute", "attribute": "perception", "value": 2 },
+            { "type": "increaseAttribute", "attribute": "wisdom", "value": 1 },
+            { "type": "effect", "name": "telepathy", "duration": 300 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "neutralized_gel",
+      "name": "Neutralized Gel",
+      "symbol": "%",
+      "color": "#32CD32",
+      "weight": 6,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the gel completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Acid Drops",
+          "message": "You made Acid Drops! They fizz on your tongue.",
+          "effects": [
+            { "type": "restoreSP", "value": 15 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Blob Pudding",
+          "message": "You made Blob Pudding! Surprisingly sweet.",
+          "effects": [
+            { "type": "restoreSP", "value": 25 },
+            { "type": "effect", "name": "acidResistance", "duration": 50 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Ooze Mousse",
+          "message": "You made Ooze Mousse! Your body adapts to corrosion.",
+          "effects": [
+            { "type": "restoreSP", "value": 30 },
+            { "type": "effect", "name": "acidResistance", "duration": 100 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Slime Soufflé",
+          "message": "You made Slime Soufflé! You feel your body becoming more adaptable.",
+          "effects": [
+            { "type": "restoreSP", "value": 35 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "effect", "name": "acidResistance", "duration": 150 },
+            { "type": "effect", "name": "corrosiveTouch", "duration": 50 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Primordial Soup",
+          "message": "You made Primordial Soup! Your form becomes fluid and adaptable!",
+          "effects": [
+            { "type": "restoreSP", "value": 45 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 2 },
+            { "type": "effect", "name": "acidImmunity", "duration": 200 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ant_thorax",
+      "name": "Ant Thorax",
+      "symbol": "%",
+      "color": "#000000",
+      "weight": 10,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the thorax completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Ant Crunchies",
+          "message": "You made Ant Crunchies! High in protein.",
+          "effects": [
+            { "type": "restoreSP", "value": 28 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Chitin Chips",
+          "message": "You made Chitin Chips! Your muscles feel stronger.",
+          "effects": [
+            { "type": "restoreSP", "value": 38 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Worker's Meal",
+          "message": "You made Worker's Meal! You feel industrious.",
+          "effects": [
+            { "type": "restoreSP", "value": 43 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 1 },
+            { "type": "effect", "name": "carryBoost", "duration": 100 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Soldier's Ration",
+          "message": "You made Soldier's Ration! Colony strength flows through you.",
+          "effects": [
+            { "type": "restoreSP", "value": 48 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 2 },
+            { "type": "effect", "name": "carryBoost", "duration": 150 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Queen's Feast",
+          "message": "You made Queen's Feast! The power of the colony is yours!",
+          "effects": [
+            { "type": "restoreSP", "value": 58 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 2 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "effect", "name": "hiveStrength", "duration": 200 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dwarf_meat",
+      "name": "Dwarf Meat",
+      "symbol": "%",
+      "color": "#CD853F",
+      "weight": 22,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the meat completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Miner's Grub",
+          "message": "You made Miner's Grub! Hearty but simple.",
+          "effects": [
+            { "type": "restoreSP", "value": 40 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Mountain Stew",
+          "message": "You made Mountain Stew! The taste of minerals enhances it.",
+          "effects": [
+            { "type": "restoreSP", "value": 50 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Dwarven Ale-Braised",
+          "message": "You made Dwarven Ale-Braised meat! You feel sturdier.",
+          "effects": [
+            { "type": "restoreSP", "value": 55 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 1 },
+            { "type": "effect", "name": "stoneResistance", "duration": 100 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Forge-Master's Feast",
+          "message": "You made Forge-Master's Feast! Mountain endurance fills you.",
+          "effects": [
+            { "type": "restoreSP", "value": 60 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 2 },
+            { "type": "effect", "name": "metalDetection", "duration": 150 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "King Under Mountain",
+          "message": "You made King Under Mountain! Dwarven resilience is yours!",
+          "effects": [
+            { "type": "restoreSP", "value": 70 },
+            { "type": "increaseAttribute", "attribute": "constitution", "value": 2 },
+            { "type": "increaseAttribute", "attribute": "strength", "value": 1 },
+            { "type": "effect", "name": "earthPower", "duration": 250 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gnome_meat",
+      "name": "Gnome Meat",
+      "symbol": "%",
+      "color": "#A52A2A",
+      "weight": 12,
+      "cookingOutcomes": [
+        {
+          "score": 0,
+          "name": "Inedible Mess",
+          "message": "You've ruined the meat completely!",
+          "effects": []
+        },
+        {
+          "score": 1,
+          "name": "Gnome Nibbles",
+          "message": "You made Gnome Nibbles! Small but flavorful.",
+          "effects": [
+            { "type": "restoreSP", "value": 30 }
+          ]
+        },
+        {
+          "score": 2,
+          "name": "Tinkerer's Treat",
+          "message": "You made Tinkerer's Treat! Your mind feels sharper.",
+          "effects": [
+            { "type": "restoreSP", "value": 40 }
+          ]
+        },
+        {
+          "score": 3,
+          "name": "Illusionist's Delight",
+          "message": "You made Illusionist's Delight! Reality seems more flexible.",
+          "effects": [
+            { "type": "restoreSP", "value": 45 },
+            { "type": "increaseAttribute", "attribute": "intelligence", "value": 1 }
+          ]
+        },
+        {
+          "score": 4,
+          "name": "Gnomish Goulash",
+          "message": "You made Gnomish Goulash! Magical energy tingles within.",
+          "effects": [
+            { "type": "restoreSP", "value": 50 },
+            { "type": "increaseAttribute", "attribute": "intelligence", "value": 1 },
+            { "type": "restoreMP", "value": 5 },
+            { "type": "effect", "name": "minorIllusion", "duration": 100 }
+          ]
+        },
+        {
+          "score": 5,
+          "name": "Artificer's Ambrosia",
+          "message": "You made Artificer's Ambrosia! Gnomish ingenuity floods your mind!",
+          "effects": [
+            { "type": "restoreSP", "value": 60 },
+            { "type": "increaseAttribute", "attribute": "intelligence", "value": 2 },
+            { "type": "restoreMP", "value": 10 },
+            { "type": "effect", "name": "majorIllusion", "duration": 200 }
+          ]
+        }
+      ]
+    }
+  ]
+}

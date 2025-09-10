@@ -1,6 +1,6 @@
 /**
  * ui-manager.js - Manages all UI updates and modal displays
- * Handles stat displays, inventory, equipment, and quiz modals
+ * Updated to display all 6 RPG stats and derived values
  */
 
 import { CONFIG } from '../config.js';
@@ -12,7 +12,7 @@ export class UIManager {
         
         // UI Elements
         this.elements = {
-            // Stats
+            // Core Bars
             hpBar: document.getElementById('hp-bar'),
             hpText: document.getElementById('hp-text'),
             spBar: document.getElementById('sp-bar'),
@@ -20,10 +20,29 @@ export class UIManager {
             mpBar: document.getElementById('mp-bar'),
             mpText: document.getElementById('mp-text'),
             
+            // Six Core Stats
+            strength: document.getElementById('stat-strength'),
+            constitution: document.getElementById('stat-constitution'),
+            dexterity: document.getElementById('stat-dexterity'),
+            intelligence: document.getElementById('stat-intelligence'),
+            wisdom: document.getElementById('stat-wisdom'),
+            perception: document.getElementById('stat-perception'),
+            
+            // Derived Stats
+            armorClass: document.getElementById('armor-class'),
+            sightRadius: document.getElementById('sight-radius'),
+            carryCapacity: document.getElementById('carry-capacity'),
+            quizTimer: document.getElementById('quiz-timer-stat'),
+            maxSpells: document.getElementById('max-spells'),
+            
+            // Saving Throws
+            fortSave: document.getElementById('save-fortitude'),
+            reflexSave: document.getElementById('save-reflex'),
+            willSave: document.getElementById('save-will'),
+            
             // Info
             dungeonLevel: document.getElementById('dungeon-level'),
-            wisdom: document.getElementById('wisdom'),
-            armorClass: document.getElementById('armor-class'),
+            turnCounter: document.getElementById('turn-counter'),
             
             // Equipment
             equippedWeapon: document.getElementById('equipped-weapon'),
@@ -34,10 +53,16 @@ export class UIManager {
             // Inventory
             inventoryList: document.getElementById('inventory-list'),
             carryWeight: document.getElementById('carry-weight'),
+            burdenStatus: document.getElementById('burden-status'),
+            
+            // Status Effects
+            statusEffects: document.getElementById('status-effects'),
+            activeEffects: document.getElementById('active-effects'),
             
             // Modals
             quizModal: document.getElementById('quiz-modal'),
             inventoryModal: document.getElementById('inventory-modal'),
+            statsModal: document.getElementById('stats-modal'),
             
             // Quiz elements
             quizTitle: document.getElementById('quiz-title'),
@@ -55,14 +80,143 @@ export class UIManager {
         this.quizTimerInterval = null;
         this.quizTimeRemaining = 0;
         
-        // Status effects display
-        this.statusEffects = new Set();
-        
         // Setup event listeners
         this.setupEventListeners();
         
+        // Create stat display if it doesn't exist
+        this.createStatDisplay();
+        
         // Initial UI update
         this.updateAll();
+    }
+    
+    /**
+     * Create stat display panel if HTML doesn't have it
+     */
+    createStatDisplay() {
+        // Check if stats panel exists
+        let statsPanel = document.getElementById('stats-panel');
+        if (!statsPanel) {
+            // Create it
+            const sidebar = document.querySelector('.sidebar') || document.body;
+            statsPanel = document.createElement('div');
+            statsPanel.id = 'stats-panel';
+            statsPanel.className = 'stats-panel';
+            statsPanel.innerHTML = `
+                <h3>Character Stats</h3>
+                
+                <div class="stat-group">
+                    <h4>Attributes</h4>
+                    <div class="stat-row">
+                        <span class="stat-label">STR:</span>
+                        <span id="stat-strength" class="stat-value">10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">CON:</span>
+                        <span id="stat-constitution" class="stat-value">10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">DEX:</span>
+                        <span id="stat-dexterity" class="stat-value">10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">INT:</span>
+                        <span id="stat-intelligence" class="stat-value">10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">WIS:</span>
+                        <span id="stat-wisdom" class="stat-value">10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">PER:</span>
+                        <span id="stat-perception" class="stat-value">10</span>
+                    </div>
+                </div>
+                
+                <div class="stat-group">
+                    <h4>Derived Stats</h4>
+                    <div class="stat-row">
+                        <span class="stat-label">AC:</span>
+                        <span id="armor-class" class="stat-value">10</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Sight:</span>
+                        <span id="sight-radius" class="stat-value">3</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Carry:</span>
+                        <span id="carry-capacity" class="stat-value">50</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Quiz Time:</span>
+                        <span id="quiz-timer-stat" class="stat-value">10s</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Max Spells:</span>
+                        <span id="max-spells" class="stat-value">3</span>
+                    </div>
+                </div>
+                
+                <div class="stat-group">
+                    <h4>Saving Throws</h4>
+                    <div class="stat-row">
+                        <span class="stat-label">Fort:</span>
+                        <span id="save-fortitude" class="stat-value">+0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Reflex:</span>
+                        <span id="save-reflex" class="stat-value">+0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Will:</span>
+                        <span id="save-will" class="stat-value">+0</span>
+                    </div>
+                </div>
+                
+                <div class="stat-group">
+                    <h4>Status</h4>
+                    <div id="burden-status" class="burden-status"></div>
+                    <div id="active-effects" class="active-effects"></div>
+                </div>
+            `;
+            
+            // Insert before equipment or at end
+            const equipment = document.querySelector('.equipment-panel');
+            if (equipment) {
+                sidebar.insertBefore(statsPanel, equipment);
+            } else {
+                sidebar.appendChild(statsPanel);
+            }
+            
+            // Re-cache elements
+            this.recacheElements();
+        }
+    }
+    
+    /**
+     * Re-cache DOM elements after creating them
+     */
+    recacheElements() {
+        // Re-cache all the stat elements
+        this.elements.strength = document.getElementById('stat-strength');
+        this.elements.constitution = document.getElementById('stat-constitution');
+        this.elements.dexterity = document.getElementById('stat-dexterity');
+        this.elements.intelligence = document.getElementById('stat-intelligence');
+        this.elements.wisdom = document.getElementById('stat-wisdom');
+        this.elements.perception = document.getElementById('stat-perception');
+        
+        this.elements.armorClass = document.getElementById('armor-class');
+        this.elements.sightRadius = document.getElementById('sight-radius');
+        this.elements.carryCapacity = document.getElementById('carry-capacity');
+        this.elements.quizTimer = document.getElementById('quiz-timer-stat');
+        this.elements.maxSpells = document.getElementById('max-spells');
+        
+        this.elements.fortSave = document.getElementById('save-fortitude');
+        this.elements.reflexSave = document.getElementById('save-reflex');
+        this.elements.willSave = document.getElementById('save-will');
+        
+        this.elements.burdenStatus = document.getElementById('burden-status');
+        this.elements.activeEffects = document.getElementById('active-effects');
     }
     
     /**
@@ -70,13 +224,16 @@ export class UIManager {
      */
     updateAll() {
         this.updateStats();
+        this.updateAttributes();
+        this.updateDerivedStats();
+        this.updateSavingThrows();
         this.updateEquipment();
         this.updateInventory();
         this.updateStatusEffects();
     }
     
     /**
-     * Update player stats display
+     * Update HP/SP/MP bars
      */
     updateStats() {
         const player = this.game.player;
@@ -87,6 +244,15 @@ export class UIManager {
             const hpPercent = (player.hp / player.maxHp) * 100;
             this.elements.hpBar.style.width = `${hpPercent}%`;
             this.elements.hpText.textContent = `${player.hp}/${player.maxHp}`;
+            
+            // Color based on health
+            if (hpPercent <= 25) {
+                this.elements.hpBar.style.backgroundColor = '#ff0000';
+            } else if (hpPercent <= 50) {
+                this.elements.hpBar.style.backgroundColor = '#ffff00';
+            } else {
+                this.elements.hpBar.style.backgroundColor = '#00ff00';
+            }
         }
         
         // SP with hunger status
@@ -97,11 +263,15 @@ export class UIManager {
             
             // Color code based on hunger
             if (player.sp === 0) {
-                this.elements.spBar.style.backgroundColor = '#880000'; // Dark red
+                this.elements.spBar.style.backgroundColor = '#880000'; // Dark red - STARVING
+                this.elements.spText.textContent += ' [STARVING]';
             } else if (player.sp <= 20) {
-                this.elements.spBar.style.backgroundColor = '#ff8800'; // Orange
+                this.elements.spBar.style.backgroundColor = '#ff8800'; // Orange - Hungry
+                this.elements.spText.textContent += ' [Hungry]';
+            } else if (player.sp <= 50) {
+                this.elements.spBar.style.backgroundColor = '#ffff00'; // Yellow - Peckish
             } else {
-                this.elements.spBar.style.backgroundColor = '#00ff00'; // Green
+                this.elements.spBar.style.backgroundColor = '#00ff00'; // Green - Satisfied
             }
         }
         
@@ -112,15 +282,109 @@ export class UIManager {
             this.elements.mpText.textContent = `${player.mp}/${player.maxMp}`;
         }
         
-        // Other stats
+        // Other info
         if (this.elements.dungeonLevel) {
             this.elements.dungeonLevel.textContent = this.game.currentLevel;
         }
+        if (this.elements.turnCounter) {
+            this.elements.turnCounter.textContent = player.turnsSurvived || 0;
+        }
+    }
+    
+    /**
+     * Update the 6 core attributes
+     */
+    updateAttributes() {
+        const player = this.game.player;
+        if (!player) return;
+        
+        if (this.elements.strength) {
+            this.elements.strength.textContent = player.strength;
+            this.colorCodeStat(this.elements.strength, player.strength);
+        }
+        if (this.elements.constitution) {
+            this.elements.constitution.textContent = player.constitution;
+            this.colorCodeStat(this.elements.constitution, player.constitution);
+        }
+        if (this.elements.dexterity) {
+            this.elements.dexterity.textContent = player.dexterity;
+            this.colorCodeStat(this.elements.dexterity, player.dexterity);
+        }
+        if (this.elements.intelligence) {
+            this.elements.intelligence.textContent = player.intelligence;
+            this.colorCodeStat(this.elements.intelligence, player.intelligence);
+        }
         if (this.elements.wisdom) {
             this.elements.wisdom.textContent = player.wisdom;
+            this.colorCodeStat(this.elements.wisdom, player.wisdom);
         }
+        if (this.elements.perception) {
+            this.elements.perception.textContent = player.perception;
+            this.colorCodeStat(this.elements.perception, player.perception);
+        }
+    }
+    
+    /**
+     * Update derived stats
+     */
+    updateDerivedStats() {
+        const player = this.game.player;
+        if (!player) return;
+        
         if (this.elements.armorClass) {
-            this.elements.armorClass.textContent = player.getAC();
+            this.elements.armorClass.textContent = player.getTotalAC();
+        }
+        if (this.elements.sightRadius) {
+            this.elements.sightRadius.textContent = player.sightRadius;
+        }
+        if (this.elements.carryCapacity) {
+            this.elements.carryCapacity.textContent = player.carryingCapacity;
+        }
+        if (this.elements.quizTimer) {
+            this.elements.quizTimer.textContent = `${player.quizTimer}s`;
+        }
+        if (this.elements.maxSpells) {
+            this.elements.maxSpells.textContent = player.maxSpells;
+        }
+    }
+    
+    /**
+     * Update saving throws
+     */
+    updateSavingThrows() {
+        const player = this.game.player;
+        if (!player) return;
+        
+        if (this.elements.fortSave) {
+            const fort = player.saves.fortitude;
+            this.elements.fortSave.textContent = fort >= 0 ? `+${fort}` : fort;
+        }
+        if (this.elements.reflexSave) {
+            const reflex = player.saves.reflex;
+            this.elements.reflexSave.textContent = reflex >= 0 ? `+${reflex}` : reflex;
+        }
+        if (this.elements.willSave) {
+            const will = player.saves.will;
+            this.elements.willSave.textContent = will >= 0 ? `+${will}` : will;
+        }
+    }
+    
+    /**
+     * Color code a stat value
+     */
+    colorCodeStat(element, value) {
+        if (value < 8) {
+            element.style.color = '#ff0000'; // Red - very low
+        } else if (value < 10) {
+            element.style.color = '#ff8800'; // Orange - below average
+        } else if (value <= 12) {
+            element.style.color = '#ffffff'; // White - average
+        } else if (value <= 15) {
+            element.style.color = '#00ff00'; // Green - above average
+        } else if (value <= 18) {
+            element.style.color = '#00ffff'; // Cyan - high
+        } else {
+            element.style.color = '#ffff00'; // Yellow - exceptional
         }
     }
     
@@ -136,10 +400,13 @@ export class UIManager {
             'Weapon': player.equipped.weapon,
             'Head': player.equipped.armor.head,
             'Body': player.equipped.armor.body,
-            'Arms': player.equipped.armor.hands,
-            'Legs': player.equipped.armor.legs,
+            'Cloak': player.equipped.armor.cloak,
+            'Gloves': player.equipped.armor.gloves,
+            'Boots': player.equipped.armor.boots,
+            'Shield': player.equipped.armor.shield,
             'Ring 1': player.equipped.accessories.ring1,
-            'Ring 2': player.equipped.accessories.ring2
+            'Ring 2': player.equipped.accessories.ring2,
+            'Amulet': player.equipped.accessories.amulet
         };
         
         let html = '';
@@ -180,12 +447,12 @@ export class UIManager {
      * Update inventory display
      */
     updateInventory() {
-        const inventory = this.game.inventorySystem;
-        if (!inventory || !this.elements.inventoryList) return;
+        const player = this.game.player;
+        if (!player || !this.elements.inventoryList) return;
         
-        const items = inventory.items;
+        const items = player.inventory;
         let html = '';
-        let totalWeight = 0;
+        let totalWeight = player.getCurrentWeight();
         
         items.forEach((item, index) => {
             if (!item) return;
@@ -193,7 +460,6 @@ export class UIManager {
             const letter = String.fromCharCode(97 + index); // a, b, c...
             const name = item.identified ? item.trueName : item.name;
             const weight = item.weight || 0;
-            totalWeight += weight * (item.quantity || 1);
             
             let itemClass = item.identified ? 'identified' : 'unidentified';
             if (item.equipped) itemClass += ' equipped';
@@ -220,21 +486,32 @@ export class UIManager {
         
         // Update weight display
         if (this.elements.carryWeight) {
-            const capacity = this.game.player.carryingCapacity;
+            const capacity = player.carryingCapacity;
             this.elements.carryWeight.textContent = `${totalWeight}/${capacity}`;
             
             // Color code if burdened
-            if (totalWeight > capacity) {
+            const burden = player.getBurdenLevel();
+            if (burden === 'overloaded') {
                 this.elements.carryWeight.style.color = '#ff0000';
-            } else if (totalWeight > capacity * 0.75) {
+            } else if (burden === 'overtaxed' || burden === 'strained') {
+                this.elements.carryWeight.style.color = '#ff8800';
+            } else if (burden === 'stressed' || burden === 'burdened') {
                 this.elements.carryWeight.style.color = '#ffff00';
             } else {
                 this.elements.carryWeight.style.color = '#ffffff';
             }
         }
         
-        // Update player's weight tracking
-        this.game.player.updateWeight(totalWeight);
+        // Update burden status
+        if (this.elements.burdenStatus) {
+            const burden = player.getBurdenLevel();
+            if (burden !== 'none') {
+                this.elements.burdenStatus.textContent = `[${burden.toUpperCase()}]`;
+                this.elements.burdenStatus.className = `burden-status burden-${burden}`;
+            } else {
+                this.elements.burdenStatus.textContent = '';
+            }
+        }
     }
     
     /**
@@ -246,286 +523,24 @@ export class UIManager {
         
         const effects = [];
         
-        // Hunger status
-        if (player.sp === 0) {
-            effects.push('<span class="status-starving">Starving</span>');
-        } else if (player.sp <= 20) {
-            effects.push('<span class="status-hungry">Hungry</span>');
-        }
-        
-        // Burden status
-        if (player.isOverloaded) {
-            effects.push('<span class="status-overloaded">Overloaded</span>');
-        } else if (player.isBurdened) {
-            effects.push('<span class="status-burdened">Burdened</span>');
-        }
-        
-        // Other status effects (from effects system)
-        for (const effect of this.statusEffects) {
-            effects.push(`<span class="status-effect">${effect}</span>`);
-        }
-        
-        // Find or create status display element
-        let statusDisplay = document.getElementById('status-effects');
-        if (!statusDisplay) {
-            // Create it next to the controls help
-            const controlsHelp = document.querySelector('.controls-help');
-            if (controlsHelp) {
-                statusDisplay = document.createElement('div');
-                statusDisplay.id = 'status-effects';
-                statusDisplay.className = 'status-effects';
-                controlsHelp.parentNode.insertBefore(statusDisplay, controlsHelp);
+        // Active effects from player
+        player.effects.forEach((effect, name) => {
+            let effectText = name;
+            if (effect.duration > 0) {
+                effectText += ` (${effect.duration})`;
             }
-        }
-        
-        if (statusDisplay) {
-            statusDisplay.innerHTML = effects.join(' | ') || '';
-        }
-    }
-    
-    /**
-     * Show quiz modal
-     */
-    showQuiz(quizData) {
-        if (!this.elements.quizModal) return;
-        
-        // Set quiz info
-        const subject = quizData.subject.charAt(0).toUpperCase() + quizData.subject.slice(1);
-        const tier = quizData.difficulty || 1;
-        
-        this.elements.quizTitle.textContent = 'Knowledge Challenge!';
-        this.elements.quizSubject.textContent = `${subject} Tier ${tier}`;
-        this.elements.quizQuestion.textContent = quizData.question.question;
-        
-        // Clear previous feedback
-        this.elements.quizFeedback.textContent = '';
-        this.elements.quizFeedback.className = 'quiz-feedback';
-        
-        // Setup input based on question type
-        this.setupQuizInput(quizData.question);
-        
-        // Start timer
-        this.startQuizTimer(quizData.timeLimit || this.game.player.getQuizTimer());
-        
-        // Show modal
-        this.elements.quizModal.classList.add('active');
-        this.pushModal('quiz');
-        
-        // Focus input
-        setTimeout(() => {
-            const input = this.elements.quizInputArea.querySelector('input');
-            if (input) input.focus();
-        }, 100);
-    }
-    
-    /**
-     * Setup quiz input area based on question type
-     */
-    setupQuizInput(question) {
-        const inputArea = this.elements.quizInputArea;
-        
-        if (question.type === 'multiple') {
-            // Multiple choice
-            let html = '<div class="quiz-options">';
-            question.options.forEach((option, index) => {
-                const letter = String.fromCharCode(65 + index); // A, B, C...
-                html += `
-                    <button class="quiz-option" data-answer="${option}">
-                        ${letter}. ${option}
-                    </button>
-                `;
-            });
-            html += '</div>';
-            inputArea.innerHTML = html;
-            
-            // Add click handlers
-            inputArea.querySelectorAll('.quiz-option').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    this.submitQuizAnswer(e.target.dataset.answer);
-                });
-            });
-            
-        } else {
-            // Text input
-            inputArea.innerHTML = `
-                <input type="text" id="quiz-answer" class="quiz-input" 
-                       placeholder="Type your answer..." autocomplete="off">
-                <button id="quiz-submit" class="btn-primary">Submit</button>
-            `;
-            
-            const input = document.getElementById('quiz-answer');
-            const submit = document.getElementById('quiz-submit');
-            
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.submitQuizAnswer(input.value);
-                }
-            });
-            
-            submit.addEventListener('click', () => {
-                this.submitQuizAnswer(input.value);
-            });
-        }
-    }
-    
-    /**
-     * Start quiz timer
-     */
-    startQuizTimer(seconds) {
-        this.quizTimeRemaining = seconds;
-        
-        // Clear any existing timer
-        if (this.quizTimerInterval) {
-            clearInterval(this.quizTimerInterval);
-        }
-        
-        // Update display
-        this.elements.quizTimer.textContent = seconds;
-        
-        // Start countdown
-        this.quizTimerInterval = setInterval(() => {
-            this.quizTimeRemaining--;
-            this.elements.quizTimer.textContent = this.quizTimeRemaining;
-            
-            // Color code when low
-            if (this.quizTimeRemaining <= 5) {
-                this.elements.quizTimer.style.color = '#ff0000';
-            } else if (this.quizTimeRemaining <= 10) {
-                this.elements.quizTimer.style.color = '#ffff00';
-            }
-            
-            // Time's up
-            if (this.quizTimeRemaining <= 0) {
-                this.stopQuizTimer();
-                EventBus.emit(EVENTS.QUIZ_TIMEOUT);
-                this.showQuizFeedback(false, "Time's up!");
-            }
-        }, 1000);
-    }
-    
-    /**
-     * Stop quiz timer
-     */
-    stopQuizTimer() {
-        if (this.quizTimerInterval) {
-            clearInterval(this.quizTimerInterval);
-            this.quizTimerInterval = null;
-        }
-    }
-    
-    /**
-     * Submit quiz answer
-     */
-    submitQuizAnswer(answer) {
-        // Disable further input
-        this.elements.quizInputArea.style.pointerEvents = 'none';
-        
-        // Emit answer event
-        EventBus.emit(EVENTS.QUIZ_ANSWER, answer);
-    }
-    
-    /**
-     * Show quiz feedback
-     */
-    showQuizFeedback(correct, message, correctAnswer = null) {
-        this.stopQuizTimer();
-        
-        const feedback = this.elements.quizFeedback;
-        feedback.textContent = message;
-        feedback.className = `quiz-feedback ${correct ? 'correct' : 'wrong'}`;
-        
-        // If wrong, show correct answer clearly
-        if (!correct && correctAnswer) {
-            feedback.innerHTML = `${message}<br><strong>Correct answer: ${correctAnswer}</strong>`;
-            
-            // Hold for 3 seconds so kids can read and learn
-            setTimeout(() => {
-                this.closeQuiz();
-            }, 3000);
-        } else {
-            // Close after 1.5 seconds for correct answers
-            setTimeout(() => {
-                this.closeQuiz();
-            }, 1500);
-        }
-    }
-    
-    /**
-     * Close quiz modal
-     */
-    closeQuiz() {
-        this.stopQuizTimer();
-        this.elements.quizModal.classList.remove('active');
-        this.popModal();
-        EventBus.emit(EVENTS.UI_CLOSE_QUIZ);
-    }
-    
-    /**
-     * Show inventory modal
-     */
-    showInventory(mode = 'view') {
-        if (!this.elements.inventoryModal) return;
-        
-        const inventory = this.game.inventorySystem.items;
-        let html = '<div class="inventory-modal-list">';
-        
-        inventory.forEach((item, index) => {
-            if (!item) return;
-            
-            const letter = String.fromCharCode(97 + index);
-            const name = item.identified ? item.trueName : item.name;
-            
-            html += `<div class="inventory-modal-item" data-index="${index}">
-                ${letter} - ${name}
-            </div>`;
+            effects.push(effectText);
         });
         
-        html += '</div>';
-        
-        document.getElementById('inventory-modal-content').innerHTML = html;
-        this.elements.inventoryModal.classList.add('active');
-        this.pushModal('inventory');
-    }
-    
-    /**
-     * Close inventory modal
-     */
-    closeInventory() {
-        this.elements.inventoryModal.classList.remove('active');
-        this.popModal();
-        EventBus.emit(EVENTS.UI_CLOSE_INVENTORY);
-    }
-    
-    /**
-     * Push modal to stack
-     */
-    pushModal(type) {
-        this.modalStack.push(type);
-        // No need to pause - turn based system
-    }
-    
-    /**
-     * Pop modal from stack
-     */
-    popModal() {
-        return this.modalStack.pop();
-    }
-    
-    /**
-     * Close top modal
-     */
-    closeTopModal() {
-        const top = this.modalStack[this.modalStack.length - 1];
-        if (!top) return;
-        
-        switch (top) {
-            case 'quiz':
-                this.closeQuiz();
-                break;
-            case 'inventory':
-                this.closeInventory();
-                break;
-            // Add other modal types as needed
+        // Update active effects display
+        if (this.elements.activeEffects) {
+            if (effects.length > 0) {
+                this.elements.activeEffects.innerHTML = effects
+                    .map(e => `<span class="effect">${e}</span>`)
+                    .join(' ');
+            } else {
+                this.elements.activeEffects.innerHTML = '<span class="no-effects">None</span>';
+            }
         }
     }
     
@@ -534,70 +549,34 @@ export class UIManager {
      */
     setupEventListeners() {
         // Stat updates
-        EventBus.on(EVENTS.PLAYER_STAT_CHANGE, () => this.updateStats());
-        EventBus.on(EVENTS.UI_UPDATE_STATS, () => this.updateStats());
+        EventBus.on(EVENTS.PLAYER_STAT_CHANGE, () => {
+            this.updateAll();
+        });
+        EventBus.on(EVENTS.PLAYER_HP_CHANGE, () => this.updateStats());
+        EventBus.on(EVENTS.PLAYER_SP_CHANGE, () => this.updateStats());
+        EventBus.on(EVENTS.PLAYER_MP_CHANGE, () => this.updateStats());
+        
+        // Effect updates
+        EventBus.on(EVENTS.EFFECT_ADDED, () => this.updateStatusEffects());
+        EventBus.on(EVENTS.EFFECT_REMOVED, () => this.updateStatusEffects());
         
         // Equipment/Inventory updates
-        EventBus.on(EVENTS.ITEM_EQUIP, () => {
+        EventBus.on(EVENTS.ITEM_EQUIPPED, () => {
             this.updateEquipment();
             this.updateInventory();
+            this.updateDerivedStats(); // AC might change
         });
-        EventBus.on(EVENTS.ITEM_UNEQUIP, () => {
+        EventBus.on(EVENTS.ITEM_UNEQUIPPED, () => {
             this.updateEquipment();
             this.updateInventory();
+            this.updateDerivedStats();
         });
-        EventBus.on(EVENTS.UI_UPDATE_INVENTORY, () => this.updateInventory());
+        EventBus.on(EVENTS.INVENTORY_CHANGE, () => this.updateInventory());
         
-        // Status effects
-        EventBus.on(EVENTS.PLAYER_EFFECT_ADDED, (effect) => {
-            this.statusEffects.add(effect.name);
-            this.updateStatusEffects();
+        // Turn updates
+        EventBus.on(EVENTS.TURN_END, () => {
+            this.updateStats(); // Update turn counter
+            this.updateStatusEffects(); // Update effect durations
         });
-        EventBus.on(EVENTS.PLAYER_EFFECT_REMOVED, (effect) => {
-            this.statusEffects.delete(effect.name);
-            this.updateStatusEffects();
-        });
-        
-        // Modal management
-        EventBus.on(EVENTS.UI_OPEN_INVENTORY, (data) => {
-            this.showInventory(data?.mode || 'view');
-        });
-        EventBus.on(EVENTS.UI_CLOSE_INVENTORY, () => {
-            this.closeInventory();
-        });
-        
-        // Quiz events
-        EventBus.on(EVENTS.UI_OPEN_QUIZ, (data) => {
-            this.showQuiz(data);
-        });
-        EventBus.on(EVENTS.QUIZ_CORRECT, () => {
-            this.showQuizFeedback(true, 'Correct!');
-        });
-        EventBus.on(EVENTS.QUIZ_WRONG, (data) => {
-            this.showQuizFeedback(false, 'Wrong!', data.correctAnswer);
-        });
-        
-        // ESC key to close modals
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.modalStack.length > 0) {
-                this.closeTopModal();
-            }
-        });
-    }
-    
-    /**
-     * Add status effect
-     */
-    addStatusEffect(name) {
-        this.statusEffects.add(name);
-        this.updateStatusEffects();
-    }
-    
-    /**
-     * Remove status effect
-     */
-    removeStatusEffect(name) {
-        this.statusEffects.delete(name);
-        this.updateStatusEffects();
     }
 }

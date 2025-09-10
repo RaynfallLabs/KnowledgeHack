@@ -1,6 +1,7 @@
 /**
- * harvesting.js - Corpse harvesting system
- * Handles harvesting materials from corpses through animal fact questions (threshold)
+ * harvesting.js - Harvesting system
+ * Handles harvesting corpses into food items using Animal Facts quizzes
+ * with threshold-based success
  */
 
 import { EventBus, EVENTS } from '../core/event-bus.js';
@@ -9,211 +10,326 @@ import { QuizEngine } from './quiz-engine.js';
 export class HarvestingSystem {
     constructor(game) {
         this.game = game;
-        this.quizEngine = new QuizEngine();
-        this.harvestingSkill = 0; // Improves with successful harvests
-        this.knownCreatures = new Set(); // Creatures successfully harvested before
+        this.player = game.player;
+        this.quizEngine = game.quizEngine;
         
+        // Load corpse data
+        this.corpseData = null;
+        this.loadCorpseData();
+        
+        // Currently harvesting corpse
+        this.harvestingCorpse = null;
+        this.harvestLocation = null; // 'inventory' or 'ground'
+        
+        // Setup event listeners
         this.setupEventListeners();
     }
     
     /**
-     * Harvest a corpse
+     * Load corpse data from JSON
      */
-    async harvestCorpse(corpse) {
-        if (!corpse || corpse.type !== 'corpse') {
-            this.game.messageLog.add('That cannot be harvested.', 'warning');
-            return null;
-        }
-        
-        // Check if already harvested
-        if (corpse.harvested) {
-            this.game.messageLog.add('This corpse has already been harvested.', 'info');
-            return null;
-        }
-        
-        // Start threshold quiz for harvesting
-        const difficulty = this.getHarvestDifficulty(corpse);
-        const threshold = this.getHarvestThreshold(corpse);
-        
-        const result = await this.startHarvestingQuiz(corpse, difficulty, threshold);
-        
-        if (result.success) {
-            const materials = this.extractMaterials(corpse, result.score);
-            corpse.harvested = true;
+    async loadCorpseData() {
+        try {
+            const response = await fetch('/data/items/corpses.json');
+            const data = await response.json();
+            this.corpseData = new Map();
             
-            // Add creature to known list
-            this.knownCreatures.add(corpse.creatureType);
-            
-            // Improve harvesting skill
-            this.harvestingSkill = Math.min(this.harvestingSkill + 1, 20);
-            
-            this.game.messageLog.add(`Successfully harvested ${materials.length} materials!`, 'success');
-            
-            materials.forEach(material => {
-                EventBus.emit(EVENTS.ITEM_CREATED, { item: material });
+            // Index corpses by ID for quick lookup
+            data.corpses.forEach(corpse => {
+                this.corpseData.set(corpse.id, corpse);
             });
             
-            return materials;
+            console.log(`✅ Loaded ${this.corpseData.size} corpse types`);
+        } catch (error) {
+            console.error('Failed to load corpse data:', error);
+        }
+    }
+    
+    /**
+     * Check if an item can be harvested
+     */
+    canHarvest(item) {
+        if (!item || !item.id) return false;
+        return this.corpseData && this.corpseData.has(item.id);
+    }
+    
+    /**
+     * Start harvesting a corpse from inventory
+     */
+    startHarvestingFromInventory(item) {
+        // Validate corpse
+        if (!this.canHarvest(item)) {
+            EventBus.emit(EVENTS.MESSAGE, {
+                text: `${item.name || 'That'} cannot be harvested!`,
+                type: 'warning'
+            });
+            return false;
+        }
+        
+        // Check if player has the corpse
+        const inventoryItem = this.player.inventory.find(i => i.id === item.id);
+        if (!inventoryItem) {
+            EventBus.emit(EVENTS.MESSAGE, {
+                text: `You don't have any ${item.name}!`,
+                type: 'warning'
+            });
+            return false;
+        }
+        
+        // Store the corpse being harvested
+        this.harvestingCorpse = item;
+        this.harvestLocation = 'inventory';
+        
+        // Get corpse data
+        const corpseData = this.corpseData.get(item.id);
+        
+        // Start threshold quiz
+        EventBus.emit(EVENTS.QUIZ_START, {
+            subject: 'animal',
+            type: 'threshold',
+            tier: corpseData.harvestTier,
+            threshold: corpseData.harvestThreshold,
+            context: {
+                action: 'harvesting',
+                item: item.name,
+                location: 'inventory'
+            }
+        });
+        
+        EventBus.emit(EVENTS.MESSAGE, {
+            text: `You begin carefully harvesting the ${item.name}...`,
+            type: 'info'
+        });
+        
+        return true;
+    }
+    
+    /**
+     * Start harvesting a corpse from the ground
+     */
+    startHarvestingFromGround(x, y) {
+        // Get items at location
+        const tile = this.game.dungeon.getTile(x, y);
+        if (!tile || !tile.items || tile.items.length === 0) {
+            EventBus.emit(EVENTS.MESSAGE, {
+                text: 'There is nothing here to harvest!',
+                type: 'warning'
+            });
+            return false;
+        }
+        
+        // Find first harvestable corpse
+        const corpse = tile.items.find(item => this.canHarvest(item));
+        if (!corpse) {
+            EventBus.emit(EVENTS.MESSAGE, {
+                text: 'No harvestable corpses here!',
+                type: 'warning'
+            });
+            return false;
+        }
+        
+        // Store the corpse being harvested
+        this.harvestingCorpse = corpse;
+        this.harvestLocation = 'ground';
+        
+        // Get corpse data
+        const corpseData = this.corpseData.get(corpse.id);
+        
+        // Start threshold quiz
+        EventBus.emit(EVENTS.QUIZ_START, {
+            subject: 'animal',
+            type: 'threshold',
+            tier: corpseData.harvestTier,
+            threshold: corpseData.harvestThreshold,
+            context: {
+                action: 'harvesting',
+                item: corpse.name,
+                location: 'ground',
+                x: x,
+                y: y
+            }
+        });
+        
+        EventBus.emit(EVENTS.MESSAGE, {
+            text: `You begin carefully harvesting the ${corpse.name}...`,
+            type: 'info'
+        });
+        
+        return true;
+    }
+    
+    /**
+     * Handle harvesting quiz completion
+     */
+    handleHarvestingComplete(result) {
+        if (!this.harvestingCorpse) {
+            console.error('No corpse being harvested!');
+            return;
+        }
+        
+        const corpseData = this.corpseData.get(this.harvestingCorpse.id);
+        if (!corpseData) {
+            console.error('Corpse data not found for:', this.harvestingCorpse.id);
+            return;
+        }
+        
+        // Check if harvesting succeeded (met threshold)
+        const success = result.correctAnswers >= corpseData.harvestThreshold;
+        
+        if (success) {
+            // Success! Create food item
+            this.handleHarvestSuccess(corpseData);
         } else {
-            // Failed harvesting might damage the corpse
-            if (result.score < threshold * 0.5) {
-                corpse.harvested = true; // Ruined
-                this.game.messageLog.add('Failed harvesting - the corpse was ruined!', 'danger');
+            // Failure - corpse is ruined
+            this.handleHarvestFailure(corpseData);
+        }
+        
+        // Clear harvesting state
+        this.harvestingCorpse = null;
+        this.harvestLocation = null;
+    }
+    
+    /**
+     * Handle successful harvest
+     */
+    handleHarvestSuccess(corpseData) {
+        // Remove corpse from original location
+        if (this.harvestLocation === 'inventory') {
+            this.removeFromInventory(this.harvestingCorpse);
+        } else {
+            this.removeFromGround(this.harvestingCorpse, result.context.x, result.context.y);
+        }
+        
+        // Create food item
+        const foodItem = {
+            id: corpseData.harvestFood,
+            name: this.getFoodName(corpseData.harvestFood),
+            type: 'food',
+            weight: Math.floor(corpseData.weight / 3), // Food weighs less than corpse
+            quantity: 1
+        };
+        
+        // Add food to inventory
+        this.addToInventory(foodItem);
+        
+        EventBus.emit(EVENTS.MESSAGE, {
+            text: `You successfully harvest ${foodItem.name} from the corpse!`,
+            type: 'success'
+        });
+        
+        EventBus.emit(EVENTS.HARVEST_SUCCESS, {
+            corpse: this.harvestingCorpse.name,
+            food: foodItem.name
+        });
+    }
+    
+    /**
+     * Handle failed harvest
+     */
+    handleHarvestFailure(corpseData) {
+        // Remove corpse from original location (it's ruined)
+        if (this.harvestLocation === 'inventory') {
+            this.removeFromInventory(this.harvestingCorpse);
+        } else {
+            this.removeFromGround(this.harvestingCorpse, result.context.x, result.context.y);
+        }
+        
+        EventBus.emit(EVENTS.MESSAGE, {
+            text: `You butcher the corpse badly, ruining the meat!`,
+            type: 'danger'
+        });
+        
+        EventBus.emit(EVENTS.HARVEST_FAILURE, {
+            corpse: this.harvestingCorpse.name
+        });
+    }
+    
+    /**
+     * Get food name from ID
+     */
+    getFoodName(foodId) {
+        // Map of food IDs to display names
+        const foodNames = {
+            'rat_meat': 'Rat Meat',
+            'goblin_meat': 'Goblin Meat',
+            'bat_wings': 'Bat Wings',
+            'jackal_meat': 'Jackal Meat',
+            'kobold_meat': 'Kobold Meat',
+            'newt_tail': 'Newt Tail',
+            'electric_thorax': 'Electric Thorax',
+            'hobgoblin_meat': 'Hobgoblin Meat',
+            'orc_meat': 'Orc Meat',
+            'preserved_flesh': 'Preserved Flesh',
+            'eye_jelly': 'Eye Jelly',
+            'neutralized_gel': 'Neutralized Gel',
+            'ant_thorax': 'Ant Thorax',
+            'dwarf_meat': 'Dwarf Meat',
+            'gnome_meat': 'Gnome Meat'
+        };
+        
+        return foodNames[foodId] || 'Unknown Food';
+    }
+    
+    /**
+     * Remove item from inventory
+     */
+    removeFromInventory(item) {
+        const index = this.player.inventory.findIndex(i => i.id === item.id);
+        if (index !== -1) {
+            const invItem = this.player.inventory[index];
+            
+            // If stacked, reduce quantity
+            if (invItem.quantity > 1) {
+                invItem.quantity--;
             } else {
-                this.game.messageLog.add('Failed to harvest properly. You can try again.', 'warning');
-            }
-            return null;
-        }
-    }
-    
-    /**
-     * Start harvesting quiz (threshold system)
-     */
-    async startHarvestingQuiz(corpse, difficulty, threshold) {
-        // Multiple questions, need to reach threshold score
-        const numQuestions = 3;
-        let totalScore = 0;
-        let questionsAnswered = 0;
-        
-        this.game.messageLog.add(`Harvesting ${corpse.name}... (Need ${threshold}% knowledge)`, 'info');
-        
-        for (let i = 0; i < numQuestions; i++) {
-            const result = await this.quizEngine.startQuiz(
-                'animal', // Animal facts for harvesting
-                difficulty,
-                { 
-                    action: 'harvesting',
-                    creature: corpse.creatureType,
-                    question: i + 1
-                }
-            );
-            
-            if (result.success) {
-                questionsAnswered++;
-                totalScore += result.score;
+                // Remove completely
+                this.player.inventory.splice(index, 1);
             }
             
-            // Calculate current average
-            const currentAverage = totalScore / (i + 1);
-            
-            // Early success if already above threshold
-            if (currentAverage >= threshold && questionsAnswered > 0) {
-                this.game.messageLog.add('Excellent knowledge! Harvesting complete.', 'success');
-                break;
+            EventBus.emit(EVENTS.INVENTORY_CHANGE, {
+                action: 'remove',
+                item: item
+            });
+        }
+    }
+    
+    /**
+     * Remove item from ground
+     */
+    removeFromGround(item, x, y) {
+        const tile = this.game.dungeon.getTile(x, y);
+        if (tile && tile.items) {
+            const index = tile.items.findIndex(i => i.id === item.id);
+            if (index !== -1) {
+                tile.items.splice(index, 1);
+                
+                EventBus.emit(EVENTS.ITEM_REMOVED, {
+                    item: item,
+                    x: x,
+                    y: y
+                });
             }
-            
-            // Early failure if impossible to reach threshold
-            const remainingQuestions = numQuestions - (i + 1);
-            const maxPossibleAverage = (totalScore + (remainingQuestions * 100)) / numQuestions;
-            if (maxPossibleAverage < threshold) {
-                this.game.messageLog.add('Insufficient knowledge to continue.', 'warning');
-                break;
-            }
         }
-        
-        const finalScore = totalScore / Math.max(questionsAnswered, 1);
-        
-        return {
-            success: finalScore >= threshold,
-            score: finalScore
-        };
     }
     
     /**
-     * Get harvest difficulty based on creature
+     * Add item to inventory
      */
-    getHarvestDifficulty(corpse) {
-        const creaturePower = corpse.creaturePower || 1;
+    addToInventory(item) {
+        // Check if item already exists and can stack
+        const existingItem = this.player.inventory.find(i => i.id === item.id);
         
-        // Known creatures are easier
-        const knownBonus = this.knownCreatures.has(corpse.creatureType) ? 1 : 0;
-        
-        // Apply skill bonus
-        const skillBonus = Math.floor(this.harvestingSkill / 5);
-        
-        const difficulty = Math.ceil(creaturePower / 3);
-        return Math.max(1, Math.min(5, difficulty - knownBonus - skillBonus));
-    }
-    
-    /**
-     * Get score threshold needed for successful harvest
-     */
-    getHarvestThreshold(corpse) {
-        const baseThreshold = {
-            'common': 50,
-            'uncommon': 60,
-            'rare': 70,
-            'exotic': 80,
-            'legendary': 90
-        };
-        
-        const rarity = corpse.rarity || 'common';
-        return baseThreshold[rarity] || 60;
-    }
-    
-    /**
-     * Extract materials from corpse based on quality
-     */
-    extractMaterials(corpse, quality) {
-        const materials = [];
-        const qualityMultiplier = quality / 100;
-        
-        // Base materials every creature has
-        if (Math.random() < qualityMultiplier) {
-            materials.push({
-                id: `${corpse.creatureType}_hide`,
-                name: `${corpse.creatureName} Hide`,
-                type: 'material',
-                value: Math.floor(corpse.creaturePower * 5 * qualityMultiplier),
-                stackable: true
-            });
+        if (existingItem && item.quantity) {
+            // Stack with existing
+            existingItem.quantity = (existingItem.quantity || 1) + item.quantity;
+        } else {
+            // Add new item
+            this.player.inventory.push(item);
         }
         
-        // Bones (common)
-        if (Math.random() < qualityMultiplier * 0.8) {
-            materials.push({
-                id: `${corpse.creatureType}_bone`,
-                name: `${corpse.creatureName} Bone`,
-                type: 'material',
-                value: Math.floor(corpse.creaturePower * 3 * qualityMultiplier),
-                stackable: true
-            });
-        }
-        
-        // Special materials based on creature type
-        if (corpse.specialMaterials) {
-            corpse.specialMaterials.forEach(special => {
-                if (Math.random() < qualityMultiplier * special.chance) {
-                    materials.push({
-                        ...special,
-                        quality: quality > 80 ? 'pristine' : quality > 60 ? 'good' : 'normal'
-                    });
-                }
-            });
-        }
-        
-        // Meat (if edible)
-        if (corpse.edible && Math.random() < qualityMultiplier * 0.7) {
-            materials.push({
-                id: `${corpse.creatureType}_meat`,
-                name: `${corpse.creatureName} Meat`,
-                type: 'food',
-                nutrition: Math.floor(corpse.creaturePower * 10 * qualityMultiplier),
-                stackable: true
-            });
-        }
-        
-        return materials;
-    }
-    
-    /**
-     * Get list of harvestable corpses in inventory
-     */
-    getHarvestableCorpses() {
-        if (!this.game.inventorySystem) return [];
-        
-        return this.game.inventorySystem.getItems().filter(item => {
-            return item.type === 'corpse' && !item.harvested;
+        EventBus.emit(EVENTS.INVENTORY_CHANGE, {
+            action: 'add',
+            item: item
         });
     }
     
@@ -221,58 +337,62 @@ export class HarvestingSystem {
      * Setup event listeners
      */
     setupEventListeners() {
-        // Auto-harvest on monster kill if skill is high enough
-        EventBus.on(EVENTS.MONSTER_KILLED, (data) => {
-            if (this.harvestingSkill >= 10) {
-                this.game.messageLog.add('Your harvesting expertise allows quick field dressing.', 'info');
-                // Create corpse item
-                const corpse = this.createCorpse(data.monster);
-                EventBus.emit(EVENTS.ITEM_CREATED, { item: corpse });
+        // Listen for harvest action from inventory
+        EventBus.on(EVENTS.PLAYER_ACTION, (action) => {
+            if (action.type === 'harvest') {
+                if (action.item) {
+                    this.startHarvestingFromInventory(action.item);
+                } else if (action.x !== undefined && action.y !== undefined) {
+                    this.startHarvestingFromGround(action.x, action.y);
+                }
+            }
+        });
+        
+        // Listen for quiz completion
+        EventBus.on(EVENTS.QUIZ_COMPLETE, (result) => {
+            if (result.context && result.context.action === 'harvesting') {
+                this.handleHarvestingComplete(result);
+            }
+        });
+        
+        // Listen for inventory harvest command
+        EventBus.on(EVENTS.INVENTORY_USE, (data) => {
+            if (data.action === 'harvest') {
+                this.startHarvestingFromInventory(data.item);
+            }
+        });
+        
+        // Listen for ground harvest command (standing over corpse)
+        EventBus.on(EVENTS.GROUND_ACTION, (data) => {
+            if (data.action === 'harvest') {
+                this.startHarvestingFromGround(data.x, data.y);
             }
         });
     }
     
     /**
-     * Create corpse item from monster
+     * Quick harvest at player's position
      */
-    createCorpse(monster) {
-        return {
-            id: `corpse_${monster.id}`,
-            name: `${monster.name} Corpse`,
-            type: 'corpse',
-            creatureType: monster.id,
-            creatureName: monster.name,
-            creaturePower: monster.level || 1,
-            rarity: monster.rarity || 'common',
-            edible: monster.edible !== false,
-            specialMaterials: monster.materials || [],
-            harvested: false,
-            weight: monster.size || 10,
-            decayTime: 100 // Turns before corpse disappears
-        };
+    harvestHere() {
+        return this.startHarvestingFromGround(this.player.x, this.player.y);
     }
     
     /**
-     * Serialize harvesting system state
+     * Get list of harvestable items in inventory
      */
-    serialize() {
-        return {
-            harvestingSkill: this.harvestingSkill,
-            knownCreatures: Array.from(this.knownCreatures)
-        };
+    getHarvestableItems() {
+        return this.player.inventory.filter(item => this.canHarvest(item));
     }
     
     /**
-     * Deserialize harvesting system state
+     * Get harvesting statistics
      */
-    deserialize(data) {
-        if (data.harvestingSkill !== undefined) {
-            this.harvestingSkill = data.harvestingSkill;
-        }
-        if (data.knownCreatures) {
-            this.knownCreatures = new Set(data.knownCreatures);
-        }
+    getStats() {
+        // Could track harvesting stats if desired
+        return {
+            totalHarvested: 0,
+            successfulHarvests: 0,
+            failedHarvests: 0
+        };
     }
 }
-
-export default HarvestingSystem;

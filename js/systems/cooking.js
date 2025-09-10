@@ -1,6 +1,7 @@
 /**
  * cooking.js - Cooking system
- * Handles food preparation through cooking questions (escalator chain)
+ * Handles cooking food items with escalator chain quizzes
+ * and applies stat/effect bonuses based on performance
  */
 
 import { EventBus, EVENTS } from '../core/event-bus.js';
@@ -9,246 +10,326 @@ import { QuizEngine } from './quiz-engine.js';
 export class CookingSystem {
     constructor(game) {
         this.game = game;
-        this.quizEngine = new QuizEngine();
-        this.knownRecipes = new Set();
-        this.cookingBonus = 0; // Improves with successful cooking
+        this.player = game.player;
+        this.quizEngine = game.quizEngine;
         
+        // Load food data
+        this.foodData = null;
+        this.loadFoodData();
+        
+        // Currently cooking item
+        this.cookingItem = null;
+        
+        // Setup event listeners
         this.setupEventListeners();
     }
     
     /**
-     * Cook food item(s)
+     * Load food data from JSON
      */
-    async cookFood(ingredients) {
-        if (!ingredients || ingredients.length === 0) {
-            this.game.messageLog.add('You need ingredients to cook!', 'warning');
-            return null;
-        }
-        
-        // Find matching recipe
-        const recipe = this.findRecipe(ingredients);
-        if (!recipe) {
-            this.game.messageLog.add('You don\'t know a recipe for these ingredients.', 'info');
-            return null;
-        }
-        
-        // Start escalator chain quiz for cooking
-        const difficulty = this.getRecipeDifficulty(recipe);
-        const result = await this.startCookingQuiz(recipe, difficulty);
-        
-        if (result.success) {
-            const cookedFood = this.createCookedFood(recipe, result.score);
+    async loadFoodData() {
+        try {
+            const response = await fetch('/data/items/food.json');
+            const data = await response.json();
+            this.foodData = new Map();
             
-            // Remove ingredients from inventory
-            this.consumeIngredients(ingredients);
+            // Index foods by ID for quick lookup
+            data.foods.forEach(food => {
+                this.foodData.set(food.id, food);
+            });
             
-            // Add to known recipes
-            this.knownRecipes.add(recipe.id);
-            
-            // Improve cooking skill
-            this.cookingBonus = Math.min(this.cookingBonus + 1, 10);
-            
-            this.game.messageLog.add(`Successfully cooked ${cookedFood.name}!`, 'success');
-            EventBus.emit(EVENTS.ITEM_CREATED, { item: cookedFood });
-            
-            return cookedFood;
-        } else {
-            // Cooking failed - ingredients might be wasted
-            if (result.score < 30) {
-                this.consumeIngredients(ingredients);
-                this.game.messageLog.add('Cooking failed! The ingredients were ruined.', 'danger');
-            } else {
-                this.game.messageLog.add('Cooking failed, but you saved the ingredients.', 'warning');
-            }
-            return null;
+            console.log(`✅ Loaded ${this.foodData.size} food types`);
+        } catch (error) {
+            console.error('Failed to load food data:', error);
         }
     }
     
     /**
-     * Start cooking quiz (escalator chain)
+     * Check if an item can be cooked
      */
-    async startCookingQuiz(recipe, baseDifficulty) {
-        const questions = [];
-        let currentDifficulty = baseDifficulty;
+    canCook(item) {
+        if (!item || !item.id) return false;
+        return this.foodData && this.foodData.has(item.id);
+    }
+    
+    /**
+     * Start cooking a food item
+     */
+    startCooking(item) {
+        // Validate item
+        if (!this.canCook(item)) {
+            EventBus.emit(EVENTS.MESSAGE, {
+                text: `${item.name || 'That'} cannot be cooked!`,
+                type: 'warning'
+            });
+            return false;
+        }
         
-        // Escalator chain: each correct answer makes next question harder
-        for (let i = 0; i < recipe.steps || 3; i++) {
-            questions.push({
-                subject: 'cooking',
-                difficulty: Math.min(currentDifficulty + i, 5),
-                step: i + 1
+        // Check if player has the item
+        const inventoryItem = this.player.inventory.find(i => i.id === item.id);
+        if (!inventoryItem) {
+            EventBus.emit(EVENTS.MESSAGE, {
+                text: `You don't have any ${item.name}!`,
+                type: 'warning'
+            });
+            return false;
+        }
+        
+        // Store the item being cooked
+        this.cookingItem = item;
+        
+        // Start escalator chain quiz
+        // Cooking quizzes always start at Tier 1 and can go up to Tier 5
+        EventBus.emit(EVENTS.QUIZ_START, {
+            subject: 'cooking',
+            type: 'escalator',
+            startTier: 1,
+            maxTier: 5,
+            context: {
+                action: 'cooking',
+                item: item.name
+            }
+        });
+        
+        EventBus.emit(EVENTS.MESSAGE, {
+            text: `You begin preparing the ${item.name}...`,
+            type: 'info'
+        });
+        
+        return true;
+    }
+    
+    /**
+     * Handle cooking quiz completion
+     */
+    handleCookingComplete(result) {
+        if (!this.cookingItem) {
+            console.error('No item being cooked!');
+            return;
+        }
+        
+        const food = this.foodData.get(this.cookingItem.id);
+        if (!food) {
+            console.error('Food data not found for:', this.cookingItem.id);
+            return;
+        }
+        
+        // Get the cooking outcome based on score (0-5)
+        const score = Math.min(result.score || 0, 5);
+        const outcome = food.cookingOutcomes[score];
+        
+        if (!outcome) {
+            console.error('No outcome for score:', score);
+            return;
+        }
+        
+        // Remove the raw food from inventory
+        this.removeFromInventory(this.cookingItem);
+        
+        // Display the result message
+        EventBus.emit(EVENTS.MESSAGE, {
+            text: outcome.message,
+            type: score === 0 ? 'danger' : 'success'
+        });
+        
+        // Apply all effects
+        if (outcome.effects && outcome.effects.length > 0) {
+            this.applyFoodEffects(outcome.effects, outcome.name);
+        }
+        
+        // Emit cooking complete event
+        EventBus.emit(EVENTS.COOKING_COMPLETE, {
+            food: food.name,
+            dish: outcome.name,
+            score: score,
+            effects: outcome.effects
+        });
+        
+        // Clear cooking item
+        this.cookingItem = null;
+    }
+    
+    /**
+     * Apply food effects to the player
+     */
+    applyFoodEffects(effects, dishName) {
+        effects.forEach(effect => {
+            switch (effect.type) {
+                case 'restoreSP':
+                    this.player.restoreSP(effect.value);
+                    EventBus.emit(EVENTS.MESSAGE, {
+                        text: `You recover ${effect.value} SP!`,
+                        type: 'heal'
+                    });
+                    break;
+                    
+                case 'restoreHP':
+                    this.player.heal(effect.value);
+                    EventBus.emit(EVENTS.MESSAGE, {
+                        text: `You recover ${effect.value} HP!`,
+                        type: 'heal'
+                    });
+                    break;
+                    
+                case 'restoreMP':
+                    this.player.restoreMP(effect.value);
+                    EventBus.emit(EVENTS.MESSAGE, {
+                        text: `You recover ${effect.value} MP!`,
+                        type: 'heal'
+                    });
+                    break;
+                    
+                case 'increaseAttribute':
+                    this.player.increaseAttribute(effect.attribute, effect.value);
+                    const attrName = this.getAttributeDisplayName(effect.attribute);
+                    EventBus.emit(EVENTS.MESSAGE, {
+                        text: `Your ${attrName} increases by ${effect.value}!`,
+                        type: 'success'
+                    });
+                    break;
+                    
+                case 'effect':
+                    this.applyTemporaryEffect(effect);
+                    break;
+                    
+                default:
+                    console.warn('Unknown effect type:', effect.type);
+            }
+        });
+    }
+    
+    /**
+     * Apply a temporary effect
+     */
+    applyTemporaryEffect(effect) {
+        // Add the effect to the player
+        this.player.addEffect(effect.name, effect.duration, effect.properties || {});
+        
+        // Get effect description for message
+        const effectDesc = this.getEffectDescription(effect.name);
+        EventBus.emit(EVENTS.MESSAGE, {
+            text: `You gain ${effectDesc} for ${effect.duration} turns!`,
+            type: 'buff'
+        });
+    }
+    
+    /**
+     * Remove item from inventory
+     */
+    removeFromInventory(item) {
+        const index = this.player.inventory.findIndex(i => i.id === item.id);
+        if (index !== -1) {
+            const invItem = this.player.inventory[index];
+            
+            // If stacked, reduce quantity
+            if (invItem.quantity > 1) {
+                invItem.quantity--;
+            } else {
+                // Remove completely
+                this.player.inventory.splice(index, 1);
+            }
+            
+            EventBus.emit(EVENTS.INVENTORY_CHANGE, {
+                action: 'remove',
+                item: item
             });
         }
-        
-        let totalScore = 0;
-        let correctAnswers = 0;
-        
-        for (const question of questions) {
-            const result = await this.quizEngine.startQuiz(
-                question.subject,
-                question.difficulty,
-                { 
-                    action: 'cooking',
-                    recipe: recipe.name,
-                    step: question.step
-                }
-            );
+    }
+    
+    /**
+     * Get display name for attribute
+     */
+    getAttributeDisplayName(attribute) {
+        const names = {
+            strength: 'Strength',
+            constitution: 'Constitution',
+            dexterity: 'Dexterity',
+            intelligence: 'Intelligence',
+            wisdom: 'Wisdom',
+            perception: 'Perception'
+        };
+        return names[attribute] || attribute;
+    }
+    
+    /**
+     * Get description for temporary effect
+     */
+    getEffectDescription(effectName) {
+        const descriptions = {
+            // Detection abilities
+            detectTraps: 'Trap Detection',
+            trapDetection: 'Enhanced Trap Detection',
+            seeInvisible: 'See Invisible',
+            telepathy: 'Telepathy',
+            echolocation: 'Echolocation',
             
-            if (result.success) {
-                correctAnswers++;
-                totalScore += result.score;
-                this.game.messageLog.add(`Step ${question.step} complete!`, 'info');
-            } else {
-                this.game.messageLog.add(`Failed at step ${question.step}!`, 'warning');
-                break; // Stop on first failure
-            }
-        }
-        
-        return {
-            success: correctAnswers === questions.length,
-            score: totalScore / questions.length,
-            steps: correctAnswers
+            // Resistances
+            poisonResistance: 'Poison Resistance',
+            acidResistance: 'Acid Resistance',
+            electricResistance: 'Electric Resistance',
+            stoneResistance: 'Stone Resistance',
+            acidImmunity: 'Acid Immunity',
+            undeadResistance: 'Undead Resistance',
+            
+            // Combat buffs
+            berserkRage: 'Berserk Rage',
+            tacticalAwareness: 'Tactical Awareness',
+            packInstinct: 'Pack Hunter Instincts',
+            hiveStrength: 'Strength of the Hive',
+            
+            // Movement/utility
+            swiftness: 'Increased Speed',
+            carryBoost: 'Increased Carrying Capacity',
+            regeneration: 'Regeneration',
+            lifeDrain: 'Life Drain',
+            
+            // Magical
+            minorIllusion: 'Minor Illusion',
+            majorIllusion: 'Major Illusion',
+            electricAura: 'Electric Aura',
+            corrosiveTouch: 'Corrosive Touch',
+            earthPower: 'Power of the Earth',
+            metalDetection: 'Metal Detection'
         };
-    }
-    
-    /**
-     * Find recipe matching ingredients
-     */
-    findRecipe(ingredients) {
-        // TODO: Load from data/recipes.json
-        const recipes = [
-            {
-                id: 'bread',
-                name: 'Bread',
-                ingredients: ['flour', 'water'],
-                difficulty: 1,
-                nutrition: 15,
-                steps: 2
-            },
-            {
-                id: 'stew',
-                name: 'Hearty Stew',
-                ingredients: ['meat', 'vegetables', 'water'],
-                difficulty: 2,
-                nutrition: 30,
-                steps: 3
-            },
-            {
-                id: 'potion_soup',
-                name: 'Magical Soup',
-                ingredients: ['herbs', 'mushroom', 'water'],
-                difficulty: 3,
-                nutrition: 20,
-                effect: 'mana_restore',
-                steps: 4
-            }
-        ];
         
-        const ingredientIds = ingredients.map(i => i.id).sort();
-        
-        return recipes.find(recipe => {
-            const recipeIngredients = recipe.ingredients.sort();
-            return JSON.stringify(recipeIngredients) === JSON.stringify(ingredientIds);
-        });
-    }
-    
-    /**
-     * Get recipe difficulty
-     */
-    getRecipeDifficulty(recipe) {
-        const baseDifficulty = recipe.difficulty || 1;
-        // Reduce difficulty if recipe is known
-        const knownBonus = this.knownRecipes.has(recipe.id) ? 1 : 0;
-        // Apply cooking skill bonus
-        const skillBonus = Math.floor(this.cookingBonus / 3);
-        
-        return Math.max(1, baseDifficulty - knownBonus - skillBonus);
-    }
-    
-    /**
-     * Create cooked food item
-     */
-    createCookedFood(recipe, quality) {
-        const qualityMultiplier = 0.5 + (quality / 100);
-        
-        return {
-            id: `cooked_${recipe.id}`,
-            name: recipe.name,
-            type: 'food',
-            nutrition: Math.floor(recipe.nutrition * qualityMultiplier),
-            healAmount: Math.floor(recipe.nutrition * qualityMultiplier),
-            effect: recipe.effect || null,
-            quality: quality > 80 ? 'excellent' : quality > 60 ? 'good' : 'normal',
-            stackable: true
-        };
-    }
-    
-    /**
-     * Consume ingredients from inventory
-     */
-    consumeIngredients(ingredients) {
-        if (!this.game.inventorySystem) return;
-        
-        ingredients.forEach(ingredient => {
-            this.game.inventorySystem.removeItem(ingredient);
-        });
-    }
-    
-    /**
-     * Learn a new recipe
-     */
-    learnRecipe(recipeId) {
-        this.knownRecipes.add(recipeId);
-        this.game.messageLog.add('Learned a new recipe!', 'success');
-    }
-    
-    /**
-     * Get list of known recipes
-     */
-    getKnownRecipes() {
-        return Array.from(this.knownRecipes);
-    }
-    
-    /**
-     * Check if player knows a recipe
-     */
-    knowsRecipe(recipeId) {
-        return this.knownRecipes.has(recipeId);
+        return descriptions[effectName] || effectName;
     }
     
     /**
      * Setup event listeners
      */
     setupEventListeners() {
-        // Learn recipes from books
-        EventBus.on(EVENTS.ITEM_READ, (data) => {
-            if (data.item.type === 'book' && data.item.teaches === 'recipe') {
-                this.learnRecipe(data.item.recipeId);
+        // Listen for cook action
+        EventBus.on(EVENTS.PLAYER_ACTION, (action) => {
+            if (action.type === 'cook' && action.item) {
+                this.startCooking(action.item);
+            }
+        });
+        
+        // Listen for quiz completion
+        EventBus.on(EVENTS.QUIZ_COMPLETE, (result) => {
+            if (result.context && result.context.action === 'cooking') {
+                this.handleCookingComplete(result);
+            }
+        });
+        
+        // Listen for inventory cook command
+        EventBus.on(EVENTS.INVENTORY_USE, (data) => {
+            if (data.action === 'cook') {
+                this.startCooking(data.item);
             }
         });
     }
     
     /**
-     * Serialize cooking system state
+     * Get cooking statistics
      */
-    serialize() {
+    getStats() {
+        // Could track cooking stats if desired
         return {
-            knownRecipes: Array.from(this.knownRecipes),
-            cookingBonus: this.cookingBonus
+            totalCooked: 0,
+            perfectDishes: 0,
+            failedAttempts: 0
         };
     }
-    
-    /**
-     * Deserialize cooking system state
-     */
-    deserialize(data) {
-        if (data.knownRecipes) {
-            this.knownRecipes = new Set(data.knownRecipes);
-        }
-        if (data.cookingBonus !== undefined) {
-            this.cookingBonus = data.cookingBonus;
-        }
-    }
 }
-
-export default CookingSystem;
