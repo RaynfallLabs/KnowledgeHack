@@ -18,7 +18,13 @@ const CONFIG = {
     BOSS_LEVELS: [15, 30, 45, 60, 75, 90, 100],
     DEBUG_MODE: false,
     SAVE_KEY: 'philosophers_quest_save',
-    TURN_REGEN_RATE: 10
+    TURN_REGEN_RATE: 10,
+    
+    // Inventory settings
+    INVENTORY: {
+        MAX_ITEMS: 52,  // 26 letters * 2 (lowercase + uppercase)
+        DEFAULT_STACK_SIZE: 99
+    }
 };
 
 const TILES = {

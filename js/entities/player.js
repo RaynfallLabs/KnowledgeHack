@@ -130,6 +130,7 @@ export class Player {
         this.maxMp = this.calculateMaxMp();
         this.ac = this.calculateAC();
         this.carryCapacity = this.calculateCarryCapacity();
+        this.carryingCapacity = this.carryCapacity; // UI compatibility
         this.sightRadius = this.calculateSightRadius();
         
         // Adjust current values if max increased
@@ -154,6 +155,13 @@ export class Player {
         EventBus.emit(EVENTS.PLAYER_STAT_CHANGE, {
             player: this
         });
+    }
+    
+    /**
+     * Update stats (alias for equipment system compatibility)
+     */
+    updateStats() {
+        this.updateDerivedStats();
     }
     
     /**
