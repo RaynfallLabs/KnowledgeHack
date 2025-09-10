@@ -1,0 +1,885 @@
+{
+  "ammo": [
+    {
+      "_comment": "TIER 1 ARROWS - Basic wooden/iron",
+      
+      "id": "wooden_arrow",
+      "name": "wooden arrow",
+      "type": "arrow",
+      "tier": 1,
+      "material": "wood",
+      "damageBonus": 0,
+      "weight": 0.1,
+      "stackSize": 20,
+      "value": 1,
+      "floorSpawnWeight": {
+        "1-20": 80,
+        "21-40": 40,
+        "41-60": 20,
+        "61-80": 5,
+        "81-100": 1
+      },
+      "containerSpawnWeight": {
+        "common": 100,
+        "uncommon": 50,
+        "rare": 10,
+        "epic": 0,
+        "legendary": 0
+      },
+      "bundleSize": "2d6+3",
+      "description": "Simple wooden arrows with iron tips."
+    },
+    {
+      "id": "iron_arrow",
+      "name": "iron arrow",
+      "type": "arrow",
+      "tier": 1,
+      "material": "iron",
+      "damageBonus": 1,
+      "weight": 0.12,
+      "stackSize": 20,
+      "value": 2,
+      "floorSpawnWeight": {
+        "1-20": 60,
+        "21-40": 35,
+        "41-60": 15,
+        "61-80": 3,
+        "81-100": 0
+      },
+      "containerSpawnWeight": {
+        "common": 80,
+        "uncommon": 60,
+        "rare": 20,
+        "epic": 5,
+        "legendary": 0
+      },
+      "bundleSize": "2d4+2",
+      "description": "Well-balanced arrows with sharp iron heads."
+    },
+    {
+      "id": "hunting_arrow",
+      "name": "hunting arrow",
+      "type": "arrow",
+      "tier": 1,
+      "material": "iron",
+      "damageBonus": 1,
+      "weight": 0.11,
+      "stackSize": 20,
+      "value": 3,
+      "special": {
+        "bonusVsAnimals": 2
+      },
+      "floorSpawnWeight": {
+        "1-20": 50,
+        "21-40": 30,
+        "41-60": 10,
+        "61-80": 2,
+        "81-100": 0
+      },
+      "containerSpawnWeight": {
+        "common": 60,
+        "uncommon": 40,
+        "rare": 15,
+        "epic": 0,
+        "legendary": 0
+      },
+      "bundleSize": "1d6+2",
+      "description": "Broadhead arrows designed for hunting beasts."
+    },
+    {
+      "id": "wooden_bolt",
+      "name": "wooden bolt",
+      "type": "bolt",
+      "tier": 1,
+      "material": "wood",
+      "damageBonus": 1,
+      "weight": 0.15,
+      "stackSize": 20,
+      "value": 2,
+      "floorSpawnWeight": {
+        "1-20": 60,
+        "21-40": 30,
+        "41-60": 10,
+        "61-80": 2,
+        "81-100": 0
+      },
+      "containerSpawnWeight": {
+        "common": 80,
+        "uncommon": 40,
+        "rare": 10,
+        "epic": 0,
+        "legendary": 0
+      },
+      "bundleSize": "2d4+1",
+      "description": "Heavy crossbow bolts with wooden shafts."
+    },
+    {
+      "id": "iron_bolt",
+      "name": "iron bolt",
+      "type": "bolt",
+      "tier": 1,
+      "material": "iron",
+      "damageBonus": 2,
+      "weight": 0.2,
+      "stackSize": 20,
+      "value": 3,
+      "floorSpawnWeight": {
+        "1-20": 40,
+        "21-40": 25,
+        "41-60": 8,
+        "61-80": 1,
+        "81-100": 0
+      },
+      "containerSpawnWeight": {
+        "common": 60,
+        "uncommon": 50,
+        "rare": 20,
+        "epic": 5,
+        "legendary": 0
+      },
+      "bundleSize": "1d6+3",
+      "description": "All-iron bolts that hit with tremendous force."
+    },
+
+    {
+      "_comment": "TIER 2 ARROWS - Steel/enhanced",
+      
+      "id": "steel_arrow",
+      "name": "steel arrow",
+      "type": "arrow",
+      "tier": 2,
+      "material": "steel",
+      "damageBonus": 2,
+      "weight": 0.12,
+      "stackSize": 20,
+      "value": 5,
+      "floorSpawnWeight": {
+        "1-20": 10,
+        "21-40": 60,
+        "41-60": 40,
+        "61-80": 15,
+        "81-100": 3
+      },
+      "containerSpawnWeight": {
+        "common": 20,
+        "uncommon": 80,
+        "rare": 50,
+        "epic": 20,
+        "legendary": 5
+      },
+      "bundleSize": "2d4+3",
+      "description": "Precision-forged steel arrows that fly true."
+    },
+    {
+      "id": "barbed_arrow",
+      "name": "barbed arrow",
+      "type": "arrow",
+      "tier": 2,
+      "material": "steel",
+      "damageBonus": 2,
+      "weight": 0.13,
+      "stackSize": 20,
+      "value": 7,
+      "special": {
+        "bleedDamage": "1d3",
+        "bleedDuration": 3
+      },
+      "floorSpawnWeight": {
+        "1-20": 5,
+        "21-40": 40,
+        "41-60": 30,
+        "61-80": 10,
+        "81-100": 2
+      },
+      "containerSpawnWeight": {
+        "common": 10,
+        "uncommon": 60,
+        "rare": 40,
+        "epic": 15,
+        "legendary": 3
+      },
+      "bundleSize": "1d6+2",
+      "description": "Cruel arrows that cause bleeding wounds."
+    },
+    {
+      "id": "fire_arrow",
+      "name": "fire arrow",
+      "type": "arrow",
+      "tier": 2,
+      "material": "steel",
+      "damageBonus": 1,
+      "weight": 0.14,
+      "stackSize": 20,
+      "value": 10,
+      "damageType": "fire",
+      "special": {
+        "fireDamage": "1d4",
+        "igniteChance": 0.25
+      },
+      "floorSpawnWeight": {
+        "1-20": 3,
+        "21-40": 30,
+        "41-60": 25,
+        "61-80": 8,
+        "81-100": 1
+      },
+      "containerSpawnWeight": {
+        "common": 5,
+        "uncommon": 50,
+        "rare": 35,
+        "epic": 20,
+        "legendary": 5
+      },
+      "bundleSize": "1d4+2",
+      "description": "Arrows wrapped in oil-soaked cloth, ignited before firing."
+    },
+    {
+      "id": "steel_bolt",
+      "name": "steel bolt",
+      "type": "bolt",
+      "tier": 2,
+      "material": "steel",
+      "damageBonus": 3,
+      "weight": 0.2,
+      "stackSize": 20,
+      "value": 6,
+      "floorSpawnWeight": {
+        "1-20": 8,
+        "21-40": 50,
+        "41-60": 35,
+        "61-80": 12,
+        "81-100": 2
+      },
+      "containerSpawnWeight": {
+        "common": 15,
+        "uncommon": 70,
+        "rare": 45,
+        "epic": 18,
+        "legendary": 4
+      },
+      "bundleSize": "1d6+3",
+      "description": "Heavy steel bolts that punch through armor."
+    },
+    {
+      "id": "piercing_bolt",
+      "name": "piercing bolt",
+      "type": "bolt",
+      "tier": 2,
+      "material": "steel",
+      "damageBonus": 2,
+      "weight": 0.18,
+      "stackSize": 20,
+      "value": 8,
+      "special": {
+        "armorPiercing": 3
+      },
+      "floorSpawnWeight": {
+        "1-20": 4,
+        "21-40": 35,
+        "41-60": 28,
+        "61-80": 9,
+        "81-100": 1
+      },
+      "containerSpawnWeight": {
+        "common": 8,
+        "uncommon": 55,
+        "rare": 38,
+        "epic": 15,
+        "legendary": 3
+      },
+      "bundleSize": "1d4+2",
+      "description": "Specially designed bolts that ignore armor."
+    },
+
+    {
+      "_comment": "TIER 3 ARROWS - Magical/elemental",
+      
+      "id": "elven_arrow",
+      "name": "elven arrow",
+      "type": "arrow",
+      "tier": 3,
+      "material": "ironwood",
+      "damageBonus": 3,
+      "weight": 0.08,
+      "stackSize": 20,
+      "value": 15,
+      "special": {
+        "accuracy": 2,
+        "range": 2
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 10,
+        "41-60": 50,
+        "61-80": 30,
+        "81-100": 10
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 20,
+        "rare": 70,
+        "epic": 45,
+        "legendary": 20
+      },
+      "bundleSize": "2d4+2",
+      "description": "Perfectly balanced elven arrows that never miss."
+    },
+    {
+      "id": "frost_arrow",
+      "name": "frost arrow",
+      "type": "arrow",
+      "tier": 3,
+      "material": "crystal",
+      "damageBonus": 2,
+      "weight": 0.11,
+      "stackSize": 20,
+      "value": 18,
+      "damageType": "cold",
+      "special": {
+        "coldDamage": "1d6",
+        "slowDuration": 3
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 8,
+        "41-60": 40,
+        "61-80": 25,
+        "81-100": 8
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 15,
+        "rare": 60,
+        "epic": 40,
+        "legendary": 18
+      },
+      "bundleSize": "1d6+1",
+      "description": "Crystal arrows that freeze on impact."
+    },
+    {
+      "id": "lightning_arrow",
+      "name": "lightning arrow",
+      "type": "arrow",
+      "tier": 3,
+      "material": "gold",
+      "damageBonus": 2,
+      "weight": 0.15,
+      "stackSize": 20,
+      "value": 20,
+      "damageType": "electric",
+      "special": {
+        "electricDamage": "2d4",
+        "chainChance": 0.3
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 6,
+        "41-60": 35,
+        "61-80": 22,
+        "81-100": 7
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 10,
+        "rare": 55,
+        "epic": 38,
+        "legendary": 15
+      },
+      "bundleSize": "1d4+1",
+      "description": "Gold-traced arrows that carry electrical charge."
+    },
+    {
+      "id": "poison_arrow",
+      "name": "poison arrow",
+      "type": "arrow",
+      "tier": 3,
+      "material": "obsidian",
+      "damageBonus": 1,
+      "weight": 0.1,
+      "stackSize": 20,
+      "value": 16,
+      "special": {
+        "poisonDamage": "1d4",
+        "poisonDuration": 10
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 7,
+        "41-60": 38,
+        "61-80": 24,
+        "81-100": 8
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 12,
+        "rare": 58,
+        "epic": 35,
+        "legendary": 12
+      },
+      "bundleSize": "1d6+2",
+      "description": "Obsidian arrows coated with deadly venom."
+    },
+    {
+      "id": "golden_bolt",
+      "name": "golden bolt",
+      "type": "bolt",
+      "tier": 3,
+      "material": "hardened_gold",
+      "damageBonus": 4,
+      "weight": 0.25,
+      "stackSize": 20,
+      "value": 17,
+      "special": {
+        "bonusVsUndead": 5,
+        "bonusVsDemon": 5
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 9,
+        "41-60": 45,
+        "61-80": 28,
+        "81-100": 9
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 18,
+        "rare": 65,
+        "epic": 42,
+        "legendary": 18
+      },
+      "bundleSize": "1d6+2",
+      "description": "Blessed golden bolts that smite evil."
+    },
+    {
+      "id": "explosive_bolt",
+      "name": "explosive bolt",
+      "type": "bolt",
+      "tier": 3,
+      "material": "steel",
+      "damageBonus": 3,
+      "weight": 0.3,
+      "stackSize": 10,
+      "value": 25,
+      "special": {
+        "explosionDamage": "2d6",
+        "explosionRadius": 1
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 5,
+        "41-60": 30,
+        "61-80": 20,
+        "81-100": 6
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 8,
+        "rare": 50,
+        "epic": 35,
+        "legendary": 15
+      },
+      "bundleSize": "1d3+1",
+      "description": "Alchemical bolts that explode on impact."
+    },
+
+    {
+      "_comment": "TIER 4 ARROWS - Diamond/mythic",
+      
+      "id": "diamond_arrow",
+      "name": "diamond arrow",
+      "type": "arrow",
+      "tier": 4,
+      "material": "diamond",
+      "damageBonus": 4,
+      "weight": 0.09,
+      "stackSize": 20,
+      "value": 35,
+      "special": {
+        "armorPiercing": 5,
+        "criticalChance": 0.15
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 10,
+        "61-80": 40,
+        "81-100": 25
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 20,
+        "epic": 60,
+        "legendary": 40
+      },
+      "bundleSize": "1d6+3",
+      "description": "Arrows tipped with sharpened diamond."
+    },
+    {
+      "id": "phase_arrow",
+      "name": "phase arrow",
+      "type": "arrow",
+      "tier": 4,
+      "material": "mithril",
+      "damageBonus": 3,
+      "weight": 0.05,
+      "stackSize": 20,
+      "value": 40,
+      "special": {
+        "ignoresShields": true,
+        "partialCover": true
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 8,
+        "61-80": 35,
+        "81-100": 22
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 15,
+        "epic": 55,
+        "legendary": 38
+      },
+      "bundleSize": "1d4+2",
+      "description": "Ethereal arrows that phase through obstacles."
+    },
+    {
+      "id": "holy_arrow",
+      "name": "holy arrow",
+      "type": "arrow",
+      "tier": 4,
+      "material": "mithril",
+      "damageBonus": 3,
+      "weight": 0.08,
+      "stackSize": 20,
+      "value": 38,
+      "damageType": "holy",
+      "special": {
+        "holyDamage": "2d6",
+        "bonusVsEvil": 8
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 7,
+        "61-80": 32,
+        "81-100": 20
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 12,
+        "epic": 52,
+        "legendary": 35
+      },
+      "bundleSize": "1d4+1",
+      "description": "Arrows blessed by divine power."
+    },
+    {
+      "id": "void_bolt",
+      "name": "void bolt",
+      "type": "bolt",
+      "tier": 4,
+      "material": "obsidian",
+      "damageBonus": 5,
+      "weight": 0.22,
+      "stackSize": 20,
+      "value": 42,
+      "damageType": "void",
+      "special": {
+        "voidDamage": "1d8",
+        "mpDrain": 5
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 6,
+        "61-80": 30,
+        "81-100": 18
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 10,
+        "epic": 50,
+        "legendary": 33
+      },
+      "bundleSize": "1d4+1",
+      "description": "Bolts infused with void energy that drain life force."
+    },
+    {
+      "id": "siege_bolt",
+      "name": "siege bolt",
+      "type": "bolt",
+      "tier": 4,
+      "material": "diamond",
+      "damageBonus": 6,
+      "weight": 0.35,
+      "stackSize": 10,
+      "value": 45,
+      "special": {
+        "knockback": 2,
+        "stunChance": 0.2
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 5,
+        "61-80": 28,
+        "81-100": 16
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 8,
+        "epic": 48,
+        "legendary": 30
+      },
+      "bundleSize": "1d3+1",
+      "description": "Massive bolts designed to stop charging enemies."
+    },
+
+    {
+      "_comment": "TIER 5 ARROWS - Legendary",
+      
+      "id": "dragonslayer_arrow",
+      "name": "dragonslayer arrow",
+      "type": "arrow",
+      "tier": 5,
+      "material": "adamantine",
+      "damageBonus": 5,
+      "weight": 0.1,
+      "stackSize": 20,
+      "value": 80,
+      "special": {
+        "bonusVsDragons": 15,
+        "ignoresResistances": true
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 0,
+        "61-80": 10,
+        "81-100": 30
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 0,
+        "epic": 20,
+        "legendary": 60
+      },
+      "bundleSize": "1d6+2",
+      "description": "Legendary arrows forged to slay dragons."
+    },
+    {
+      "id": "starfall_arrow",
+      "name": "starfall arrow",
+      "type": "arrow",
+      "tier": 5,
+      "material": "adamantine",
+      "damageBonus": 6,
+      "weight": 0.08,
+      "stackSize": 20,
+      "value": 90,
+      "damageType": "cosmic",
+      "special": {
+        "cosmicDamage": "3d6",
+        "homingChance": 0.5
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 0,
+        "61-80": 8,
+        "81-100": 25
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 0,
+        "epic": 15,
+        "legendary": 55
+      },
+      "bundleSize": "1d4+1",
+      "description": "Arrows that fall like meteors from the heavens."
+    },
+    {
+      "id": "phoenix_arrow",
+      "name": "phoenix arrow",
+      "type": "arrow",
+      "tier": 5,
+      "material": "dragonbone",
+      "damageBonus": 4,
+      "weight": 0.06,
+      "stackSize": 20,
+      "value": 85,
+      "damageType": "fire",
+      "special": {
+        "fireDamage": "2d8",
+        "resurrectChance": 0.3
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 0,
+        "61-80": 7,
+        "81-100": 22
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 0,
+        "epic": 12,
+        "legendary": 50
+      },
+      "bundleSize": "1d4+1",
+      "description": "Arrows of rebirth that burn with eternal flame."
+    },
+    {
+      "id": "godslayer_bolt",
+      "name": "godslayer bolt",
+      "type": "bolt",
+      "tier": 5,
+      "material": "adamantine",
+      "damageBonus": 8,
+      "weight": 0.25,
+      "stackSize": 10,
+      "value": 100,
+      "special": {
+        "trueDamage": true,
+        "executionThreshold": 0.1
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 0,
+        "61-80": 5,
+        "81-100": 20
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 0,
+        "epic": 10,
+        "legendary": 45
+      },
+      "bundleSize": "1d3",
+      "description": "Bolts capable of slaying immortals."
+    },
+    {
+      "id": "temporal_bolt",
+      "name": "temporal bolt",
+      "type": "bolt",
+      "tier": 5,
+      "material": "dragonbone",
+      "damageBonus": 5,
+      "weight": 0.15,
+      "stackSize": 10,
+      "value": 95,
+      "damageType": "temporal",
+      "special": {
+        "timeDamage": "2d10",
+        "ageEffect": true
+      },
+      "floorSpawnWeight": {
+        "1-20": 0,
+        "21-40": 0,
+        "41-60": 0,
+        "61-80": 6,
+        "81-100": 18
+      },
+      "containerSpawnWeight": {
+        "common": 0,
+        "uncommon": 0,
+        "rare": 0,
+        "epic": 8,
+        "legendary": 42
+      },
+      "bundleSize": "1d3",
+      "description": "Bolts that age their targets through time."
+    }
+  ],
+
+  "ammoProperties": {
+    "stackingRules": {
+      "maxStackSize": 99,
+      "combinePartialStacks": true,
+      "separateByEnchantment": true,
+      "separateByBlessing": true
+    },
+    "quiverSizes": {
+      "none": 0,
+      "small": 20,
+      "medium": 40,
+      "large": 60,
+      "magical": 99
+    },
+    "recoveryChance": {
+      "arrow": {
+        "miss": 0.8,
+        "hit": 0.5,
+        "critical": 0.2,
+        "kill": 0.3
+      },
+      "bolt": {
+        "miss": 0.7,
+        "hit": 0.4,
+        "critical": 0.1,
+        "kill": 0.2
+      }
+    },
+    "breakChanceByMaterial": {
+      "wood": 0.3,
+      "iron": 0.2,
+      "steel": 0.15,
+      "ironwood": 0.1,
+      "hardened_gold": 0.12,
+      "crystal": 0.35,
+      "obsidian": 0.25,
+      "diamond": 0.05,
+      "mithril": 0.03,
+      "adamantine": 0.01,
+      "dragonbone": 0.02
+    }
+  },
+
+  "specialEffects": {
+    "bonusVsAnimals": "Extra damage against natural beasts",
+    "bleedDamage": "Causes bleeding over time",
+    "fireDamage": "Burns target",
+    "igniteChance": "May set target on fire",
+    "armorPiercing": "Ignores armor value",
+    "accuracy": "Bonus to hit rolls",
+    "range": "Extended firing range",
+    "coldDamage": "Freezes target",
+    "slowDuration": "Slows movement",
+    "electricDamage": "Shocks target",
+    "chainChance": "May arc to nearby enemies",
+    "poisonDamage": "Poisons target over time",
+    "bonusVsUndead": "Extra damage to undead",
+    "bonusVsDemon": "Extra damage to demons",
+    "explosionDamage": "Area of effect damage",
+    "criticalChance": "Increased critical hit chance",
+    "ignoresShields": "Bypasses shield blocks",
+    "partialCover": "Ignores cover bonuses",
+    "holyDamage": "Divine damage",
+    "bonusVsEvil": "Extra damage to evil creatures",
+    "voidDamage": "Drains life essence",
+    "mpDrain": "Drains mana points",
+    "knockback": "Pushes target back",
+    "stunChance": "May stun target",
+    "bonusVsDragons": "Devastating to dragons",
+    "ignoresResistances": "Bypasses all resistances",
+    "cosmicDamage": "Stellar energy damage",
+    "homingChance": "May curve toward target",
+    "resurrectChance": "Arrow returns after use",
+    "trueDamage": "Cannot be reduced",
+    "executionThreshold": "Instantly kills low HP enemies",
+    "timeDamage": "Ages the target",
+    "ageEffect": "Causes temporal distortion"
+  }
+}
