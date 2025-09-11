@@ -126,7 +126,7 @@ export class Game {
         await itemLoader.loadAllItems();
         
         // Load monsters
-        await monsterLoader.loadMonsters();
+        await monsterLoader.load();
         
         console.log('✅ Game data loaded');
     }

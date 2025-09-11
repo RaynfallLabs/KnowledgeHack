@@ -56,7 +56,7 @@ export class ItemLoader {
             const totalItems = Object.values(this.items).reduce((sum, category) => sum + category.length, 0);
             console.log(`✅ Loaded ${totalItems} items across ${Object.keys(this.items).length} categories`);
             
-            EventBus.emit(EVENTS.ITEMS_LOADED, { items: this.items });
+            EventBus.emit(EVENTS.DATA_LOADED, { type: 'items', count: totalItems });
             this.loaded = true;
             
             return this.items;
