@@ -75,16 +75,16 @@ KnowledgeHack/
 ├── index.html                    # Main entry point
 ├── css/main.css                  # All styles
 ├── js/
-│   ├── config.js                # Game constants & settings
+│   ├── config.js                # ✅ FIXED - Added EVENTS and INVENTORY
 │   ├── core/                    # Core game systems
 │   │   ├── event-bus.js        # ✅ COMPLETE - All events defined
-│   │   ├── game.js             # ✅ COMPLETE - Full integration
+│   │   ├── game.js             # ✅ FIXED - Proper error handling
 │   │   ├── question-loader.js  # ✅ COMPLETE
-│   │   ├── item-loader.js      # Loads all items
-│   │   ├── monster-loader.js   # ✅ COMPLETE
-│   │   └── spell-loader.js     # Needs spells data
+│   │   ├── item-loader.js      # ✅ FIXED - GitHub Pages paths
+│   │   ├── monster-loader.js   # ✅ FIXED - GitHub Pages paths
+│   │   └── spell-loader.js     # ❌ Needs implementation
 │   ├── entities/                
-│   │   ├── player.js           # ✅ COMPLETE - 6 stats, saves, effects
+│   │   ├── player.js           # ✅ FIXED - Added missing methods
 │   │   ├── monster.js          # ✅ COMPLETE
 │   │   ├── monster-ai.js       # ✅ COMPLETE
 │   │   ├── monster-abilities.js # ✅ COMPLETE
@@ -96,8 +96,8 @@ KnowledgeHack/
 │   │   ├── inventory.js        # Basic implementation
 │   │   ├── equipment.js        # Basic implementation
 │   │   ├── identification.js   # Basic implementation
-│   │   ├── cooking.js          # ✅ COMPLETE - Escalator quiz
-│   │   ├── harvesting.js       # ✅ COMPLETE - Threshold quiz
+│   │   ├── cooking.js          # ✅ FIXED - GitHub Pages paths
+│   │   ├── harvesting.js       # ✅ FIXED - GitHub Pages paths
 │   │   ├── magic.js            # Needs implementation
 │   │   ├── lockpicking.js      # Basic implementation
 │   │   └── save-load.js        # Basic implementation
@@ -105,13 +105,13 @@ KnowledgeHack/
 │   │   ├── input-handler.js    # ✅ COMPLETE - All commands
 │   │   ├── message-log.js      # ✅ COMPLETE
 │   │   ├── renderer.js         # ✅ COMPLETE
-│   │   ├── ui-manager.js       # ✅ COMPLETE - 6 stat display
+│   │   ├── ui-manager.js       # ✅ SIMPLIFIED - Working version
 │   │   └── modal.js            # Basic implementation
 │   ├── utils/                   
 │   │   └── dice.js             # ✅ COMPLETE
 │   └── world/                   
 │       ├── dungeon.js          # Basic implementation
-│       ├── dungeon-generator.js # ✅ COMPLETE
+│       ├── dungeon-generator.js # ✅ FIXED - Correct import paths
 │       ├── tile.js             # Basic implementation
 │       ├── room.js             # Basic implementation
 │       └── corridor.js         # Basic implementation
@@ -121,7 +121,7 @@ KnowledgeHack/
     ├── materials.json           # ✅ COMPLETE (17 materials)
     ├── spells.json              # ❌ EMPTY
     └── items/                   
-        ├── weapons.json         # ✅ COMPLETE (50 weapons)
+        ├── weapons.json         # ✅ COMPLETE (59 weapons)
         ├── armor.json           # ❌ EMPTY - Needed
         ├── accessories.json     # ❌ EMPTY - Needed
         ├── potions.json         # ❌ EMPTY - Needed
@@ -132,21 +132,17 @@ KnowledgeHack/
         ├── corpses.json         # ✅ COMPLETE (15 corpses)
         ├── tools.json           # ❌ EMPTY
         ├── artifacts.json       # ❌ EMPTY
-        ├── ammo.json            # ✅ COMPLETE (25 types)
-        └── containers.json      # ✅ COMPLETE (20 types)
+        ├── ammo.json            # ✅ COMPLETE (26 types)
+        └── containers.json      # ✅ COMPLETE (21 types)
 ```
 
-## ✅ What's Working NOW
-- Complete food progression system
-- 6-stat RPG system with saving throws
-- SP hunger system (move or starve!)
-- Corpse harvesting with Animal quizzes
-- Cooking with escalator chain quizzes
-- 90 different meals with varying stat gains
-- Monster AI with multiple behaviors
-- Dungeon generation
-- Full keyboard controls
-- UI displays all stats and effects
+## ✅ Current Status (Bug Fixes Complete!)
+- **Core Systems**: Loading properly with GitHub Pages paths
+- **Player Class**: All required methods implemented
+- **Food System**: Harvesting and cooking working
+- **Data Files**: All critical JSON files in place
+- **UI Manager**: Simplified version working
+- **Config**: All required constants defined
 
 ## 🎮 How to Play
 1. **Move**: Arrow keys, HJKL, or numpad
@@ -161,8 +157,8 @@ KnowledgeHack/
 1. **Create armor.json** - Basic defense items
 2. **Create potions.json** - Healing and buffs
 3. **Create scrolls.json** - Magical effects
-4. **Implement spell system** - Science quiz integration
-5. **Add boss monsters** - For levels 15, 30, 45, etc.
+4. **Create accessories.json** - Rings and amulets
+5. **Implement spell system** - Science quiz integration
 
 ## 📝 Design Principles
 1. **Quiz First**: Every action requires knowledge
@@ -172,12 +168,13 @@ KnowledgeHack/
 5. **Chain Scoring**: Consecutive correct = more power
 
 ## 💬 Session Summary
-**Last Updated**: After implementing food system
-- ✅ Created complete 6-stat RPG system
-- ✅ Implemented corpse harvesting
-- ✅ Implemented cooking system
-- ✅ Created 90 unique recipes
-- ✅ Integrated everything in game.js
-- ✅ Added full keyboard controls
+**Bug Fixing Session Complete**: 
+- ✅ Fixed all path issues for GitHub Pages deployment
+- ✅ Added missing Player class methods (getTotalAC, getAC, updateStats, etc.)
+- ✅ Fixed CONFIG missing EVENTS and INVENTORY constants
+- ✅ Corrected dungeon-generator import paths
+- ✅ Updated cooking.js and harvesting.js with proper paths
+- ✅ Moved containers.json to correct location
+- ✅ Filled in missing corpses.json data
 
-**The core gameplay loop is COMPLETE and PLAYABLE!**
+**The game should now RUN without critical errors!**

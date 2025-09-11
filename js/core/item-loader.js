@@ -1,10 +1,17 @@
 /**
- * item-loader.js - Loads and manages item data
- * Handles loading all item types from JSON files
+ * item-loader.js - Fixed to handle food.json structure
+ * Loads all item data from JSON files with proper path handling
  */
+
+import { EventBus, EVENTS } from './event-bus.js';
 
 export class ItemLoader {
     constructor() {
+        // Determine base path based on environment
+        this.basePath = window.location.hostname === 'localhost' 
+            ? '/data/items' 
+            : '/KnowledgeHack/data/items';
+            
         this.items = {
             weapons: [],
             armor: [],
@@ -20,126 +27,139 @@ export class ItemLoader {
             ammo: [],
             containers: []
         };
+        
         this.loaded = false;
     }
     
-    /**
-     * Load all item data files
-     */
     async loadAllItems() {
         console.log('📦 Loading item data...');
         
-        const itemTypes = [
-            'weapons', 'armor', 'accessories', 'potions', 
-            'scrolls', 'wands', 'books', 'food', 
-            'corpses', 'tools', 'artifacts', 'ammo', 'containers'
-        ];
-        
         try {
-            for (const type of itemTypes) {
-                await this.loadItemType(type);
-            }
+            // Load all item categories
+            await Promise.all([
+                this.loadItemCategory('weapons'),
+                this.loadItemCategory('armor'),
+                this.loadItemCategory('accessories'),
+                this.loadItemCategory('potions'),
+                this.loadItemCategory('scrolls'),
+                this.loadItemCategory('wands'),
+                this.loadItemCategory('books'),
+                this.loadItemCategory('food'),
+                this.loadItemCategory('corpses'),
+                this.loadItemCategory('tools'),
+                this.loadItemCategory('artifacts'),
+                this.loadItemCategory('ammo'),
+                this.loadItemCategory('containers')
+            ]);
             
+            // Calculate total items
+            const totalItems = Object.values(this.items).reduce((sum, category) => sum + category.length, 0);
+            console.log(`✅ Loaded ${totalItems} items across ${Object.keys(this.items).length} categories`);
+            
+            EventBus.emit(EVENTS.ITEMS_LOADED, { items: this.items });
             this.loaded = true;
-            console.log(`✅ Loaded ${this.getTotalItemCount()} items across ${itemTypes.length} categories`);
-            return true;
+            
+            return this.items;
         } catch (error) {
-            console.error('❌ Failed to load item data:', error);
-            return false;
+            console.error('Failed to load items:', error);
+            throw error;
         }
     }
     
-    /**
-     * Load a specific item type
-     */
-    async loadItemType(type) {
+    async loadItemCategory(category) {
         try {
-            // Use correct relative path for GitHub Pages
-            const basePath = window.location.hostname === 'localhost' 
-                ? '/data/items' 
-                : '/KnowledgeHack/data/items';
+            const response = await fetch(`${this.basePath}/${category}.json`);
             
-            const response = await fetch(`${basePath}/${type}.json`);
-            if (!response.ok) {
-                // Some files don't exist yet, that's okay
-                if (response.status === 404) {
-                    console.log(`  - ${type}: Not yet implemented`);
-                    this.items[type] = [];
-                    return;
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Handle different JSON structures
+                if (category === 'food' && data.foods) {
+                    // Food.json has a 'foods' array
+                    this.items[category] = data.foods;
+                } else if (Array.isArray(data)) {
+                    // Direct array format
+                    this.items[category] = data;
+                } else if (data[category]) {
+                    // Wrapped in category name
+                    this.items[category] = data[category];
+                } else {
+                    // Assume empty if structure unknown
+                    this.items[category] = [];
                 }
-                throw new Error(`Failed to load ${type}: ${response.status}`);
+                
+                console.log(`  ✓ Loaded ${this.items[category].length} ${category}`);
+            } else {
+                console.warn(`  ✗ Could not load ${category}.json`);
+                this.items[category] = [];
             }
-            
-            const data = await response.json();
-            this.items[type] = data[type] || data || [];
-            console.log(`  ✓ Loaded ${this.items[type].length} ${type}`);
         } catch (error) {
-            console.warn(`  ⚠️ Could not load ${type}:`, error.message);
-            this.items[type] = [];
+            console.warn(`  ✗ Error loading ${category}:`, error.message);
+            this.items[category] = [];
         }
     }
     
-    /**
-     * Get items by type
-     */
-    getItemsByType(type) {
-        return this.items[type] || [];
+    getItemsByCategory(category) {
+        return this.items[category] || [];
     }
     
-    /**
-     * Get a specific item by type and ID
-     */
-    getItem(type, id) {
-        const items = this.getItemsByType(type);
-        return items.find(item => item.id === id);
-    }
-    
-    /**
-     * Get a random item of a specific type
-     */
-    getRandomItem(type) {
-        const items = this.getItemsByType(type);
-        if (items.length === 0) return null;
-        return items[Math.floor(Math.random() * items.length)];
-    }
-    
-    /**
-     * Get items appropriate for a dungeon level
-     */
-    getItemsForLevel(level) {
-        const appropriate = [];
-        
-        for (const type in this.items) {
-            const items = this.items[type].filter(item => {
-                const minLevel = item.minLevel || 1;
-                const maxLevel = item.maxLevel || 100;
-                return level >= minLevel && level <= maxLevel;
-            });
-            appropriate.push(...items.map(item => ({ ...item, type })));
+    getItemById(id, category = null) {
+        if (category) {
+            return this.items[category]?.find(item => item.id === id);
         }
         
-        return appropriate;
-    }
-    
-    /**
-     * Get total count of all items
-     */
-    getTotalItemCount() {
-        let total = 0;
-        for (const type in this.items) {
-            total += this.items[type].length;
+        // Search all categories
+        for (const cat of Object.keys(this.items)) {
+            const item = this.items[cat].find(item => item.id === id);
+            if (item) return item;
         }
-        return total;
+        
+        return null;
     }
     
-    /**
-     * Check if items are loaded
-     */
+    getRandomItem(category = null, tier = null) {
+        let pool = [];
+        
+        if (category) {
+            pool = this.items[category] || [];
+        } else {
+            // Pool from all categories
+            pool = Object.values(this.items).flat();
+        }
+        
+        // Filter by tier if specified
+        if (tier !== null) {
+            pool = pool.filter(item => item.tier === tier);
+        }
+        
+        if (pool.length === 0) return null;
+        
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+    
+    getWeaponsByType(weaponType) {
+        return this.items.weapons.filter(weapon => weapon.weaponType === weaponType);
+    }
+    
+    getArmorBySlot(slot) {
+        return this.items.armor.filter(armor => armor.slot === slot);
+    }
+    
+    getItemsByTier(tier) {
+        const tieredItems = [];
+        
+        for (const category of Object.keys(this.items)) {
+            const categoryItems = this.items[category].filter(item => item.tier === tier);
+            tieredItems.push(...categoryItems);
+        }
+        
+        return tieredItems;
+    }
+    
     isLoaded() {
         return this.loaded;
     }
 }
 
 // Create singleton instance
-const itemLoader = new ItemLoader();
-export default itemLoader;
+export const itemLoader = new ItemLoader();

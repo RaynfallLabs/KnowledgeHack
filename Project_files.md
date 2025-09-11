@@ -2,25 +2,25 @@
 
 ## GitHub Repository
 **Base URL:** https://github.com/RaynfallLabs/KnowledgeHack
+**GitHub Pages:** https://raynfalllabs.github.io/KnowledgeHack/
 
-## Current Session Summary
+## Current Session Summary - Bug Fixes Applied
 
-### Major Systems Completed Today:
-1. **Player.js** - Full 6-stat RPG system with saves
-2. **CookingSystem** - Escalator chain quiz for food
-3. **HarvestingSystem** - Threshold quiz for corpses
-4. **Food.json** - 15 foods with 90 total recipes
-5. **Corpses.json** - 15 corpse types
-6. **EventBus** - Complete event system
-7. **UIManager** - Displays all stats properly
-8. **Game.js** - Full integration of all systems
-9. **InputHandler** - Complete control scheme
+### Files Fixed in This Session:
+1. **config.js** - Added EVENTS and INVENTORY constants
+2. **player.js** - Added getTotalAC(), getAC(), updateStats() methods
+3. **ui-manager.js** - Created simplified working version
+4. **cooking.js** - Fixed paths for GitHub Pages
+5. **harvesting.js** - Fixed paths for GitHub Pages
+6. **dungeon-generator.js** - Fixed monster-loader import path
+7. **item-loader.js** - Fixed GitHub Pages paths
+8. **monster-loader.js** - Fixed GitHub Pages paths
+9. **game.js** - Added proper error handling
 
-### Core Gameplay Loop: **COMPLETE ✅**
-```
-Kill Monster → Corpse Drops → Harvest (Animal Quiz) → 
-Get Food → Cook (Cooking Quiz) → Eat → Gain Stats
-```
+### Data Files Fixed:
+- Moved `containers.json` from `/data/` to `/data/items/`
+- Filled in missing `corpses.json` content (15 corpses)
+- Verified `food.json` exists and is complete
 
 ## Quick Access Links for Claude
 
@@ -37,21 +37,21 @@ https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/config.js
 
 ### Core Systems
 ```
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/event-bus.js         ✅ COMPLETE
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/game.js             ✅ COMPLETE
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/question-loader.js  ✅ COMPLETE
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/event-bus.js
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/game.js
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/question-loader.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/item-loader.js
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/monster-loader.js   ✅ COMPLETE
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/monster-loader.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/spell-loader.js
 ```
 
 ### Entities
 ```
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/player.js         ✅ COMPLETE (6-stat system)
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/player.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/item.js
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/monster.js       ✅ COMPLETE
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/monster-ai.js    ✅ COMPLETE
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/monster-abilities.js ✅ COMPLETE
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/monster.js
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/monster-ai.js
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/monster-abilities.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/effect.js
 ```
 
@@ -62,8 +62,8 @@ https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/c
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/inventory.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/equipment.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/identification.js
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/cooking.js       ✅ COMPLETE
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/harvesting.js    ✅ COMPLETE
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/cooking.js
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/harvesting.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/magic.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/lockpicking.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/save-load.js
@@ -71,17 +71,17 @@ https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/s
 
 ### UI
 ```
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/input-handler.js      ✅ COMPLETE
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/message-log.js        ✅ COMPLETE
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/renderer.js           ✅ COMPLETE
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/ui-manager.js         ✅ COMPLETE (6-stat display)
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/input-handler.js
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/message-log.js
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/renderer.js
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/ui-manager.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/modal.js
 ```
 
 ### World
 ```
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/world/dungeon.js
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/world/dungeon-generator.js ✅ COMPLETE
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/world/dungeon-generator.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/world/tile.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/world/room.js
 https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/world/corridor.js
@@ -89,7 +89,7 @@ https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/world/cor
 
 ### Utils
 ```
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/utils/dice.js             ✅ COMPLETE
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/utils/dice.js
 ```
 
 ### Data - Questions ✅ ALL COMPLETE
@@ -107,80 +107,124 @@ https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questio
 
 ### Data - Game Data
 ```
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/monsters.json           ✅ COMPLETE (15 monsters)
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/spells.json             ❌ EMPTY
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/materials.json          ✅ COMPLETE (17 materials)
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/monsters.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/spells.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/materials.json
 ```
 
 ### Data - Items
 ```
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/weapons.json      ✅ COMPLETE (50 weapons)
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/armor.json        ❌ EMPTY - NEEDED
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/accessories.json  ❌ EMPTY - NEEDED
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/potions.json      ❌ EMPTY - NEEDED
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/scrolls.json      ❌ EMPTY - NEEDED
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/wands.json        ❌ EMPTY
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/books.json        ❌ EMPTY
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/food.json         ✅ COMPLETE (15 foods, 90 recipes)
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/corpses.json      ✅ COMPLETE (15 corpses)
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/tools.json        ❌ EMPTY
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/artifacts.json    ❌ EMPTY
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/ammo.json         ✅ COMPLETE (25 types)
-https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/containers.json   ✅ COMPLETE (20 types)
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/weapons.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/armor.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/accessories.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/potions.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/scrolls.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/wands.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/books.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/food.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/corpses.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/tools.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/artifacts.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/ammo.json
+https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/containers.json
 ```
 
-## File Status Legend
-- ✅ COMPLETE - Fully implemented and working
-- ❌ EMPTY - Empty JSON file, needs content
-- No mark - Partial implementation
+## File Status With Direct Links
 
-## What's Playable NOW
-The core game loop is **100% functional**:
-1. Move around dungeon (costs SP)
-2. Fight monsters (Math quiz)
-3. Harvest corpses (Animal quiz)
-4. Cook food (Cooking quiz)
-5. Gain stats from eating
-6. Manage SP hunger
-7. Full keyboard controls
+### ✅ COMPLETE/FIXED Files
+| File | Status | Direct Link |
+|------|--------|------------|
+| config.js | ✅ FIXED | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/config.js) |
+| event-bus.js | ✅ COMPLETE | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/event-bus.js) |
+| game.js | ✅ FIXED | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/core/game.js) |
+| player.js | ✅ FIXED | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/player.js) |
+| monster.js | ✅ COMPLETE | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/entities/monster.js) |
+| cooking.js | ✅ FIXED | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/cooking.js) |
+| harvesting.js | ✅ FIXED | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/systems/harvesting.js) |
+| ui-manager.js | ✅ FIXED | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/ui/ui-manager.js) |
+| dungeon-generator.js | ✅ FIXED | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/js/world/dungeon-generator.js) |
 
-## Next Priority Items
-1. **armor.json** - Geography quiz to equip
-2. **potions.json** - Basic healing items
-3. **scrolls.json** - Grammar quiz to read
-4. **accessories.json** - History quiz to equip
-5. **spells.json** - Science quiz to cast
+### ✅ Complete Data Files
+| File | Items | Direct Link |
+|------|-------|------------|
+| questions-math.json | 500+ | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questions/questions-math.json) |
+| questions-philosophy.json | 500+ | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questions/questions-philosophy.json) |
+| questions-geography.json | 500+ | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questions/questions-geography.json) |
+| questions-science.json | 500+ | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questions/questions-science.json) |
+| questions-history.json | 500+ | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questions/questions-history.json) |
+| questions-economics.json | 500+ | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questions/questions-economics.json) |
+| questions-cooking.json | 500+ | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questions/questions-cooking.json) |
+| questions-grammar.json | 500+ | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questions/questions-grammar.json) |
+| questions-animal.json | 500+ | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/questions/questions-animal.json) |
+| monsters.json | 15 | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/monsters.json) |
+| weapons.json | 59 | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/weapons.json) |
+| food.json | 15/90 | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/food.json) |
+| corpses.json | 15 | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/corpses.json) |
+| ammo.json | 26 | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/ammo.json) |
+| containers.json | 21 | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/containers.json) |
+| materials.json | 17 | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/materials.json) |
 
-## Keyboard Controls
+### ❌ Empty/Missing Files (Need Implementation)
+| File | Purpose | Direct Link |
+|------|---------|------------|
+| armor.json | Geography quizzes | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/armor.json) |
+| accessories.json | History quizzes | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/accessories.json) |
+| potions.json | Instant effects | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/potions.json) |
+| scrolls.json | Grammar quizzes | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/scrolls.json) |
+| spells.json | Science quizzes | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/spells.json) |
+| wands.json | Magic items | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/wands.json) |
+| books.json | Spellbooks | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/books.json) |
+| tools.json | Utility items | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/tools.json) |
+| artifacts.json | Unique items | [View](https://raw.githubusercontent.com/RaynfallLabs/KnowledgeHack/master/data/items/artifacts.json) |
+
+## How to Use These Links in New Conversations
+
+When starting a new conversation with Claude about this project, you can:
+
+1. **Share this file** to give Claude immediate access to all file locations
+2. **Ask Claude to fetch specific files** using the direct links
+3. **Reference file status** to know what's working vs what needs work
+
+Example prompt for new conversation:
 ```
-Movement: Arrows, HJKL, Numpad
-Pickup: , or g
-Harvest: h
-Cook: c
-Inventory: i
-Equipment: e
-Help: ?
+I'm working on the Philosopher's Quest game. Here's the PROJECT_FILES.md 
+with all the GitHub links. Can you fetch and review the game.js file to 
+help me understand the current game loop?
 ```
 
-## Stats System
-```
-STR → Carrying capacity
-CON → HP/SP pools
-DEX → Armor Class
-INT → Max spells
-WIS → Quiz timer
-PER → Sight radius
-```
+## Testing the Game
 
-## Food Progression
-```
-Goblin → +CON (hardy)
-Orc → +STR (strong)
-Bat → +PER (echolocation)
-Dwarf → +CON (endurance)
-Gnome → +INT (magical)
-Eye → +PER/WIS (awareness)
-```
+**Live Game URL:** https://raynfalllabs.github.io/KnowledgeHack/
 
-## Session Notes
-**Today's Achievement**: Implemented the entire food-based progression system from scratch. Players can now hunt monsters, harvest their corpses, cook meals, and gain permanent stat increases. This replaces traditional XP with a knowledge-based advancement system where quiz performance directly impacts character growth.
+**Local Testing:**
+1. Clone: `git clone https://github.com/RaynfallLabs/KnowledgeHack.git`
+2. Serve locally with any web server
+3. Open index.html
+
+## Bug Fix Summary Reference
+
+### What Was Fixed (This Session):
+- ✅ Player.js missing methods (getTotalAC, getAC, updateStats, etc.)
+- ✅ CONFIG missing EVENTS and INVENTORY objects
+- ✅ All file paths updated for GitHub Pages
+- ✅ Import paths corrected (monster-loader in dungeon-generator)
+- ✅ UI Manager simplified to avoid crashes
+- ✅ Corpses.json filled with data
+- ✅ Containers.json moved to correct location
+
+### Known Working Features:
+- Game loads without fatal errors
+- Questions load properly (all 9 subjects)
+- Monsters spawn correctly
+- Items load (weapons, food, corpses, ammo, containers)
+- Player stats initialize and display
+- Movement system ready
+- Food/harvesting systems have correct paths
+
+### Still Needs Work:
+- Combat system integration
+- Inventory management polish
+- Equipment system full implementation
+- Magic system creation
+- Save/load functionality
+- Missing item types (armor, potions, scrolls, etc.)
