@@ -81,8 +81,8 @@ export class Game {
             this.messageLog.add(`Welcome ${this.playerName}! Your quest for the Philosopher's Stone begins...`, 'success');
             this.messageLog.add('Use arrow keys or HJKL to move. Press ? for help.', 'info');
             
-            // Update UI with initial state
-            this.updateUI();
+            // Update UI with initial state (safe - just stats for now)
+            this.uiManager.updateStats();
             
             console.log('✅ Game initialized successfully!');
             
