@@ -6,6 +6,46 @@
     <title>Philosopher's Quest - Educational Roguelike</title>
     <link rel="stylesheet" href="css/main.css">
 </head>
+
+<script>
+// Debug helper to track event issues
+if (window.EventBusDebug) {
+    console.log('🔍 EventBus Debug Mode Enabled');
+    
+    // Log any undefined events
+    const originalEmit = window.EventBusDebug.emit.bind(window.EventBusDebug);
+    window.EventBusDebug.emit = function(eventName, data) {
+        if (!eventName || eventName === 'undefined') {
+            console.error('❌ Undefined event detected!', new Error().stack);
+        }
+        return originalEmit(eventName, data);
+    };
+    
+    // Add debug command
+    window.debugEvents = function() {
+        window.EventBusDebug.debug();
+    };
+    
+    console.log('Type debugEvents() in console to see event bus state');
+}
+
+// Emergency stop for infinite loops
+let errorCount = 0;
+window.addEventListener('error', function(e) {
+    errorCount++;
+    if (errorCount > 100) {
+        console.error('🛑 Too many errors detected! Stopping event processing.');
+        if (window.EventBusDebug) {
+            window.EventBusDebug.clear();
+        }
+        // Stop the game
+        if (window.game) {
+            window.game.running = false;
+        }
+    }
+});
+</script>
+
 <body>
     <!-- Intro Screen -->
     <div id="intro-screen" class="screen active">
