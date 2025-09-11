@@ -1,6 +1,6 @@
 /**
- * game.js - Fixed initialization order
- * MessageLog must be created before Dungeon
+ * game.js - Complete fix with proper renderer connection
+ * Coordinates all game systems and manages game state
  */
 
 import { CONFIG } from '../config.js';
@@ -30,13 +30,14 @@ export class Game {
         this.player = null;
         this.dungeon = null;
         this.dungeonGenerator = null;
+        this.currentDungeonData = null; // Store the actual dungeon data
         
         // Systems
         this.quizEngine = null;
         this.cookingSystem = null;
         this.harvestingSystem = null;
         
-        // UI (initialized early)
+        // UI
         this.renderer = null;
         this.messageLog = null;
         this.uiManager = null;
@@ -67,12 +68,12 @@ export class Game {
             // Initialize game systems
             this.initializeSystems();
             
-            // Create dungeon with all dependencies available
+            // Create dungeon manager
             this.dungeon = new Dungeon(this);
             
             // Generate first level
             console.log('🏰 Generating level 1...');
-            await this.dungeon.generateLevel(1);
+            await this.generateLevel(1);
             
             // Setup event listeners
             this.setupEventListeners();
@@ -81,8 +82,14 @@ export class Game {
             this.messageLog.add(`Welcome ${this.playerName}! Your quest for the Philosopher's Stone begins...`, 'success');
             this.messageLog.add('Use arrow keys or HJKL to move. Press ? for help.', 'info');
             
-            // Update UI with initial state (safe - just stats for now)
+            // Update UI with initial state
             this.uiManager.updateStats();
+            
+            // Start render loop AFTER everything is initialized
+            this.renderer.startRenderLoop();
+            
+            // Force initial render
+            this.updateRenderer();
             
             console.log('✅ Game initialized successfully!');
             
@@ -147,6 +154,38 @@ export class Game {
     }
     
     /**
+     * Generate a dungeon level
+     */
+    async generateLevel(levelNumber) {
+        console.log(`🏰 Generating level ${levelNumber}...`);
+        
+        // Generate the dungeon
+        this.currentDungeonData = await this.dungeonGenerator.generate(
+            levelNumber,
+            CONFIG.MAP_WIDTH || 80,
+            CONFIG.MAP_HEIGHT || 25
+        );
+        
+        // Load it into the dungeon manager
+        if (this.dungeon) {
+            this.dungeon.loadLevel(this.currentDungeonData);
+        }
+        
+        // Set player position at entrance
+        const entrance = this.currentDungeonData.entrance || { x: 5, y: 5 };
+        this.player.x = entrance.x;
+        this.player.y = entrance.y;
+        
+        // Update current level
+        this.currentLevel = levelNumber;
+        
+        // Force renderer update
+        this.updateRenderer();
+        
+        console.log(`✅ Level ${levelNumber} generated!`);
+    }
+    
+    /**
      * Main game loop
      */
     gameLoop() {
@@ -166,8 +205,9 @@ export class Game {
      * Process player status changes
      */
     processPlayerStatus() {
-        // SP decreases over time
-        if (this.turnNumber % CONFIG.SP_DECAY_RATE === 0 && this.player) {
+        // SP decreases over time (if configured)
+        const spDecayRate = CONFIG.SP_DECAY_RATE || 100;
+        if (this.turnNumber % spDecayRate === 0 && this.player) {
             this.player.sp--;
             
             // Check for starvation
@@ -185,24 +225,45 @@ export class Game {
     }
     
     /**
+     * Update renderer with current game state
+     */
+    updateRenderer() {
+        if (!this.renderer || !this.currentDungeonData || !this.player) return;
+        
+        // Create game state object for renderer
+        const gameState = {
+            dungeon: this.currentDungeonData,
+            player: this.player,
+            monsters: this.currentDungeonData.monsters || [],
+            items: this.currentDungeonData.items || [],
+            currentLevel: this.currentLevel,
+            turnNumber: this.turnNumber
+        };
+        
+        // Send to renderer
+        this.renderer.updateGameState(gameState);
+    }
+    
+    /**
      * Update UI components
      */
     updateUI() {
-        if (!this.player || !this.dungeon) return;
+        if (!this.player) return;
         
         // Update renderer
-        const renderData = this.dungeon.getRenderData();
-        this.renderer.render(renderData);
+        this.updateRenderer();
         
-        // Update UI manager
-        this.uiManager.update();
+        // Update UI manager (just stats for now)
+        if (this.uiManager) {
+            this.uiManager.updateStats();
+        }
     }
     
     /**
      * Handle player movement
      */
     handlePlayerMove(direction) {
-        if (this.gameOver || this.paused || !this.player || !this.dungeon) return;
+        if (this.gameOver || this.paused || !this.player || !this.currentDungeonData) return;
         
         const directionVectors = {
             'north': { dx: 0, dy: -1 },
@@ -222,7 +283,7 @@ export class Game {
         const newY = this.player.y + vector.dy;
         
         // Check if movement is valid
-        if (this.dungeon.isWalkable(newX, newY)) {
+        if (this.canMoveTo(newX, newY)) {
             // Move player
             this.player.x = newX;
             this.player.y = newY;
@@ -230,40 +291,78 @@ export class Game {
             // Use SP for movement
             this.player.sp--;
             
-            // Update vision
-            this.dungeon.updatePlayerVision(newX, newY);
-            
-            // Check for items at new position
-            const items = this.dungeon.getItemsAt(newX, newY);
-            if (items.length > 0) {
-                this.messageLog.add(`You see: ${items.map(i => i.name).join(', ')}`, 'info');
-            }
-            
-            // Check for stairs
-            if (this.dungeon.hasStairs(newX, newY)) {
-                const tile = this.dungeon.getTile(newX, newY);
-                if (tile.type === 'stairs_down') {
-                    this.messageLog.add('You see stairs leading down. Press > to descend.', 'info');
-                } else if (tile.type === 'stairs_up') {
-                    this.messageLog.add('You see stairs leading up. Press < to ascend.', 'info');
-                }
-            }
-            
-            // Process monster turns
-            this.dungeon.processMonsterTurns();
-            
             // Increment turn
             this.turnNumber++;
             
+            // Update visibility (simplified for now)
+            this.updateVisibility();
+            
+            // Update renderer
+            this.updateRenderer();
+            
             EventBus.emit(EVENTS.PLAYER_MOVED, { x: newX, y: newY });
         } else {
-            // Check what's blocking
-            const monster = this.dungeon.getMonsterAt(newX, newY);
-            if (monster) {
-                // TODO: Initiate combat
-                this.messageLog.add(`You bump into ${monster.name}!`, 'warning');
-            } else {
-                this.messageLog.add('You cannot move there.', 'info');
+            this.messageLog.add('You cannot move there.', 'info');
+        }
+    }
+    
+    /**
+     * Check if position is walkable
+     */
+    canMoveTo(x, y) {
+        // Check bounds
+        if (x < 0 || y < 0 || x >= (CONFIG.MAP_WIDTH || 80) || y >= (CONFIG.MAP_HEIGHT || 25)) {
+            return false;
+        }
+        
+        // Check dungeon tiles
+        if (this.currentDungeonData && this.currentDungeonData.tiles) {
+            const tile = this.currentDungeonData.tiles[y]?.[x];
+            if (!tile || tile.blocked) {
+                return false;
+            }
+        }
+        
+        // Check for monsters
+        if (this.currentDungeonData && this.currentDungeonData.monsters) {
+            for (const monster of this.currentDungeonData.monsters) {
+                if (monster.x === x && monster.y === y && monster.hp > 0) {
+                    // TODO: Initiate combat
+                    this.messageLog.add(`You bump into ${monster.name}!`, 'warning');
+                    return false;
+                }
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Update visibility (simplified version)
+     */
+    updateVisibility() {
+        if (!this.currentDungeonData || !this.currentDungeonData.tiles || !this.player) return;
+        
+        const sightRadius = this.player.getSightRadius ? this.player.getSightRadius() : 5;
+        
+        // Simple visibility: reveal tiles around player
+        for (let dy = -sightRadius; dy <= sightRadius; dy++) {
+            for (let dx = -sightRadius; dx <= sightRadius; dx++) {
+                const x = this.player.x + dx;
+                const y = this.player.y + dy;
+                
+                if (y >= 0 && y < this.currentDungeonData.tiles.length &&
+                    x >= 0 && x < this.currentDungeonData.tiles[0].length) {
+                    
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance <= sightRadius) {
+                        const tile = this.currentDungeonData.tiles[y][x];
+                        if (tile) {
+                            tile.visible = true;
+                            tile.explored = true;
+                        }
+                    }
+                }
             }
         }
     }
@@ -272,10 +371,14 @@ export class Game {
      * Handle picking up items
      */
     handlePickup() {
-        if (!this.player || !this.dungeon) return;
+        if (!this.player || !this.currentDungeonData) return;
         
-        const items = this.dungeon.getItemsAt(this.player.x, this.player.y);
-        if (items.length === 0) {
+        // Check for items at player position
+        const items = this.currentDungeonData.items?.filter(
+            item => item.x === this.player.x && item.y === this.player.y
+        );
+        
+        if (!items || items.length === 0) {
             this.messageLog.add('There is nothing here to pick up.', 'info');
             return;
         }
@@ -283,10 +386,16 @@ export class Game {
         // For now, pick up first item
         const item = items[0];
         
-        // Add to inventory (when inventory system exists)
-        // For now, just remove from dungeon
-        this.dungeon.removeItem(this.player.x, this.player.y, item);
-        this.messageLog.add(`You pick up ${item.name}.`, 'success');
+        // Remove from dungeon
+        const index = this.currentDungeonData.items.indexOf(item);
+        if (index > -1) {
+            this.currentDungeonData.items.splice(index, 1);
+        }
+        
+        this.messageLog.add(`You pick up ${item.name || item.id}.`, 'success');
+        
+        // Update renderer
+        this.updateRenderer();
         
         EventBus.emit(EVENTS.ITEM_PICKED_UP, { item });
     }
@@ -295,20 +404,20 @@ export class Game {
      * Handle using stairs
      */
     handleStairs(direction) {
-        if (!this.player || !this.dungeon) return;
+        if (!this.player || !this.currentDungeonData) return;
         
-        const tile = this.dungeon.getTile(this.player.x, this.player.y);
+        const tile = this.currentDungeonData.tiles[this.player.y]?.[this.player.x];
         if (!tile) return;
         
         if (direction === 'down' && tile.type === 'stairs_down') {
             this.currentLevel++;
             this.messageLog.add(`Descending to level ${this.currentLevel}...`, 'info');
-            this.dungeon.generateLevel(this.currentLevel);
+            this.generateLevel(this.currentLevel);
         } else if (direction === 'up' && tile.type === 'stairs_up') {
             if (this.currentLevel > 1) {
                 this.currentLevel--;
                 this.messageLog.add(`Ascending to level ${this.currentLevel}...`, 'info');
-                this.dungeon.generateLevel(this.currentLevel);
+                this.generateLevel(this.currentLevel);
             } else {
                 this.messageLog.add('You cannot go up from here.', 'info');
             }
@@ -342,21 +451,10 @@ export class Game {
         EventBus.on(EVENTS.QUIZ_COMPLETE, (result) => {
             this.paused = false;
             
-            if (result.success) {
+            if (result && result.success) {
                 this.messageLog.add(`Quiz completed! Score: ${result.score}/${result.total}`, 'success');
             } else {
                 this.messageLog.add('Quiz failed. Try again!', 'warning');
-            }
-        });
-        
-        // Combat events
-        EventBus.on(EVENTS.MONSTER_DEATH, (data) => {
-            this.messageLog.add(`${data.monster.name} has been defeated!`, 'success');
-            
-            // Drop corpse
-            if (data.monster.corpseType) {
-                // TODO: Create corpse item
-                this.messageLog.add(`${data.monster.name} leaves a corpse.`, 'info');
             }
         });
         
@@ -416,9 +514,7 @@ export class Game {
             }
             
             // Regenerate current level
-            if (this.dungeon) {
-                this.dungeon.generateLevel(this.currentLevel);
-            }
+            this.generateLevel(this.currentLevel);
             
             this.messageLog.add('Game loaded.', 'success');
             return true;
@@ -445,7 +541,6 @@ export class Game {
         
         // Clean up event listeners
         EventBus.off(EVENTS.QUIZ_COMPLETE);
-        EventBus.off(EVENTS.MONSTER_DEATH);
         EventBus.off(EVENTS.SAVE_GAME);
         EventBus.off(EVENTS.LOAD_GAME);
     }

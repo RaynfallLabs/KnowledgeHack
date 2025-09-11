@@ -1,315 +1,247 @@
 /**
- * input-handler.js - Handles all keyboard and mouse input
- * Updated with harvesting, cooking, and all game commands
+ * input-handler.js - Complete fixed version
+ * Handles all keyboard and mouse input
  */
 
+import { CONFIG } from '../config.js';
 import { EventBus, EVENTS } from '../core/event-bus.js';
 
 export class InputHandler {
     constructor(game) {
         this.game = game;
+        this.enabled = true;
+        this.mode = 'normal'; // normal, quiz, menu, inventory, etc.
         
-        // Input state
+        // Key states
         this.keysPressed = new Set();
-        this.shiftPressed = false;
-        this.ctrlPressed = false;
-        this.altPressed = false;
+        this.keyBindings = this.createDefaultBindings();
         
-        // Modal/menu state
-        this.modalActive = false;
-        this.menuActive = false;
+        // Modal/menu states
+        this.modalStack = [];
         
-        // Setup event listeners
-        this.setupKeyboardListeners();
-        this.setupMouseListeners();
+        // Direction for next action
+        this.nextAction = null;
+        
+        // Setup listeners
+        this.setupEventListeners();
         this.setupGameEventListeners();
         
         console.log('🎮 Input handler initialized');
     }
     
     /**
-     * Setup keyboard event listeners
+     * Create default key bindings
      */
-    setupKeyboardListeners() {
-        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
-        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+    createDefaultBindings() {
+        return {
+            // Movement - Arrow keys
+            'ArrowUp': () => this.handleMove('north'),
+            'ArrowDown': () => this.handleMove('south'),
+            'ArrowLeft': () => this.handleMove('west'),
+            'ArrowRight': () => this.handleMove('east'),
+            
+            // Movement - Numpad
+            'Numpad8': () => this.handleMove('north'),
+            'Numpad2': () => this.handleMove('south'),
+            'Numpad4': () => this.handleMove('west'),
+            'Numpad6': () => this.handleMove('east'),
+            'Numpad7': () => this.handleMove('northwest'),
+            'Numpad9': () => this.handleMove('northeast'),
+            'Numpad1': () => this.handleMove('southwest'),
+            'Numpad3': () => this.handleMove('southeast'),
+            'Numpad5': () => this.handleWait(),
+            
+            // Movement - VI keys (Vim/NetHack style)
+            'h': () => this.handleMove('west'),
+            'j': () => this.handleMove('south'),
+            'k': () => this.handleMove('north'),
+            'l': () => this.handleMove('east'),
+            'y': () => this.handleMove('northwest'),
+            'u': () => this.handleMove('northeast'),
+            'b': () => this.handleMove('southwest'),
+            'n': () => this.handleMove('southeast'),
+            
+            // Actions
+            'g': () => this.handlePickup(),
+            ',': () => this.handlePickup(), // Alternative pickup
+            'Enter': () => this.handlePickup(), // Another alternative
+            'd': () => this.handleDrop(),
+            'D': () => this.handleDropMany(),
+            'e': () => this.handleEquipment(),
+            'E': () => this.handleEquipment(), // Capital E also works
+            'i': () => this.handleInventory(),
+            'I': () => this.handleIdentify(), // Shift+I for identification
+            'a': () => this.handleApply(),
+            'r': () => this.handleRead(),
+            'q': () => this.handleQuaff(),
+            'z': () => this.handleCast(),
+            'f': () => this.handleFire(),
+            't': () => this.handleThrow(),
+            'o': () => this.handleOpen(),
+            'c': () => this.handleClose(),
+            's': () => this.handleSearch(),
+            '.': () => this.handleWait(),
+            ' ': () => this.handleWait(), // Space also waits
+            
+            // Stairs
+            '<': () => this.handleStairs('up'),
+            '>': () => this.handleStairs('down'),
+            
+            // System
+            'Escape': () => this.handleEscape(),
+            '?': () => this.handleHelp(),
+            'S': () => this.handleSave(),
+            'Q': () => this.handleQuit(),
+            'p': () => this.handlePause(),
+            
+            // Extended commands
+            '#': () => this.handleExtendedCommand(),
+            
+            // Debug (only in debug mode)
+            'F1': () => this.handleDebugToggle(),
+            'F2': () => this.handleDebugReveal(),
+            'F3': () => this.handleDebugGodMode(),
+            'F4': () => this.handleDebugSpawn()
+        };
     }
     
     /**
-     * Setup mouse event listeners
+     * Setup DOM event listeners
      */
-    setupMouseListeners() {
+    setupEventListeners() {
+        // Keyboard events
+        document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+        
+        // Mouse events
         const canvas = document.getElementById('game-canvas');
         if (canvas) {
             canvas.addEventListener('click', (e) => this.handleClick(e));
+            canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
             canvas.addEventListener('contextmenu', (e) => this.handleRightClick(e));
         }
+        
+        // Prevent default browser behaviors for game keys
+        document.addEventListener('keydown', (e) => {
+            if (this.shouldPreventDefault(e.key)) {
+                e.preventDefault();
+            }
+        });
     }
     
     /**
      * Setup game event listeners
      */
     setupGameEventListeners() {
-        // Track when modals/menus are open
-        EventBus.on(EVENTS.UI_MODAL_OPEN, () => {
-            this.modalActive = true;
-        });
-        
-        EventBus.on(EVENTS.UI_MODAL_CLOSE, () => {
-            this.modalActive = false;
-        });
-        
-        EventBus.on(EVENTS.QUIZ_START, () => {
-            this.modalActive = true;
-        });
-        
-        EventBus.on(EVENTS.QUIZ_COMPLETE, () => {
-            this.modalActive = false;
-        });
+        // Listen for mode changes (only if events exist)
+        if (EVENTS) {
+            if (EVENTS.UI_OPEN_QUIZ) {
+                EventBus.on(EVENTS.UI_OPEN_QUIZ, () => this.setMode('quiz'));
+            }
+            if (EVENTS.UI_CLOSE_QUIZ) {
+                EventBus.on(EVENTS.UI_CLOSE_QUIZ, () => this.setMode('normal'));
+            }
+            if (EVENTS.UI_OPEN_INVENTORY) {
+                EventBus.on(EVENTS.UI_OPEN_INVENTORY, () => this.setMode('inventory'));
+            }
+            if (EVENTS.UI_CLOSE_INVENTORY) {
+                EventBus.on(EVENTS.UI_CLOSE_INVENTORY, () => this.setMode('normal'));
+            }
+            if (EVENTS.GAME_PAUSE) {
+                EventBus.on(EVENTS.GAME_PAUSE, () => this.setMode('paused'));
+            }
+            if (EVENTS.GAME_RESUME) {
+                EventBus.on(EVENTS.GAME_RESUME, () => this.setMode('normal'));
+            }
+        }
     }
     
     /**
-     * Handle key down events
+     * Handle key down event
      */
-    handleKeyDown(e) {
-        // Track modifier keys
-        this.shiftPressed = e.shiftKey;
-        this.ctrlPressed = e.ctrlKey;
-        this.altPressed = e.altKey;
-        
-        // Don't process if typing in an input field
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    handleKeyDown(event) {
+        // Don't handle input if disabled or game over
+        if (!this.enabled || (this.game && this.game.gameOver)) {
             return;
         }
         
-        // Special handling for quiz modal
-        if (this.modalActive) {
-            this.handleModalInput(e);
-            return;
-        }
-        
-        // Prevent default for game keys
-        if (this.isGameKey(e.key)) {
-            e.preventDefault();
-        }
+        const key = event.key;
         
         // Track key state
-        this.keysPressed.add(e.key);
+        this.keysPressed.add(key);
         
-        // Handle the input
-        this.processInput(e.key, e);
+        // Handle based on current mode
+        switch (this.mode) {
+            case 'normal':
+                this.handleNormalModeKey(key, event);
+                break;
+            case 'quiz':
+                // Quiz handles its own input
+                break;
+            case 'inventory':
+                this.handleInventoryModeKey(key, event);
+                break;
+            case 'direction':
+                this.handleDirectionModeKey(key, event);
+                break;
+            case 'menu':
+                this.handleMenuModeKey(key, event);
+                break;
+            case 'paused':
+                if (key === 'p' || key === 'Escape') {
+                    this.handlePause();
+                }
+                break;
+        }
     }
     
     /**
-     * Handle key up events
+     * Handle key up event
      */
-    handleKeyUp(e) {
-        this.keysPressed.delete(e.key);
-        
-        // Update modifier state
-        this.shiftPressed = e.shiftKey;
-        this.ctrlPressed = e.ctrlKey;
-        this.altPressed = e.altKey;
+    handleKeyUp(event) {
+        this.keysPressed.delete(event.key);
     }
     
     /**
-     * Process input based on key
+     * Handle normal game mode keys
      */
-    processInput(key, event) {
-        // Don't process during game over
-        if (this.game.gameOver) {
-            if (key === 'r' || key === 'R') {
-                location.reload(); // Restart game
-            }
+    handleNormalModeKey(key, event) {
+        // Check for Shift+Key combinations
+        if (event.shiftKey && key === 'I') {
+            this.handleIdentify();
             return;
         }
         
-        // Movement keys (arrows, numpad, vi-keys)
-        if (this.handleMovement(key)) {
-            return;
-        }
-        
-        // Action keys
-        switch(key.toLowerCase()) {
-            // Pickup
-            case ',':
-            case 'g': // Alternative pickup key
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'pickup' });
-                break;
-                
-            // Harvest corpse
-            case 'h':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'harvest' });
-                break;
-                
-            // Cook food
-            case 'c':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'cook' });
-                break;
-                
-            // Inventory
-            case 'i':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'inventory' });
-                break;
-                
-            // Equipment
-            case 'e':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'equipment' });
-                break;
-                
-            // Drop item
-            case 'd':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'drop' });
-                break;
-                
-            // Wear/Wield
-            case 'w':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'wear' });
-                break;
-                
-            // Take off
-            case 't':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'takeoff' });
-                break;
-                
-            // Apply/Use
-            case 'a':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'apply' });
-                break;
-                
-            // Quaff potion
-            case 'q':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'quaff' });
-                break;
-                
-            // Read scroll/book
-            case 'r':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'read' });
-                break;
-                
-            // Zap wand
-            case 'z':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'zap' });
-                break;
-                
-            // Open door/container
-            case 'o':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'open' });
-                break;
-                
-            // Close door
-            case 'c':
-                if (this.shiftPressed) {
-                    EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'close' });
-                }
-                break;
-                
-            // Search
-            case 's':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'search' });
-                break;
-                
-            // Look/Examine
-            case 'l':
-            case 'x':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'look' });
-                break;
-                
-            // Wait/Rest
-            case '.':
-            case ' ':
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'wait' });
-                break;
-                
-            // Save game
-            case 's':
-                if (this.ctrlPressed) {
-                    EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'save' });
-                }
-                break;
-                
-            // Load game
-            case 'l':
-                if (this.ctrlPressed) {
-                    EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'load' });
-                }
-                break;
-                
-            // Help
-            case '?':
-            case 'h':
-                if (this.shiftPressed || key === '?') {
-                    this.showHelp();
-                }
-                break;
-                
-            // Stats/Character screen
-            case '@':
-            case 'c':
-                if (this.shiftPressed || key === '@') {
-                    EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'stats' });
-                }
-                break;
-                
-            // Message history
-            case 'm':
-                if (this.ctrlPressed) {
-                    EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'messages' });
-                }
-                break;
-                
-            // Escape - close modals
-            case 'Escape':
-                EventBus.emit(EVENTS.UI_CLOSE_MODAL);
-                break;
+        // Regular key bindings
+        const action = this.keyBindings[key];
+        if (action) {
+            action();
         }
     }
     
     /**
-     * Handle movement input
+     * Handle inventory mode keys
      */
-    handleMovement(key) {
+    handleInventoryModeKey(key, event) {
+        if (key === 'Escape' || key === 'i') {
+            this.closeInventory();
+        } else if (key.length === 1 && key >= 'a' && key <= 'z') {
+            this.handleInventorySelection(key);
+        }
+    }
+    
+    /**
+     * Handle direction mode keys
+     */
+    handleDirectionModeKey(key, event) {
         let direction = null;
         
-        // Arrow keys
-        switch(key) {
-            case 'ArrowUp':
-                direction = 'north';
-                break;
-            case 'ArrowDown':
-                direction = 'south';
-                break;
-            case 'ArrowLeft':
-                direction = 'west';
-                break;
-            case 'ArrowRight':
-                direction = 'east';
-                break;
-        }
-        
-        // Numpad (including diagonals)
-        const numpadMap = {
-            '7': 'northwest',
-            '8': 'north',
-            '9': 'northeast',
-            '4': 'west',
-            '5': 'wait', // Numpad 5 waits
-            '6': 'east',
-            '1': 'southwest',
-            '2': 'south',
-            '3': 'southeast'
-        };
-        
-        if (numpadMap[key]) {
-            if (key === '5') {
-                EventBus.emit(EVENTS.PLAYER_ACTION, { type: 'wait' });
-                return true;
-            }
-            direction = numpadMap[key];
-        }
-        
-        // Vi keys (hjkl and yubn for diagonals)
-        const viKeyMap = {
+        // Map keys to directions
+        const directionMap = {
+            'ArrowUp': 'north',
+            'ArrowDown': 'south',
+            'ArrowLeft': 'west',
+            'ArrowRight': 'east',
             'h': 'west',
             'j': 'south',
             'k': 'north',
@@ -320,161 +252,375 @@ export class InputHandler {
             'n': 'southeast'
         };
         
-        // Only use vi keys if not holding shift (shift+h = help)
-        if (!this.shiftPressed && viKeyMap[key]) {
-            direction = viKeyMap[key];
-        }
+        direction = directionMap[key];
         
-        // Emit movement if we have a direction
         if (direction) {
-            EventBus.emit(EVENTS.PLAYER_ACTION, {
-                type: 'move',
-                direction: direction
-            });
-            return true;
-        }
-        
-        return false;
-    }
-    
-    /**
-     * Handle input while modal is active
-     */
-    handleModalInput(e) {
-        // Allow escape to close modals
-        if (e.key === 'Escape') {
-            EventBus.emit(EVENTS.UI_CLOSE_MODAL);
-            e.preventDefault();
-            return;
-        }
-        
-        // Allow Enter for quiz submission
-        if (e.key === 'Enter') {
-            // Quiz system handles this
-            return;
-        }
-        
-        // Allow number keys for multiple choice
-        if (e.key >= '1' && e.key <= '9') {
-            // Quiz system handles this
-            return;
+            this.executeDirectionAction(direction);
+            this.setMode('normal');
+        } else if (key === 'Escape') {
+            this.setMode('normal');
+            this.nextAction = null;
         }
     }
     
     /**
-     * Check if key is a game key
+     * Handle menu mode keys
      */
-    isGameKey(key) {
-        const gameKeys = [
-            'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
-            'h', 'j', 'k', 'l', 'y', 'u', 'b', 'n',
-            '1', '2', '3', '4', '5', '6', '7', '8', '9',
-            ',', '.', ' ', '?', '@',
-            'i', 'e', 'd', 'w', 't', 'a', 'q', 'r', 'z', 'o', 's', 'x',
-            'g', 'c', 'h'
-        ];
-        
-        return gameKeys.includes(key) || gameKeys.includes(key.toLowerCase());
+    handleMenuModeKey(key, event) {
+        if (key === 'Escape') {
+            this.closeCurrentModal();
+        }
     }
     
     /**
-     * Handle mouse click
+     * Execute action in given direction
      */
-    handleClick(e) {
-        // Could implement click-to-move in future
-        const rect = e.target.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+    executeDirectionAction(direction) {
+        if (!this.nextAction) return;
+        
+        const dx = direction.includes('west') ? -1 : direction.includes('east') ? 1 : 0;
+        const dy = direction.includes('north') ? -1 : direction.includes('south') ? 1 : 0;
+        
+        switch (this.nextAction) {
+            case 'open':
+                this.game.handleOpenInDirection(dx, dy);
+                break;
+            case 'close':
+                this.game.handleCloseInDirection(dx, dy);
+                break;
+            case 'loot':
+                this.game.handleLootInDirection(dx, dy);
+                break;
+            // Add more directional actions as needed
+        }
+        
+        this.nextAction = null;
+    }
+    
+    // ========== Action Handlers ==========
+    
+    handleMove(direction) {
+        if (this.mode !== 'normal' || !this.game) return;
+        this.game.handlePlayerMove(direction);
+    }
+    
+    handleWait() {
+        if (this.mode !== 'normal' || !this.game) return;
+        // Waiting is just not moving but still taking a turn
+        if (this.game.processTurn) {
+            this.game.processTurn();
+        }
+    }
+    
+    handlePickup() {
+        if (this.mode !== 'normal' || !this.game) return;
+        if (this.game.handlePickup) {
+            this.game.handlePickup();
+        }
+    }
+    
+    handleDrop() {
+        if (this.mode !== 'normal') return;
+        this.setMode('inventory');
+        if (EVENTS && EVENTS.UI_OPEN_INVENTORY) {
+            EventBus.emit(EVENTS.UI_OPEN_INVENTORY, { mode: 'drop' });
+        }
+    }
+    
+    handleDropMany() {
+        if (this.mode !== 'normal') return;
+        this.setMode('inventory');
+        if (EVENTS && EVENTS.UI_OPEN_INVENTORY) {
+            EventBus.emit(EVENTS.UI_OPEN_INVENTORY, { mode: 'drop-many' });
+        }
+    }
+    
+    handleInventory() {
+        if (this.mode !== 'normal') return;
+        this.setMode('inventory');
+        if (EVENTS && EVENTS.UI_OPEN_INVENTORY) {
+            EventBus.emit(EVENTS.UI_OPEN_INVENTORY);
+        }
+    }
+    
+    handleEquipment() {
+        if (this.mode !== 'normal') return;
+        this.setMode('menu');
+        if (EVENTS && EVENTS.UI_OPEN_EQUIPMENT) {
+            EventBus.emit(EVENTS.UI_OPEN_EQUIPMENT);
+        }
+    }
+    
+    handleIdentify() {
+        if (this.mode !== 'normal') return;
+        // Check if player has identification ability
+        if (this.game && this.game.player) {
+            this.setMode('inventory');
+            if (EVENTS && EVENTS.UI_OPEN_INVENTORY) {
+                EventBus.emit(EVENTS.UI_OPEN_INVENTORY, { mode: 'identify' });
+            }
+        }
+    }
+    
+    handleApply() {
+        if (this.mode !== 'normal') return;
+        this.setMode('inventory');
+        if (EVENTS && EVENTS.UI_OPEN_INVENTORY) {
+            EventBus.emit(EVENTS.UI_OPEN_INVENTORY, { mode: 'apply' });
+        }
+    }
+    
+    handleRead() {
+        if (this.mode !== 'normal') return;
+        this.setMode('inventory');
+        if (EVENTS && EVENTS.UI_OPEN_INVENTORY) {
+            EventBus.emit(EVENTS.UI_OPEN_INVENTORY, { mode: 'read' });
+        }
+    }
+    
+    handleQuaff() {
+        if (this.mode !== 'normal') return;
+        this.setMode('inventory');
+        if (EVENTS && EVENTS.UI_OPEN_INVENTORY) {
+            EventBus.emit(EVENTS.UI_OPEN_INVENTORY, { mode: 'quaff' });
+        }
+    }
+    
+    handleCast() {
+        if (this.mode !== 'normal') return;
+        if (EVENTS && EVENTS.UI_OPEN_SPELL_MENU) {
+            EventBus.emit(EVENTS.UI_OPEN_SPELL_MENU);
+        }
+    }
+    
+    handleFire() {
+        if (this.mode !== 'normal') return;
+        // TODO: Implement ranged targeting
+    }
+    
+    handleThrow() {
+        if (this.mode !== 'normal') return;
+        // TODO: Implement throwing
+    }
+    
+    handleOpen() {
+        if (this.mode !== 'normal') return;
+        this.setMode('direction');
+        this.nextAction = 'open';
+        if (this.game && this.game.messageLog) {
+            this.game.messageLog.add('Open in which direction?', 'prompt');
+        }
+    }
+    
+    handleClose() {
+        if (this.mode !== 'normal') return;
+        this.setMode('direction');
+        this.nextAction = 'close';
+        if (this.game && this.game.messageLog) {
+            this.game.messageLog.add('Close in which direction?', 'prompt');
+        }
+    }
+    
+    handleSearch() {
+        if (this.mode !== 'normal' || !this.game) return;
+        if (this.game.handleSearch) {
+            this.game.handleSearch();
+        } else if (this.game.messageLog) {
+            this.game.messageLog.add('You search carefully...', 'info');
+        }
+    }
+    
+    handleStairs(direction) {
+        if (this.mode !== 'normal' || !this.game) return;
+        if (this.game.handleStairs) {
+            this.game.handleStairs(direction);
+        }
+    }
+    
+    handleEscape() {
+        // Context-dependent escape
+        if (this.mode === 'inventory' || this.mode === 'menu') {
+            this.closeCurrentModal();
+        } else if (this.mode === 'direction') {
+            this.setMode('normal');
+            this.nextAction = null;
+        } else if (this.mode === 'paused') {
+            this.handlePause();
+        }
+    }
+    
+    handleHelp() {
+        if (this.game && this.game.messageLog) {
+            this.game.messageLog.add('=== Controls ===', 'info');
+            this.game.messageLog.add('Arrow keys or HJKL: Move', 'info');
+            this.game.messageLog.add('g or ,: Pick up items', 'info');
+            this.game.messageLog.add('i: Inventory', 'info');
+            this.game.messageLog.add('e: Equipment', 'info');
+            this.game.messageLog.add('.: Wait', 'info');
+            this.game.messageLog.add('?: This help', 'info');
+        }
+    }
+    
+    handleSave() {
+        if (this.mode !== 'normal' || !this.game) return;
+        if (this.game.save) {
+            this.game.save();
+        }
+    }
+    
+    handleQuit() {
+        if (confirm("Really quit? Your progress will be saved.")) {
+            if (this.game && this.game.save) {
+                this.game.save();
+            }
+            if (EVENTS && EVENTS.GAME_OVER) {
+                EventBus.emit(EVENTS.GAME_OVER);
+            }
+        }
+    }
+    
+    handlePause() {
+        if (this.game && this.game.togglePause) {
+            this.game.togglePause();
+        } else {
+            this.setMode(this.mode === 'paused' ? 'normal' : 'paused');
+        }
+    }
+    
+    handleExtendedCommand() {
+        if (this.mode !== 'normal') return;
+        if (this.game && this.game.messageLog) {
+            this.game.messageLog.add('Extended commands not yet implemented', 'info');
+        }
+    }
+    
+    // ========== Inventory Handlers ==========
+    
+    handleInventorySelection(letter) {
+        const index = letter.charCodeAt(0) - 'a'.charCodeAt(0);
+        if (EVENTS && EVENTS.INVENTORY_ITEM_SELECTED) {
+            EventBus.emit(EVENTS.INVENTORY_ITEM_SELECTED, { index, letter });
+        }
+        this.closeInventory();
+    }
+    
+    closeInventory() {
+        this.setMode('normal');
+        if (EVENTS && EVENTS.UI_CLOSE_INVENTORY) {
+            EventBus.emit(EVENTS.UI_CLOSE_INVENTORY);
+        }
+    }
+    
+    // ========== Debug Handlers ==========
+    
+    handleDebugToggle() {
+        if (!CONFIG.DEBUG_MODE) return;
+        CONFIG.SHOW_DEBUG_UI = !CONFIG.SHOW_DEBUG_UI;
+        if (this.game && this.game.messageLog) {
+            this.game.messageLog.add(`Debug UI: ${CONFIG.SHOW_DEBUG_UI ? 'ON' : 'OFF'}`, 'system');
+        }
+    }
+    
+    handleDebugReveal() {
+        if (!CONFIG.DEBUG_MODE) return;
+        if (this.game && this.game.messageLog) {
+            this.game.messageLog.add('Revealing entire map...', 'system');
+        }
+        // TODO: Implement map reveal
+    }
+    
+    handleDebugGodMode() {
+        if (!CONFIG.DEBUG_MODE) return;
+        if (this.game && this.game.player) {
+            this.game.player.godMode = !this.game.player.godMode;
+            if (this.game.messageLog) {
+                this.game.messageLog.add(`God mode: ${this.game.player.godMode ? 'ON' : 'OFF'}`, 'system');
+            }
+        }
+    }
+    
+    handleDebugSpawn() {
+        if (!CONFIG.DEBUG_MODE) return;
+        if (this.game && this.game.messageLog) {
+            this.game.messageLog.add('Spawning debug items...', 'system');
+        }
+        // TODO: Implement item spawning
+    }
+    
+    // ========== Mouse Handlers ==========
+    
+    handleClick(event) {
+        if (!this.enabled || !this.game || !this.game.renderer) return;
+        
+        // Get canvas position
+        const rect = event.target.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
         
         // Convert to tile coordinates
-        // This would need renderer's tile size and camera position
+        const tileSize = this.game.renderer.tileSize || 24;
+        const tileX = Math.floor(x / tileSize) + (this.game.renderer.cameraX || 0);
+        const tileY = Math.floor(y / tileSize) + (this.game.renderer.cameraY || 0);
         
-        EventBus.emit(EVENTS.UI_CLICK, {
-            x: x,
-            y: y,
-            screenX: e.clientX,
-            screenY: e.clientY
-        });
+        // Emit click event if events are defined
+        if (EVENTS && EVENTS.UI_CLICK) {
+            EventBus.emit(EVENTS.UI_CLICK, {
+                x: tileX,
+                y: tileY,
+                screenX: x,
+                screenY: y,
+                button: event.button
+            });
+        }
+        
+        // Log for debugging
+        if (CONFIG.DEBUG_MODE) {
+            console.log(`Click at tile (${tileX}, ${tileY})`);
+        }
+    }
+    
+    handleMouseMove(event) {
+        // TODO: Implement tooltips and tile highlighting
+    }
+    
+    handleRightClick(event) {
+        event.preventDefault();
+        // TODO: Implement context menu
+    }
+    
+    // ========== Utility Methods ==========
+    
+    /**
+     * Set input mode
+     */
+    setMode(mode) {
+        this.mode = mode;
+        if (CONFIG.DEBUG_MODE) {
+            console.log(`Input mode: ${mode}`);
+        }
     }
     
     /**
-     * Handle right click
+     * Check if key should prevent default
      */
-    handleRightClick(e) {
-        e.preventDefault(); // Prevent context menu
-        
-        const rect = e.target.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        EventBus.emit(EVENTS.UI_RIGHT_CLICK, {
-            x: x,
-            y: y,
-            screenX: e.clientX,
-            screenY: e.clientY
-        });
+    shouldPreventDefault(key) {
+        // Prevent default for arrow keys, space, and game keys
+        const preventKeys = [
+            'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+            ' ', '.', ',', '/', '?', '<', '>'
+        ];
+        return preventKeys.includes(key);
     }
     
     /**
-     * Show help screen
+     * Close current modal
      */
-    showHelp() {
-        const helpText = `
-PHILOSOPHER'S QUEST - CONTROLS
-==============================
-
-MOVEMENT:
-  Arrow Keys or Numpad - Move in 8 directions
-  hjkl - Move (vi-keys)
-  yubn - Diagonal movement (vi-keys)
-  . or Space - Wait one turn
-  
-ACTIONS:
-  , or g - Pick up items
-  h - Harvest corpse (Animal quiz)
-  c - Cook food (Cooking quiz)
-  i - Open inventory
-  e - Show equipment
-  d - Drop item
-  w - Wear/wield item
-  t - Take off equipment
-  
-ITEMS:
-  a - Apply/use item
-  q - Quaff potion
-  r - Read scroll/book
-  z - Zap wand
-  
-DUNGEON:
-  o - Open door/container
-  C - Close door (Shift+C)
-  s - Search for hidden things
-  l or x - Look/examine
-  
-GAME:
-  Ctrl+S - Save game
-  Ctrl+L - Load game
-  @ - Character stats
-  ? - This help screen
-  Esc - Close menus
-  
-FOOD SYSTEM:
-  1. Kill monsters to get corpses
-  2. Harvest corpses (h) - Animal quiz
-  3. Cook food (c) - Cooking quiz
-  4. Better cooking = better stat gains!
-  
-SP (Stamina) is your hunger!
-Keep it above 0 or you'll starve!
-        `;
-        
-        EventBus.emit(EVENTS.UI_SHOW_HELP, { text: helpText });
-        
-        // Also log to message log
-        EventBus.emit(EVENTS.MESSAGE, {
-            text: 'Press ? to see controls',
-            type: 'info'
-        });
+    closeCurrentModal() {
+        if (EVENTS) {
+            if (EVENTS.UI_CLOSE_INVENTORY) EventBus.emit(EVENTS.UI_CLOSE_INVENTORY);
+            if (EVENTS.UI_CLOSE_EQUIPMENT) EventBus.emit(EVENTS.UI_CLOSE_EQUIPMENT);
+        }
+        this.setMode('normal');
     }
     
     /**
@@ -485,19 +631,18 @@ Keep it above 0 or you'll starve!
     }
     
     /**
-     * Check if a modifier key is pressed
+     * Cleanup
      */
-    hasModifier() {
-        return this.shiftPressed || this.ctrlPressed || this.altPressed;
-    }
-    
-    /**
-     * Clear all pressed keys
-     */
-    clearKeys() {
-        this.keysPressed.clear();
-        this.shiftPressed = false;
-        this.ctrlPressed = false;
-        this.altPressed = false;
+    destroy() {
+        // Remove event listeners
+        document.removeEventListener('keydown', this.handleKeyDown);
+        document.removeEventListener('keyup', this.handleKeyUp);
+        
+        const canvas = document.getElementById('game-canvas');
+        if (canvas) {
+            canvas.removeEventListener('click', this.handleClick);
+            canvas.removeEventListener('mousemove', this.handleMouseMove);
+            canvas.removeEventListener('contextmenu', this.handleRightClick);
+        }
     }
 }
