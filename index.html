@@ -5,47 +5,287 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Philosopher's Quest - Educational Roguelike</title>
     <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* Basic styles if main.css is missing */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        
+        .screen {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        /* Intro Screen */
+        #intro-screen {
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a2e, #0f0f0f);
+        }
+        
+        .intro-container {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+        
+        .game-title {
+            font-size: 3rem;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-subtitle {
+            font-size: 1.5rem;
+            color: #00ff00;
+            margin-bottom: 2rem;
+        }
+        
+        .intro-text {
+            color: #ffffff;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        .character-creation {
+            background: rgba(0,0,0,0.5);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 2px solid #00ff00;
+        }
+        
+        #player-name {
+            padding: 10px;
+            font-size: 1.2rem;
+            background: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            margin: 10px;
+        }
+        
+        .btn-primary {
+            padding: 12px 24px;
+            font-size: 1.2rem;
+            background: #00ff00;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .btn-primary:hover {
+            background: #00cc00;
+        }
+        
+        /* Game Screen */
+        #game-screen {
+            flex-direction: column;
+        }
+        
+        .game-layout {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+        
+        .game-viewport {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            padding: 10px;
+        }
+        
+        #game-canvas {
+            background: #000;
+            border: 2px solid #333;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: #111;
+            border-left: 2px solid #333;
+            padding: 10px;
+            overflow-y: auto;
+            color: #0f0;
+        }
+        
+        .sidebar h3 {
+            color: #ffd700;
+            margin: 10px 0 5px 0;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #333;
+        }
+        
+        /* Stats Panel */
+        .stat-row {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .stat-row span:first-child {
+            width: 30px;
+        }
+        
+        .bar-container {
+            flex: 1;
+            height: 20px;
+            background: #222;
+            border: 1px solid #444;
+            position: relative;
+            margin: 0 5px;
+        }
+        
+        .bar {
+            height: 100%;
+            transition: width 0.3s;
+        }
+        
+        .bar.hp { background: #ff0000; }
+        .bar.sp { background: #ffff00; }
+        .bar.mp { background: #0066ff; }
+        
+        #hp-text, #sp-text, #mp-text {
+            position: absolute;
+            right: 5px;
+            top: 2px;
+            color: #fff;
+            font-size: 12px;
+        }
+        
+        .stat-info {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .stat-info div {
+            margin: 3px 0;
+        }
+        
+        /* Equipment & Inventory */
+        #equipment-list, #inventory-list {
+            font-size: 13px;
+            color: #aaa;
+        }
+        
+        #equipment-list div, #inventory-list div {
+            margin: 3px 0;
+        }
+        
+        /* Message Log */
+        .message-log {
+            height: 150px;
+            background: #111;
+            border-top: 2px solid #333;
+            padding: 5px;
+            overflow-y: auto;
+        }
+        
+        #message-log, #game-messages {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        /* Controls Help */
+        .controls-help {
+            background: #222;
+            padding: 5px;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            border-top: 1px solid #444;
+        }
+        
+        /* Status Effects */
+        #status-effects {
+            padding: 5px;
+            font-size: 12px;
+            color: #ff0;
+            text-align: center;
+            min-height: 20px;
+        }
+        
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: #111;
+            border: 2px solid #0f0;
+            padding: 20px;
+            min-width: 400px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        
+        /* Quiz Modal */
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .quiz-timer {
+            font-size: 24px;
+            color: #ff0;
+        }
+        
+        .quiz-question {
+            font-size: 18px;
+            margin: 20px 0;
+            color: #fff;
+        }
+        
+        .quiz-feedback {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .quiz-feedback.correct { color: #0f0; }
+        .quiz-feedback.wrong { color: #f00; }
+        
+        /* Game Stats Display (fallback) */
+        #game-stats, #stats-display {
+            padding: 10px;
+            background: #111;
+            border: 1px solid #333;
+            margin: 10px;
+        }
+    </style>
 </head>
-
-<script>
-// Debug helper to track event issues
-if (window.EventBusDebug) {
-    console.log('🔍 EventBus Debug Mode Enabled');
-    
-    // Log any undefined events
-    const originalEmit = window.EventBusDebug.emit.bind(window.EventBusDebug);
-    window.EventBusDebug.emit = function(eventName, data) {
-        if (!eventName || eventName === 'undefined') {
-            console.error('❌ Undefined event detected!', new Error().stack);
-        }
-        return originalEmit(eventName, data);
-    };
-    
-    // Add debug command
-    window.debugEvents = function() {
-        window.EventBusDebug.debug();
-    };
-    
-    console.log('Type debugEvents() in console to see event bus state');
-}
-
-// Emergency stop for infinite loops
-let errorCount = 0;
-window.addEventListener('error', function(e) {
-    errorCount++;
-    if (errorCount > 100) {
-        console.error('🛑 Too many errors detected! Stopping event processing.');
-        if (window.EventBusDebug) {
-            window.EventBusDebug.clear();
-        }
-        // Stop the game
-        if (window.game) {
-            window.game.running = false;
-        }
-    }
-});
-</script>
-
 <body>
     <!-- Intro Screen -->
     <div id="intro-screen" class="screen active">
@@ -59,7 +299,7 @@ window.addEventListener('error', function(e) {
             </div>
             <div class="character-creation">
                 <label for="player-name">Enter your name, scholar:</label>
-                <input type="text" id="player-name" maxlength="20" placeholder="Your name...">
+                <input type="text" id="player-name" maxlength="20" placeholder="Your name..." value="Scholar">
                 <button id="start-button" class="btn-primary">Begin Your Quest!</button>
             </div>
         </div>
@@ -71,6 +311,8 @@ window.addEventListener('error', function(e) {
             <!-- Main Game Canvas -->
             <div class="game-viewport">
                 <canvas id="game-canvas"></canvas>
+                <!-- Fallback game display if canvas fails -->
+                <div id="game-display" style="display:none;"></div>
             </div>
             
             <!-- Right Sidebar -->
@@ -82,31 +324,38 @@ window.addEventListener('error', function(e) {
                         <div class="stat-row">
                             <span>HP:</span>
                             <div class="bar-container">
-                                <div id="hp-bar" class="bar hp"></div>
-                                <span id="hp-text">100/100</span>
+                                <div id="hp-bar" class="bar hp" style="width: 100%"></div>
+                                <span id="hp-text">15/15</span>
                             </div>
                         </div>
                         <div class="stat-row">
                             <span>SP:</span>
                             <div class="bar-container">
-                                <div id="sp-bar" class="bar sp"></div>
+                                <div id="sp-bar" class="bar sp" style="width: 100%"></div>
                                 <span id="sp-text">100/100</span>
                             </div>
                         </div>
                         <div class="stat-row">
                             <span>MP:</span>
                             <div class="bar-container">
-                                <div id="mp-bar" class="bar mp"></div>
-                                <span id="mp-text">20/20</span>
+                                <div id="mp-bar" class="bar mp" style="width: 100%"></div>
+                                <span id="mp-text">10/10</span>
                             </div>
                         </div>
                     </div>
                     <div class="stat-info">
                         <div>Level: <span id="dungeon-level">1</span></div>
-                        <div>WIS: <span id="wisdom">15</span></div>
+                        <div>Turn: <span id="turn-counter">0</span></div>
+                        <div>WIS: <span id="wisdom">10</span></div>
                         <div>AC: <span id="armor-class">10</span></div>
                     </div>
+                    
+                    <!-- Fallback stats display -->
+                    <div id="stats-display" style="display:none;"></div>
                 </div>
+                
+                <!-- Status Effects -->
+                <div id="status-effects"></div>
                 
                 <!-- Equipment Display -->
                 <div class="equipment-panel">
@@ -120,24 +369,29 @@ window.addEventListener('error', function(e) {
                 
                 <!-- Inventory -->
                 <div class="inventory-panel">
-                    <h3>Inventory (<span id="carry-weight">0/50</span>)</h3>
-                    <div id="inventory-list"></div>
+                    <h3>Inventory (<span id="carry-weight">0/100</span>)</h3>
+                    <div id="inventory-list">
+                        <div class="empty">Empty</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <!-- Message Log -->
         <div class="message-log">
-            <div id="messages"></div>
+            <div id="message-log"></div>
+            <!-- Fallback message area -->
+            <div id="game-messages" style="display:none;"></div>
         </div>
         
         <!-- Controls Help -->
         <div class="controls-help">
             <span>Move: Arrow/HJKL</span> | 
-            <span>Pickup: g</span> | 
+            <span>Pickup: g or ,</span> | 
             <span>Inventory: i</span> | 
             <span>Equipment: e</span> | 
-            <span>Identify: Shift+I</span> | 
+            <span>Wait: . or Space</span> | 
+            <span>Stairs: < or ></span> | 
             <span>Help: ?</span>
         </div>
     </div>
@@ -145,13 +399,16 @@ window.addEventListener('error', function(e) {
     <!-- Quiz Modal -->
     <div id="quiz-modal" class="modal">
         <div class="modal-content quiz-content">
-            <h2 id="quiz-title">Quiz Time!</h2>
+            <h2 id="quiz-title">Knowledge Challenge!</h2>
             <div class="quiz-header">
-                <div id="quiz-subject" class="quiz-subject"></div>
-                <div id="quiz-timer" class="quiz-timer">15</div>
+                <div id="quiz-subject" class="quiz-subject">Mathematics</div>
+                <div id="quiz-timer" class="quiz-timer">30</div>
             </div>
-            <div id="quiz-question" class="quiz-question"></div>
-            <div id="quiz-input-area"></div>
+            <div id="quiz-question" class="quiz-question">Question will appear here...</div>
+            <div id="quiz-input-area">
+                <input type="text" id="quiz-answer" placeholder="Your answer..." />
+                <button id="quiz-submit">Submit</button>
+            </div>
             <div id="quiz-feedback" class="quiz-feedback"></div>
         </div>
     </div>
@@ -160,46 +417,97 @@ window.addEventListener('error', function(e) {
     <div id="inventory-modal" class="modal">
         <div class="modal-content">
             <h2>Inventory</h2>
-            <div id="inventory-modal-content"></div>
+            <div id="inventory-modal-content">
+                <div class="empty">Your inventory is empty.</div>
+            </div>
             <button class="btn-secondary close-modal">Close (ESC)</button>
         </div>
     </div>
 
     <!-- Load all JavaScript modules -->
     <script type="module">
-        // Import all modules
-        import { CONFIG } from './js/config.js';
+        // Import configuration first
+        import { CONFIG, EVENTS } from './js/config.js';
+        
+        // Fix any remaining undefined events
+        if (!EVENTS.COOKING_START) EVENTS.COOKING_START = 'cooking_start';
+        if (!EVENTS.HARVEST_START) EVENTS.HARVEST_START = 'harvest_start';
+        if (!EVENTS.HARVEST_COMPLETE) EVENTS.HARVEST_COMPLETE = 'harvest_complete';
+        if (!EVENTS.QUIZ_ANSWER_SUBMITTED) EVENTS.QUIZ_ANSWER_SUBMITTED = 'quiz_answer_submitted';
+        if (!EVENTS.UI_MODAL_CLOSE) EVENTS.UI_MODAL_CLOSE = 'ui_modal_close';
+        if (!EVENTS.UI_CLICK) EVENTS.UI_CLICK = 'ui_click';
+        if (!EVENTS.MONSTER_MOVE) EVENTS.MONSTER_MOVE = 'monster_move';
+        if (!EVENTS.ITEM_PICKUP) EVENTS.ITEM_PICKUP = 'item_pickup';
+        if (!EVENTS.ITEM_DROP) EVENTS.ITEM_DROP = 'item_drop';
+        if (!EVENTS.GAME_STATE_UPDATE) EVENTS.GAME_STATE_UPDATE = 'game_state_update';
+        
+        console.log('✅ Event patches applied');
+        
+        // Import core modules
         import { EventBus } from './js/core/event-bus.js';
-        import questionLoader from './js/core/question-loader.js';
+        import { QuestionLoader } from './js/core/question-loader.js';
+        import { itemLoader } from './js/core/item-loader.js';
+        import { monsterLoader } from './js/core/monster-loader.js';
         import { Game } from './js/core/game.js';
+        
+        // Import systems
         import { QuizEngine } from './js/systems/quiz-engine.js';
+        import { CookingSystem } from './js/systems/cooking.js';
+        import { HarvestingSystem } from './js/systems/harvesting.js';
+        
+        // Import UI
         import { Renderer } from './js/ui/renderer.js';
         import { MessageLog } from './js/ui/message-log.js';
         import { UIManager } from './js/ui/ui-manager.js';
+        import { InputHandler } from './js/ui/input-handler.js';
         
         // Make game globally accessible for debugging
         window.PhilosophersQuest = {
             CONFIG,
+            EVENTS,
             EventBus,
-            questionLoader,
+            QuestionLoader,
+            itemLoader,
+            monsterLoader,
             Game: null, // Will be initialized on start
             QuizEngine,
             Renderer,
             MessageLog,
-            UIManager
+            UIManager,
+            InputHandler,
+            CookingSystem,
+            HarvestingSystem
+        };
+        
+        // Debug helper
+        window.debugGame = function() {
+            if (window.PhilosophersQuest && window.PhilosophersQuest.Game) {
+                const game = window.PhilosophersQuest.Game;
+                console.log('Game State:', {
+                    player: game.player,
+                    level: game.currentLevel,
+                    turn: game.turnNumber,
+                    running: game.running,
+                    gameOver: game.gameOver
+                });
+            }
         };
         
         // Initialize on DOM ready
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🏛️ Philosopher\'s Quest - Initializing...');
             
-            // Load questions
+            // Pre-load all data
             console.log('📚 Loading question banks...');
+            const questionLoader = new QuestionLoader();
             await questionLoader.loadAllQuestions();
             
             // Setup intro screen
             const startButton = document.getElementById('start-button');
             const playerNameInput = document.getElementById('player-name');
+            
+            // Focus on name input
+            playerNameInput.focus();
             
             startButton.addEventListener('click', startGame);
             playerNameInput.addEventListener('keypress', (e) => {
@@ -217,20 +525,47 @@ window.addEventListener('error', function(e) {
                 console.log(`⚔️ Starting game for ${playerName}...`);
                 
                 try {
+                    // Create and initialize game
                     window.PhilosophersQuest.Game = new Game(playerName);
+                    window.game = window.PhilosophersQuest.Game; // Alias for easier debugging
+                    
                     await window.PhilosophersQuest.Game.initialize();
                     
-                    // Start game loop  
-                    if (window.PhilosophersQuest.Game.start) {
-                        window.PhilosophersQuest.Game.start();
-                    }
+                    console.log('✅ Game started successfully!');
+                    console.log('Type debugGame() in console to see game state');
+                    
                 } catch (error) {
-                    console.error('Failed to initialize game:', error);
-                    alert('Failed to start game. Check console for errors.');
+                    console.error('Failed to start game:', error);
+                    alert('Failed to start game. Please check the console for errors.');
                 }
             }
             
+            // Add keyboard shortcut to start game quickly (for testing)
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && document.getElementById('intro-screen').classList.contains('active')) {
+                    startGame();
+                }
+            });
+            
             console.log('✅ Ready to play!');
+        });
+        
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            console.error('Game Error:', e.error);
+            // Don't crash the game on non-critical errors
+            if (e.error && e.error.message && e.error.message.includes('undefined')) {
+                console.warn('Suppressing undefined error to keep game running');
+                e.preventDefault();
+            }
+        });
+        
+        // Prevent accidental page leave
+        window.addEventListener('beforeunload', (e) => {
+            if (window.PhilosophersQuest && window.PhilosophersQuest.Game && window.PhilosophersQuest.Game.running) {
+                e.preventDefault();
+                e.returnValue = 'Are you sure you want to leave? Your game progress will be lost!';
+            }
         });
     </script>
 </body>
