@@ -29,12 +29,19 @@ export class CookingSystem {
      */
     async loadFoodData() {
         try {
-            const response = await fetch('/data/items/food.json');
+            // FIXED: Use correct path for GitHub Pages
+            const basePath = window.location.hostname === 'localhost' 
+                ? '/data/items' 
+                : '/KnowledgeHack/data/items';
+            
+            const response = await fetch(`${basePath}/food.json`);
             const data = await response.json();
             this.foodData = new Map();
             
             // Index foods by ID for quick lookup
-            data.foods.forEach(food => {
+            // FIXED: Handle both 'foods' and 'food' array names
+            const foodArray = data.foods || data.food || [];
+            foodArray.forEach(food => {
                 this.foodData.set(food.id, food);
             });
             

@@ -30,12 +30,19 @@ export class HarvestingSystem {
      */
     async loadCorpseData() {
         try {
-            const response = await fetch('/data/items/corpses.json');
+            // FIXED: Use correct path for GitHub Pages
+            const basePath = window.location.hostname === 'localhost' 
+                ? '/data/items' 
+                : '/KnowledgeHack/data/items';
+            
+            const response = await fetch(`${basePath}/corpses.json`);
             const data = await response.json();
             this.corpseData = new Map();
             
             // Index corpses by ID for quick lookup
-            data.corpses.forEach(corpse => {
+            // FIXED: Handle both 'corpses' and direct array
+            const corpseArray = data.corpses || data || [];
+            corpseArray.forEach(corpse => {
                 this.corpseData.set(corpse.id, corpse);
             });
             
@@ -178,10 +185,10 @@ export class HarvestingSystem {
         
         if (success) {
             // Success! Create food item
-            this.handleHarvestSuccess(corpseData);
+            this.handleHarvestSuccess(corpseData, result);
         } else {
             // Failure - corpse is ruined
-            this.handleHarvestFailure(corpseData);
+            this.handleHarvestFailure(corpseData, result);
         }
         
         // Clear harvesting state
@@ -192,7 +199,7 @@ export class HarvestingSystem {
     /**
      * Handle successful harvest
      */
-    handleHarvestSuccess(corpseData) {
+    handleHarvestSuccess(corpseData, result) {
         // Remove corpse from original location
         if (this.harvestLocation === 'inventory') {
             this.removeFromInventory(this.harvestingCorpse);
@@ -226,7 +233,7 @@ export class HarvestingSystem {
     /**
      * Handle failed harvest
      */
-    handleHarvestFailure(corpseData) {
+    handleHarvestFailure(corpseData, result) {
         // Remove corpse from original location (it's ruined)
         if (this.harvestLocation === 'inventory') {
             this.removeFromInventory(this.harvestingCorpse);
