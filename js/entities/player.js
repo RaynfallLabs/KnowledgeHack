@@ -1,6 +1,7 @@
 /**
  * player.js - Player entity with 6-stat RPG system
  * Handles all player state, attributes, and derived statistics
+ * CORRECTED VERSION - Fixed all compatibility issues
  */
 
 import { CONFIG } from '../config.js';
@@ -33,7 +34,7 @@ export class Player {
         this.mp = this.maxMp;
         
         this.ac = this.calculateAC();
-        this.carryCapacity = this.calculateCarryCapacity();
+        this.carryingCapacity = this.calculateCarryCapacity(); // Use single name
         this.sightRadius = this.calculateSightRadius();
         
         // Saving Throws
@@ -41,22 +42,41 @@ export class Player {
         this.reflex = 0;     // DEX-based
         this.will = 0;       // WIS-based
         
-        // Inventory & Equipment
+        // Inventory & Equipment - CORRECTED structure
         this.inventory = [];
-        this.equipment = {
+        
+        // Use 'equipped' for compatibility with other systems
+        this.equipped = {
             weapon: null,
-            armor: null,
-            helmet: null,
-            gloves: null,
-            boots: null,
-            ring: null,
-            amulet: null
+            armor: {
+                head: null,
+                body: null,
+                cloak: null,
+                gloves: null,
+                boots: null,
+                shield: null
+            },
+            accessories: {
+                ring1: null,
+                ring2: null,
+                amulet: null
+            }
         };
         
+        // Keep old 'equipment' as alias for backwards compatibility
+        this.equipment = this.equipped;
+        
         // Status
-        this.burden = 0;
+        this.currentWeight = 0;
         this.effects = [];  // Status effects (poisoned, blessed, etc.)
         this.starving = false;
+        
+        // Detection cooldowns (for hidden object detection)
+        this.detectCooldowns = {};
+        
+        // Game progress tracking
+        this.level = 1;
+        this.turnsSurvived = 0;
         
         this.updateDerivedStats();
     }
@@ -91,6 +111,45 @@ export class Player {
     calculateAC() {
         // Base 10 + (DEX-10)/2
         return 10 + Math.floor((this.dexterity - 10) / 2);
+    }
+    
+    /**
+     * Get current AC (for UI compatibility)
+     */
+    getAC() {
+        return this.ac;
+    }
+    
+    /**
+     * Get total AC including equipment bonuses
+     */
+    getTotalAC() {
+        let totalAC = this.ac;
+        
+        // Add armor bonuses
+        if (this.equipped.armor) {
+            Object.values(this.equipped.armor).forEach(item => {
+                if (item && item.acBonus) {
+                    totalAC += item.acBonus;
+                }
+            });
+        }
+        
+        // Add shield bonus
+        if (this.equipped.armor.shield && this.equipped.armor.shield.acBonus) {
+            totalAC += this.equipped.armor.shield.acBonus;
+        }
+        
+        // Add accessory bonuses
+        if (this.equipped.accessories) {
+            Object.values(this.equipped.accessories).forEach(item => {
+                if (item && item.acBonus) {
+                    totalAC += item.acBonus;
+                }
+            });
+        }
+        
+        return totalAC;
     }
     
     /**
@@ -129,8 +188,7 @@ export class Player {
         this.maxSp = this.calculateMaxSp();
         this.maxMp = this.calculateMaxMp();
         this.ac = this.calculateAC();
-        this.carryCapacity = this.calculateCarryCapacity();
-        this.carryingCapacity = this.carryCapacity; // UI compatibility
+        this.carryingCapacity = this.calculateCarryCapacity();
         this.sightRadius = this.calculateSightRadius();
         
         // Adjust current values if max increased
@@ -149,8 +207,8 @@ export class Player {
         this.reflex = Math.floor((this.dexterity - 10) / 2);
         this.will = Math.floor((this.wisdom - 10) / 2);
         
-        // Update burden
-        this.updateBurden();
+        // Update weight and burden
+        this.updateWeight();
         
         EventBus.emit(EVENTS.PLAYER_STAT_CHANGE, {
             player: this
@@ -188,20 +246,30 @@ export class Player {
     }
     
     /**
-     * Move player to new position
+     * Move player to new position and emit events
      */
     move(x, y) {
         this.x = x;
         this.y = y;
+        
+        // Emit movement event for other systems
+        EventBus.emit(EVENTS.PLAYER_MOVE, {
+            x: this.x,
+            y: this.y,
+            blocked: false
+        });
     }
     
     /**
-     * Consume SP (for movement and actions)
+     * Consume SP (for movement and actions) - FIXED overflow calculation
      */
     consumeSP(amount) {
+        const previousSP = this.sp;
         this.sp -= amount;
         
-        if (this.sp <= 0) {
+        if (this.sp < 0) {
+            // Calculate overflow BEFORE setting SP to 0
+            const overflow = Math.abs(this.sp);
             this.sp = 0;
             
             if (!this.starving) {
@@ -209,15 +277,20 @@ export class Player {
                 EventBus.emit(EVENTS.PLAYER_STARVING);
             }
             
-            // Start taking HP damage from starvation
-            const overflow = Math.abs(this.sp);
+            // HP damage from starvation
             this.hp -= overflow;
+            
+            if (this.hp <= 0) {
+                this.hp = 0;
+                EventBus.emit(EVENTS.PLAYER_DEATH);
+            }
         }
         
         EventBus.emit(EVENTS.PLAYER_SP_CHANGE, {
             current: this.sp,
             max: this.maxSp,
-            starving: this.starving
+            starving: this.starving,
+            consumed: amount
         });
     }
     
@@ -285,12 +358,21 @@ export class Player {
     /**
      * Add an effect
      */
-    addEffect(effect) {
+    addEffect(effect, duration = undefined) {
+        // Handle both effect objects and simple string effects
+        if (typeof effect === 'string') {
+            effect = {
+                type: effect,
+                name: effect,
+                duration: duration
+            };
+        }
+        
         // Check if effect already exists
         const existing = this.effects.find(e => e.type === effect.type);
         if (existing) {
             // Refresh duration
-            existing.duration = Math.max(existing.duration, effect.duration);
+            existing.duration = Math.max(existing.duration || 0, effect.duration || 0);
         } else {
             this.effects.push(effect);
             EventBus.emit(EVENTS.EFFECT_ADDED, { effect, target: this });
@@ -301,7 +383,9 @@ export class Player {
      * Remove an effect
      */
     removeEffect(effectType) {
-        const index = this.effects.findIndex(e => e.type === effectType);
+        const index = this.effects.findIndex(e => 
+            e.type === effectType || e.name === effectType
+        );
         if (index !== -1) {
             const effect = this.effects.splice(index, 1)[0];
             EventBus.emit(EVENTS.EFFECT_REMOVED, { effect, target: this });
@@ -321,7 +405,7 @@ export class Player {
             }
             
             // Decrease duration
-            if (effect.duration !== undefined) {
+            if (effect.duration !== undefined && effect.duration > 0) {
                 effect.duration--;
                 
                 if (effect.duration <= 0) {
@@ -368,44 +452,73 @@ export class Player {
     }
     
     /**
-     * Calculate total weight of inventory
+     * Get current total weight carried
      */
-    calculateWeight() {
-        let weight = 0;
+    getCurrentWeight() {
+        let totalWeight = 0;
         
-        // Add inventory weight
-        for (const item of this.inventory) {
-            weight += item.weight || 1;
+        // Count inventory items
+        this.inventory.forEach(item => {
+            const weight = item.weight || 1;
+            const quantity = item.quantity || 1;
+            totalWeight += weight * quantity;
+        });
+        
+        // Count equipped items
+        if (this.equipped.weapon) {
+            totalWeight += this.equipped.weapon.weight || 1;
         }
         
-        // Add equipped items weight
-        for (const slot in this.equipment) {
-            if (this.equipment[slot]) {
-                weight += this.equipment[slot].weight || 1;
-            }
-        }
+        Object.values(this.equipped.armor).forEach(item => {
+            if (item) totalWeight += item.weight || 1;
+        });
         
-        return weight;
+        Object.values(this.equipped.accessories).forEach(item => {
+            if (item) totalWeight += item.weight || 1;
+        });
+        
+        return totalWeight;
     }
     
     /**
-     * Update burden status
+     * Update weight (called when inventory changes)
      */
-    updateBurden() {
-        const weight = this.calculateWeight();
-        this.burden = weight;
+    updateWeight() {
+        this.currentWeight = this.getCurrentWeight();
+        this.applyBurdenEffects();
+    }
+    
+    /**
+     * Check if player is burdened by weight
+     */
+    getBurdenLevel() {
+        const weight = this.currentWeight;
+        const capacity = this.carryingCapacity;
         
-        // Check if overburdened
-        if (weight > this.carryCapacity) {
-            if (!this.hasEffect('overburdened')) {
-                this.addEffect({
-                    type: 'overburdened',
-                    name: 'Overburdened',
-                    description: 'Carrying too much weight'
-                });
-            }
-        } else {
-            this.removeEffect('overburdened');
+        if (weight <= capacity * 0.5) return 'none';
+        if (weight <= capacity * 0.75) return 'burdened';
+        if (weight <= capacity) return 'stressed';
+        if (weight <= capacity * 1.25) return 'strained';
+        if (weight <= capacity * 1.5) return 'overtaxed';
+        return 'overloaded';
+    }
+    
+    /**
+     * Apply burden effects based on weight
+     */
+    applyBurdenEffects() {
+        const burden = this.getBurdenLevel();
+        
+        // Remove all burden effects first
+        this.removeEffect('burdened');
+        this.removeEffect('stressed');
+        this.removeEffect('strained');
+        this.removeEffect('overtaxed');
+        this.removeEffect('overloaded');
+        
+        // Apply new burden effect if needed
+        if (burden !== 'none') {
+            this.addEffect(burden, 999); // Permanent while over-weight
         }
     }
     
@@ -413,16 +526,36 @@ export class Player {
      * Check if player has a specific effect
      */
     hasEffect(effectType) {
-        return this.effects.some(e => e.type === effectType);
+        return this.effects.some(e => 
+            e.type === effectType || e.name === effectType
+        );
     }
     
     /**
-     * Update method (called each frame/turn)
+     * Update method (called each game loop/turn)
      */
     update() {
-        // This method is called each game loop iteration
-        // Currently doesn't need to do anything per-frame
-        // Effects are processed per-turn in processEffects()
+        // Reduce detection cooldowns
+        Object.keys(this.detectCooldowns).forEach(type => {
+            if (this.detectCooldowns[type] > 0) {
+                this.detectCooldowns[type]--;
+            }
+        });
+        
+        // Process status effects (reduce durations)
+        const expiredEffects = [];
+        this.effects.forEach(effect => {
+            // If effect has duration, reduce it
+            if (effect.duration !== undefined && effect.duration > 0) {
+                effect.duration--;
+                if (effect.duration <= 0) {
+                    expiredEffects.push(effect);
+                }
+            }
+        });
+        
+        // Remove expired effects
+        expiredEffects.forEach(effect => this.removeEffect(effect.type || effect.name));
     }
     
     /**
@@ -454,26 +587,222 @@ export class Player {
         return Math.floor(this.intelligence / 3);
     }
     
+    // ========== INVENTORY MANAGEMENT ==========
+    
+    /**
+     * Add item to inventory
+     */
+    addToInventory(item) {
+        // Check if we can stack with existing item
+        if (item.stackable) {
+            const existing = this.inventory.find(i => 
+                i.id === item.id && 
+                i.canStackWith && 
+                i.canStackWith(item)
+            );
+            
+            if (existing) {
+                existing.quantity = (existing.quantity || 1) + (item.quantity || 1);
+                this.updateWeight();
+                return true;
+            }
+        }
+        
+        // Add as new item
+        this.inventory.push(item);
+        this.updateWeight();
+        
+        EventBus.emit(EVENTS.ITEM_PICKED_UP, { item });
+        return true;
+    }
+    
+    /**
+     * Remove item from inventory
+     */
+    removeFromInventory(item) {
+        const index = this.inventory.indexOf(item);
+        if (index > -1) {
+            this.inventory.splice(index, 1);
+            this.updateWeight();
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Drop item at current position
+     */
+    dropItem(item) {
+        if (this.removeFromInventory(item)) {
+            item.x = this.x;
+            item.y = this.y;
+            EventBus.emit(EVENTS.ITEM_DROPPED, { item, x: this.x, y: this.y });
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Equip an item
+     */
+    equipItem(item) {
+        if (!item || !item.equipSlot) return false;
+        
+        // Check if cursed item is blocking the slot
+        let currentItem = null;
+        
+        if (item.type === 'weapon') {
+            currentItem = this.equipped.weapon;
+        } else if (item.type === 'armor') {
+            currentItem = this.equipped.armor[item.equipSlot];
+        } else if (item.type === 'ring') {
+            // Find empty ring slot or replace first
+            if (!this.equipped.accessories.ring1) {
+                this.equipped.accessories.ring1 = item;
+            } else if (!this.equipped.accessories.ring2) {
+                this.equipped.accessories.ring2 = item;
+            } else {
+                currentItem = this.equipped.accessories.ring1;
+                this.equipped.accessories.ring1 = item;
+            }
+        } else if (item.type === 'amulet') {
+            currentItem = this.equipped.accessories.amulet;
+            this.equipped.accessories.amulet = item;
+        }
+        
+        // Can't unequip cursed items
+        if (currentItem && currentItem.cursed) {
+            EventBus.emit(EVENTS.UI_MESSAGE, 
+                `The ${currentItem.name} is cursed and cannot be removed!`, 'warning');
+            return false;
+        }
+        
+        // Unequip current item if any
+        if (currentItem) {
+            this.unequipItem(currentItem);
+        }
+        
+        // Equip new item
+        item.equipped = true;
+        
+        if (item.type === 'weapon') {
+            this.equipped.weapon = item;
+        } else if (item.type === 'armor') {
+            this.equipped.armor[item.equipSlot] = item;
+        }
+        
+        // Remove from inventory
+        this.removeFromInventory(item);
+        
+        // Update stats for equipment bonuses
+        this.updateDerivedStats();
+        
+        EventBus.emit(EVENTS.ITEM_EQUIPPED, { item });
+        return true;
+    }
+    
+    /**
+     * Unequip an item
+     */
+    unequipItem(item) {
+        if (!item || !item.equipped) return false;
+        
+        item.equipped = false;
+        
+        // Remove from equipped slots
+        if (this.equipped.weapon === item) {
+            this.equipped.weapon = null;
+        }
+        
+        Object.keys(this.equipped.armor).forEach(slot => {
+            if (this.equipped.armor[slot] === item) {
+                this.equipped.armor[slot] = null;
+            }
+        });
+        
+        Object.keys(this.equipped.accessories).forEach(slot => {
+            if (this.equipped.accessories[slot] === item) {
+                this.equipped.accessories[slot] = null;
+            }
+        });
+        
+        // Add back to inventory
+        this.addToInventory(item);
+        
+        // Update stats
+        this.updateDerivedStats();
+        
+        EventBus.emit(EVENTS.ITEM_UNEQUIPPED, { item });
+        return true;
+    }
+    
+    // ========== SERIALIZATION ==========
+    
     /**
      * Serialize player data for saving
      */
     serialize() {
         return {
+            // Core identity
             name: this.name,
             x: this.x,
             y: this.y,
+            
+            // Attributes
             strength: this.strength,
             constitution: this.constitution,
             dexterity: this.dexterity,
             intelligence: this.intelligence,
             wisdom: this.wisdom,
             perception: this.perception,
+            
+            // Current stats
             hp: this.hp,
+            maxHp: this.maxHp,
             sp: this.sp,
+            maxSp: this.maxSp,
             mp: this.mp,
-            inventory: this.inventory,
-            equipment: this.equipment,
-            effects: this.effects
+            maxMp: this.maxMp,
+            
+            // Derived stats
+            ac: this.ac,
+            carryingCapacity: this.carryingCapacity,
+            
+            // Equipment (serialize equipped items)
+            equipped: {
+                weapon: this.equipped.weapon?.serialize ? this.equipped.weapon.serialize() : this.equipped.weapon,
+                armor: {
+                    head: this.equipped.armor.head?.serialize ? this.equipped.armor.head.serialize() : this.equipped.armor.head,
+                    body: this.equipped.armor.body?.serialize ? this.equipped.armor.body.serialize() : this.equipped.armor.body,
+                    cloak: this.equipped.armor.cloak?.serialize ? this.equipped.armor.cloak.serialize() : this.equipped.armor.cloak,
+                    gloves: this.equipped.armor.gloves?.serialize ? this.equipped.armor.gloves.serialize() : this.equipped.armor.gloves,
+                    boots: this.equipped.armor.boots?.serialize ? this.equipped.armor.boots.serialize() : this.equipped.armor.boots,
+                    shield: this.equipped.armor.shield?.serialize ? this.equipped.armor.shield.serialize() : this.equipped.armor.shield
+                },
+                accessories: {
+                    ring1: this.equipped.accessories.ring1?.serialize ? this.equipped.accessories.ring1.serialize() : this.equipped.accessories.ring1,
+                    ring2: this.equipped.accessories.ring2?.serialize ? this.equipped.accessories.ring2.serialize() : this.equipped.accessories.ring2,
+                    amulet: this.equipped.accessories.amulet?.serialize ? this.equipped.accessories.amulet.serialize() : this.equipped.accessories.amulet
+                }
+            },
+            
+            // Inventory (serialize all items)
+            inventory: this.inventory.map(item => 
+                item.serialize ? item.serialize() : item
+            ),
+            
+            // Status effects
+            effects: Array.from(this.effects),
+            
+            // Detection cooldowns
+            detectCooldowns: this.detectCooldowns,
+            
+            // Game progress
+            level: this.level,
+            turnsSurvived: this.turnsSurvived,
+            
+            // Status flags
+            starving: this.starving
         };
     }
     
@@ -481,10 +810,12 @@ export class Player {
      * Deserialize player data for loading
      */
     deserialize(data) {
+        // Core identity
         this.name = data.name || this.name;
         this.x = data.x || 0;
         this.y = data.y || 0;
         
+        // Attributes
         this.strength = data.strength || 10;
         this.constitution = data.constitution || 10;
         this.dexterity = data.dexterity || 10;
@@ -492,14 +823,53 @@ export class Player {
         this.wisdom = data.wisdom || 10;
         this.perception = data.perception || 10;
         
+        // Recalculate derived stats first
         this.updateDerivedStats();
         
+        // Then restore current values
         this.hp = data.hp || this.maxHp;
         this.sp = data.sp || this.maxSp;
         this.mp = data.mp || this.maxMp;
         
+        // Equipment (deserialize equipped items if Item class available)
+        if (data.equipped) {
+            if (data.equipped.weapon) {
+                this.equipped.weapon = data.equipped.weapon;
+            }
+            
+            Object.keys(data.equipped.armor || {}).forEach(slot => {
+                if (data.equipped.armor[slot]) {
+                    this.equipped.armor[slot] = data.equipped.armor[slot];
+                }
+            });
+            
+            Object.keys(data.equipped.accessories || {}).forEach(slot => {
+                if (data.equipped.accessories[slot]) {
+                    this.equipped.accessories[slot] = data.equipped.accessories[slot];
+                }
+            });
+        }
+        
+        // Inventory (deserialize all items)
         this.inventory = data.inventory || [];
-        this.equipment = data.equipment || {};
+        
+        // Status effects
         this.effects = data.effects || [];
+        
+        // Detection cooldowns
+        this.detectCooldowns = data.detectCooldowns || {};
+        
+        // Game progress
+        this.level = data.level || 1;
+        this.turnsSurvived = data.turnsSurvived || 0;
+        
+        // Status flags
+        this.starving = data.starving || false;
+        
+        // Update weight after loading inventory
+        this.updateWeight();
+        
+        // Emit restoration event
+        EventBus.emit(EVENTS.PLAYER_STAT_CHANGE);
     }
 }
