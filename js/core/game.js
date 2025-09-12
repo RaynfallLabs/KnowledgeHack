@@ -1,6 +1,7 @@
 /**
  * game.js - Main game orchestrator (NetHack-inspired architecture)
  * Turn-based, no animation loops, direct state management
+ * FIXED VERSION - Correct quiz parameters and proper error handling
  */
 
 import { CONFIG } from '../config.js';
@@ -86,6 +87,7 @@ export class Game {
             this.setupEventListeners();
             
             // Initial messages
+            this.messageLog.add(`Welcome to Philosopher's Quest!`, 'success');
             this.messageLog.add(`Welcome ${this.playerName}! Your quest for the Philosopher's Stone begins...`, 'success');
             this.messageLog.add('Use arrow keys or HJKL to move. Press ? for help.', 'info');
             
@@ -375,7 +377,7 @@ export class Game {
     handleAttack(monster) {
         this.messageLog.add(`You attack the ${monster.name}!`, 'combat');
         
-        // Start math quiz for damage
+        // Start math quiz for damage with correct parameters
         this.startQuiz('math', monster.tier || 1, {
             action: 'attack',
             target: monster
@@ -482,18 +484,20 @@ export class Game {
     }
     
     /**
-     * Start a quiz
+     * Start a quiz - FIXED to use correct parameters
      */
     startQuiz(subject, tier = 1, context = {}) {
         if (this.quizEngine) {
             this.paused = true;
+            
+            // Use correct parameter structure for quiz engine
             this.quizEngine.startQuiz({
-                mode: 'threshold',
+                mode: 'threshold',        // Math combat uses threshold mode
                 subject: subject,
                 startingTier: tier,
-                threshold: 1,
+                threshold: 1,             // Need 1 correct answer to succeed
                 callback: (result) => this.handleQuizComplete(result, context),
-                reason: context.reason || 'combat'
+                reason: context.action || 'combat'
             });
         }
     }

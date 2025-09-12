@@ -1,10 +1,10 @@
 /**
  * quiz-engine.js - Educational quiz system
  * Handles all four quiz modes: threshold, chain, escalator_threshold, escalator_chain
- * FIXED VERSION - Uses correct event names from CONFIG
+ * FIXED VERSION - Correct imports and parameter handling
  */
 
-import { CONFIG, EVENTS } from '../config.js';
+import { CONFIG, EVENTS, QUIZ_SUBJECTS } from '../config.js';
 import { EventBus } from '../core/event-bus.js';
 import { QuestionLoader } from '../core/question-loader.js';
 
@@ -33,7 +33,9 @@ export class QuizEngine {
         // Validate parameters
         if (!this.validateParams(params)) {
             console.error('Invalid quiz parameters:', params);
-            params.callback({ success: false, score: 0, mode: params.mode });
+            if (params.callback) {
+                params.callback({ success: false, score: 0, mode: params.mode });
+            }
             return;
         }
         
@@ -57,10 +59,10 @@ export class QuizEngine {
         
         // Show quiz start message
         const subjectName = params.subject.charAt(0).toUpperCase() + params.subject.slice(1);
-        EventBus.emit(EVENTS.UI_MESSAGE, 
-            `${subjectName} challenge begins! (${this.getModeDescription(params.mode)})`, 
-            'info'
-        );
+        EventBus.emit(EVENTS.UI_MESSAGE, {
+            text: `${subjectName} challenge begins! (${this.getModeDescription(params.mode)})`,
+            type: 'info'
+        });
         
         // Load and show first question
         this.showNextQuestion();
@@ -150,7 +152,10 @@ export class QuizEngine {
             });
             
             EventBus.emit(EVENTS.QUIZ_CORRECT);
-            EventBus.emit(EVENTS.UI_MESSAGE, 'Correct!', 'success');
+            EventBus.emit(EVENTS.UI_MESSAGE, {
+                text: 'Correct!',
+                type: 'success'
+            });
             
             // Handle tier escalation for escalator modes
             if (quiz.mode === 'escalator_threshold' || quiz.mode === 'escalator_chain') {
@@ -179,10 +184,10 @@ export class QuizEngine {
             EventBus.emit(EVENTS.QUIZ_WRONG, { 
                 correctAnswer: quiz.currentQuestion.answer 
             });
-            EventBus.emit(EVENTS.UI_MESSAGE, 
-                `Wrong! The answer was: ${quiz.currentQuestion.answer}`, 
-                'warning'
-            );
+            EventBus.emit(EVENTS.UI_MESSAGE, {
+                text: `Wrong! The answer was: ${quiz.currentQuestion.answer}`,
+                type: 'warning'
+            });
             
             // End quiz after showing correct answer
             setTimeout(() => {
@@ -199,7 +204,10 @@ export class QuizEngine {
         if (!quiz) return;
         
         EventBus.emit(EVENTS.QUIZ_TIMEOUT);
-        EventBus.emit(EVENTS.UI_MESSAGE, "Time's up!", 'danger');
+        EventBus.emit(EVENTS.UI_MESSAGE, {
+            text: "Time's up!",
+            type: 'danger'
+        });
         
         // Treat timeout as wrong answer
         quiz.questionHistory.push({ 
@@ -267,13 +275,9 @@ export class QuizEngine {
         // Clear any existing timer
         this.stopTimer();
         
-        // Update display immediately (timer update event doesn't exist, skip for now)
-        // EventBus.emit(EVENTS.QUIZ_TIMER_UPDATE, this.timeRemaining);
-        
         // Start countdown
         this.timer = setInterval(() => {
             this.timeRemaining--;
-            // EventBus.emit(EVENTS.QUIZ_TIMER_UPDATE, this.timeRemaining);
             
             if (this.timeRemaining <= 0) {
                 this.handleTimeout();
@@ -296,7 +300,12 @@ export class QuizEngine {
      */
     validateParams(params) {
         const validModes = ['threshold', 'chain', 'escalator_threshold', 'escalator_chain'];
-        const validSubjects = Object.keys(CONFIG.QUIZ_SUBJECTS || {});
+        const validSubjects = Object.keys(QUIZ_SUBJECTS || {});
+        
+        if (!params) {
+            console.error('No parameters provided');
+            return false;
+        }
         
         if (!validModes.includes(params.mode)) {
             console.error(`Invalid mode: ${params.mode}`);
@@ -310,6 +319,11 @@ export class QuizEngine {
         
         if (params.startingTier < 1 || params.startingTier > 5) {
             console.error(`Invalid starting tier: ${params.startingTier}`);
+            return false;
+        }
+        
+        if (!params.callback || typeof params.callback !== 'function') {
+            console.error('Callback function is required');
             return false;
         }
         
@@ -358,13 +372,6 @@ export class QuizEngine {
         EventBus.on(EVENTS.QUIZ_ANSWER, (answer) => {
             this.handleAnswer(answer);
         });
-        
-        // Cancel event doesn't exist in config, skip it
-        // EventBus.on(EVENTS.QUIZ_CANCEL, () => {
-        //     if (this.currentQuiz) {
-        //         this.endQuiz(false);
-        //     }
-        // });
     }
     
     /**

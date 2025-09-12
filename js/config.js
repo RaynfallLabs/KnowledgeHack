@@ -1,6 +1,7 @@
 /**
  * config.js - COMPLETE Configuration File
  * This is the FINAL, COMPLETE version with EVERYTHING the game needs
+ * FIXED VERSION - Added missing constants and proper SP drain settings
  */
 
 // Main configuration object
@@ -32,31 +33,32 @@ export const CONFIG = {
     MAX_LEVEL: 100,
     BOSS_LEVELS: [15, 30, 45, 60, 75, 90, 100],
     
-    // Hunger/SP system
-    SP_DECAY_RATE: 50,      // Turns between SP loss
-    SP_DECAY_AMOUNT: 1,     // How much SP lost
-    STARVATION_DAMAGE: 1,   // HP damage when starving
-    STARVATION_RATE: 10,    // Turns between starvation damage
+    // Hunger/SP system - FIXED VALUES
+    SP_DRAIN_PER_TURN: 1,       // How much SP lost per turn
+    SP_DECAY_RATE: 50,          // Turns between SP loss
+    SP_DECAY_AMOUNT: 1,         // How much SP lost
+    STARVATION_DAMAGE: 1,       // HP damage when starving
+    STARVATION_RATE: 10,        // Turns between starvation damage
     
     // Regeneration
-    TURN_REGEN_RATE: 20,    // Turns between HP regen
-    HP_REGEN_AMOUNT: 1,     // How much HP regenerated
-    MP_REGEN_RATE: 10,      // Turns between MP regen
-    MP_REGEN_AMOUNT: 1,     // How much MP regenerated
+    TURN_REGEN_RATE: 20,        // Turns between HP regen
+    HP_REGEN_AMOUNT: 1,         // How much HP regenerated
+    MP_REGEN_RATE: 10,          // Turns between MP regen
+    MP_REGEN_AMOUNT: 1,         // How much MP regenerated
     
     // Combat
-    BASE_HIT_CHANCE: 0.75,  // Base chance to hit
-    CRITICAL_HIT_CHANCE: 0.05, // Chance for critical hit
-    CRITICAL_MULTIPLIER: 2,  // Critical hit damage multiplier
+    BASE_HIT_CHANCE: 0.75,      // Base chance to hit
+    CRITICAL_HIT_CHANCE: 0.05,  // Chance for critical hit
+    CRITICAL_MULTIPLIER: 2,     // Critical hit damage multiplier
     
     // Quiz settings
-    QUIZ_BASE_TIME: 30,      // Base seconds for quiz
-    QUIZ_TIME_PER_WIS: 1,    // Bonus seconds per wisdom
-    QUIZ_CHAIN_BONUS: 0.2,   // Chain multiplier per correct
+    QUIZ_BASE_TIME: 30,         // Base seconds for quiz
+    QUIZ_TIME_PER_WIS: 1,       // Bonus seconds per wisdom
+    QUIZ_CHAIN_BONUS: 0.2,      // Chain multiplier per correct
     
     // Save/Load
     SAVE_KEY: 'philosophers-quest-save',
-    AUTOSAVE_INTERVAL: 100,  // Turns between autosaves
+    AUTOSAVE_INTERVAL: 100,     // Turns between autosaves
     
     // Debug
     DEBUG_MODE: false,
@@ -65,10 +67,10 @@ export const CONFIG = {
     
     // Inventory settings
     INVENTORY: {
-        MAX_ITEMS: 52,        // a-z, A-Z
+        MAX_ITEMS: 52,          // a-z, A-Z
         DEFAULT_STACK_SIZE: 20,
         MAX_WEIGHT: 100,
-        CONTAINER_SIZE: 10    // Items per container
+        CONTAINER_SIZE: 10      // Items per container
     }
 };
 
@@ -119,6 +121,7 @@ export const EVENTS = {
     MONSTER_ALERTED: 'monster_alerted',
     MONSTER_ATTACK: 'monster_attack',
     MONSTER_MOVE: 'monster_move',
+    MONSTER_KILLED: 'monster_killed',
     
     // Item events
     ITEM_SPAWNED: 'item_spawned',
@@ -159,6 +162,7 @@ export const EVENTS = {
     COMBAT_HIT: 'combat_hit',
     COMBAT_MISS: 'combat_miss',
     COMBAT_CRITICAL: 'combat_critical',
+    COMBAT_RESOLVED: 'combat_resolved',
     
     // Dungeon events
     DUNGEON_GENERATE: 'dungeon_generate',
@@ -219,6 +223,9 @@ export const EVENTS = {
     
     // Game state
     GAME_STATE_UPDATE: 'game_state_update',
+    
+    // Victory event (was missing)
+    VICTORY: 'victory',
     
     // Debug events
     DEBUG_MESSAGE: 'debug_message',
