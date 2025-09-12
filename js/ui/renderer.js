@@ -1,6 +1,7 @@
 /**
- * renderer.js - Optimized canvas rendering system
+ * renderer.js - Fixed canvas rendering system
  * Handles ASCII display with fog of war, smooth scrolling, and dirty rectangle optimization
+ * FIXED: Compatible with dungeon-generator's getTile() method
  */
 
 import { CONFIG } from '../config.js';
@@ -132,6 +133,9 @@ export class Renderer {
         // Setup
         this.setupEventListeners();
         this.generateTileCache();
+        
+        // Start render loop automatically
+        this.startRenderLoop();
         
         console.log(`🎨 Renderer initialized: ${this.viewportWidth}x${this.viewportHeight} tiles (${this.canvas.width}x${this.canvas.height}px)`);
     }
@@ -304,7 +308,7 @@ export class Renderer {
     }
     
     /**
-     * Render the dungeon with fog of war
+     * Render the dungeon with fog of war - FIXED to work with getTile()
      */
     renderDungeon(dungeon, player) {
         if (!dungeon || !player) return;
@@ -327,20 +331,29 @@ export class Renderer {
         // Render visible tiles
         for (let y = startY; y < endY; y++) {
             for (let x = startX; x < endX; x++) {
-                if (dungeon.tiles && dungeon.tiles[y] && dungeon.tiles[y][x]) {
-                    this.renderTile(x, y, dungeon.tiles[y][x]);
+                // Use getTile method if available, otherwise try direct access
+                let tile = null;
+                if (dungeon.getTile) {
+                    tile = dungeon.getTile(x, y);
+                } else if (dungeon.tiles && dungeon.tiles[y]) {
+                    tile = dungeon.tiles[y][x];
+                }
+                
+                if (tile) {
+                    this.renderTile(x, y, tile);
                 }
             }
         }
     }
     
     /**
-     * Update fog of war and visibility
+     * Update fog of war and visibility - FIXED to work with getTile()
      */
     updateVisibility(player, dungeon) {
         this.visibleTiles.clear();
         
-        const sightRadius = player.getSightRadius();
+        const sightRadius = player.getSightRadius ? player.getSightRadius() : 
+                           (player.sightRadius || CONFIG.SIGHT_RADIUS || 5);
         
         // Bresenham line-of-sight algorithm
         for (let angle = 0; angle < 360; angle += 2) { // Every 2 degrees for performance
@@ -358,8 +371,15 @@ export class Renderer {
                 this.visibleTiles.add(key);
                 this.exploredTiles.add(key);
                 
-                // Stop if we hit a wall
-                if (dungeon.tiles?.[y]?.[x]?.type === 'wall') {
+                // Stop if we hit a wall - FIXED to use getTile()
+                let tile = null;
+                if (dungeon.getTile) {
+                    tile = dungeon.getTile(x, y);
+                } else if (dungeon.tiles && dungeon.tiles[y]) {
+                    tile = dungeon.tiles[y][x];
+                }
+                
+                if (tile && tile.type === 'wall') {
                     break;
                 }
             }
