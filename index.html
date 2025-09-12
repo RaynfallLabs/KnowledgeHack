@@ -1321,7 +1321,10 @@
                 const x = Math.floor(Math.random() * Game.config.mapWidth);
                 const y = Math.floor(Math.random() * Game.config.mapHeight);
                 
-                if (Game.dungeon[y] && Game.dungeon[y][x] === '.' &&
+                // Check bounds first, THEN access the array
+                if (y >= 0 && y < Game.config.mapHeight && 
+                    x >= 0 && x < Game.config.mapWidth &&
+                    Game.dungeon[y] && Game.dungeon[y][x] === '.' &&
                     !Game.getMonsterAt(x, y) && 
                     !(x === Game.player.x && y === Game.player.y)) {
                     const dist = Math.abs(x - Game.player.x) + Math.abs(y - Game.player.y);
