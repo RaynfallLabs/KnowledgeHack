@@ -115,7 +115,7 @@ export class Game {
         
         try {
             const generator = new DungeonGenerator();
-            this.dungeon = generator.generateLevel(levelNumber);
+            this.dungeon = await generator.generate(levelNumber, CONFIG.MAP_WIDTH, CONFIG.MAP_HEIGHT);
             
             // Place player at starting position
             const startPos = this.dungeon.getEntrance();
