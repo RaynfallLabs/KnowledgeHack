@@ -477,7 +477,9 @@ export class Game {
         // Pick up all items (NetHack style - pick up everything at once)
         itemsHere.forEach(item => {
             this.player.inventory.push(item);
-            this.addMessage(`Picked up ${item.name || item.type}.`, 'success');
+            // FIXED: Better item name display
+            const itemName = item.name || item.type || `${item.id || 'unknown'} item`;
+            this.addMessage(`Picked up ${itemName}.`, 'success');
             
             // Emit pickup event
             EventBus.emit(EVENTS.ITEM_PICKED_UP, {

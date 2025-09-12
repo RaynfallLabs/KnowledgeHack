@@ -1,6 +1,6 @@
 /**
  * question-loader.js - Loads question banks from JSON files
- * Simple loader for the 9 subject files we already have
+ * FIXED VERSION - Handles the actual JSON structure from questions-math.json
  */
 
 export class QuestionLoader {
@@ -39,8 +39,19 @@ export class QuestionLoader {
                     this.questions[subject] = this.createPlaceholderQuestions(subject);
                 } else {
                     const data = await response.json();
-                    this.questions[subject] = data;
-                    console.log(`✓ Loaded ${subject}`);
+                    
+                    // FIXED: Handle the actual JSON structure
+                    // The JSON has structure: { "math": { "1": { "questions": [...] } } }
+                    // We need to extract the inner object
+                    if (data[subject]) {
+                        // JSON has subject wrapper, extract the tier data
+                        this.questions[subject] = data[subject];
+                        console.log(`✓ Loaded ${subject} (${Object.keys(data[subject]).length} tiers)`);
+                    } else {
+                        // JSON is direct tier data: { "1": { "questions": [...] } }
+                        this.questions[subject] = data;
+                        console.log(`✓ Loaded ${subject} (${Object.keys(data).length} tiers)`);
+                    }
                 }
             } catch (error) {
                 console.error(`✗ Failed to load ${subject}:`, error);
@@ -51,6 +62,12 @@ export class QuestionLoader {
         
         this.loaded = true;
         console.log('Question loading complete!');
+        
+        // Debug: Show what we actually loaded
+        console.log('Loaded question structure:', Object.keys(this.questions));
+        for (const subject of Object.keys(this.questions)) {
+            console.log(`${subject} tiers:`, Object.keys(this.questions[subject]));
+        }
     }
     
     /**
@@ -64,16 +81,18 @@ export class QuestionLoader {
                 "questions": [
                     {
                         "question": `Sample ${subject} question: What is 2 + 2?`,
-                        "type": "multiple_choice",
-                        "answers": ["3", "4", "5", "6"],
-                        "correct": 1,
-                        "explanation": "2 + 2 = 4"
+                        "answer": "4",
+                        "type": "input"
                     },
                     {
-                        "question": `Sample ${subject} question: True or False: This is a test question.`,
-                        "type": "true_false",
-                        "correct": true,
-                        "explanation": "This is indeed a test question."
+                        "question": `Sample ${subject} question: What is 5 × 3?`,
+                        "answer": "15",
+                        "type": "input"
+                    },
+                    {
+                        "question": `Sample ${subject} true/false: This is a test question.`,
+                        "answer": "true",
+                        "type": "input"
                     }
                 ]
             },
@@ -82,11 +101,9 @@ export class QuestionLoader {
                 "difficulty": "Intermediate",
                 "questions": [
                     {
-                        "question": `Intermediate ${subject} question: What is 10 * 5?`,
-                        "type": "multiple_choice",
-                        "answers": ["40", "45", "50", "55"],
-                        "correct": 2,
-                        "explanation": "10 * 5 = 50"
+                        "question": `Intermediate ${subject} question: What is 10 × 5?`,
+                        "answer": "50",
+                        "type": "input"
                     }
                 ]
             },
@@ -95,11 +112,9 @@ export class QuestionLoader {
                 "difficulty": "Advanced",
                 "questions": [
                     {
-                        "question": `Advanced ${subject} question: What is 100 / 4?`,
-                        "type": "multiple_choice",
-                        "answers": ["20", "25", "30", "35"],
-                        "correct": 1,
-                        "explanation": "100 / 4 = 25"
+                        "question": `Advanced ${subject} question: What is 100 ÷ 4?`,
+                        "answer": "25",
+                        "type": "input"
                     }
                 ]
             }
@@ -118,14 +133,20 @@ export class QuestionLoader {
             return null;
         }
         
+        // Debug logging
+        console.log(`Looking for ${subject} tier ${tierKey}`);
+        console.log(`Available tiers for ${subject}:`, Object.keys(this.questions[subject]));
+        
         if (!this.questions[subject][tierKey]) {
             console.error(`No questions for ${subject} tier ${tier}`);
             // Fallback to tier 1 if requested tier doesn't exist
-            if (this.questions[subject]["1"]) {
+            if (tierKey !== "1" && this.questions[subject]["1"]) {
+                console.log(`Falling back to tier 1 for ${subject}`);
                 const tierData = this.questions[subject]["1"];
                 const questions = tierData.questions;
                 if (questions && questions.length > 0) {
                     const index = Math.floor(Math.random() * questions.length);
+                    console.log(`Returning fallback question: ${questions[index].question}`);
                     return questions[index];
                 }
             }
@@ -136,11 +157,15 @@ export class QuestionLoader {
         const questions = tierData.questions;
         
         if (!questions || questions.length === 0) {
+            console.error(`No questions array found in ${subject} tier ${tierKey}`);
             return null;
         }
         
         const index = Math.floor(Math.random() * questions.length);
-        return questions[index];
+        const selectedQuestion = questions[index];
+        
+        console.log(`Selected question from ${subject} tier ${tierKey}:`, selectedQuestion.question);
+        return selectedQuestion;
     }
     
     /**
@@ -206,6 +231,24 @@ export class QuestionLoader {
             return [];
         }
         return Object.keys(this.questions[subject]);
+    }
+    
+    /**
+     * Debug method to show loaded data
+     */
+    debugShowLoadedData() {
+        console.log('=== Question Loader Debug ===');
+        for (const subject of Object.keys(this.questions)) {
+            console.log(`${subject}:`);
+            for (const tier of Object.keys(this.questions[subject])) {
+                const questions = this.questions[subject][tier].questions;
+                console.log(`  Tier ${tier}: ${questions ? questions.length : 0} questions`);
+                if (questions && questions.length > 0) {
+                    console.log(`    Sample: ${questions[0].question}`);
+                }
+            }
+        }
+        console.log('=== End Debug ===');
     }
 }
 

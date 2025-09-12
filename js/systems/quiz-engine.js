@@ -118,16 +118,20 @@ export class QuizEngine {
             
             // Try fallback to tier 1
             if (quiz.currentTier > 1) {
+                console.log(`Trying fallback to tier 1 for ${quiz.subject}`);
                 const fallbackQuestion = questionLoader.getRandomQuestion(quiz.subject, 1);
                 if (fallbackQuestion) {
                     quiz.currentQuestion = fallbackQuestion;
                     quiz.currentTier = 1; // Reset to tier 1
                     quiz.totalAsked++;
+                    console.log('Using fallback question from tier 1');
                 } else {
+                    console.error('No fallback questions available');
                     this.endQuiz(false);
                     return;
                 }
             } else {
+                console.error('No questions available even at tier 1');
                 this.endQuiz(false);
                 return;
             }
