@@ -866,6 +866,363 @@
             }
         };
 
+
+        // ===== QUIZ ENGINE =====
+        Game.QuizEngine = {
+            currentQuiz: null,
+            timer: null,
+            timeRemaining: 0,
+            isActive: false,
+            questions: {},
+            loaded: false,
+            
+            // Load all question banks at startup
+            loadAllQuestions: async function() {
+                if (this.loaded) return;
+                
+                const subjects = [
+                    'math', 'philosophy', 'geography', 'science', 
+                    'history', 'economics', 'cooking', 'grammar', 'animal'
+                ];
+                
+                console.log('Loading question banks...');
+                
+                for (const subject of subjects) {
+                    try {
+                        const response = await fetch(`data/questions/questions-${subject}.json`);
+                        if (!response.ok) {
+                            console.warn(`✗ ${subject} questions not found`);
+                            this.questions[subject] = this.createPlaceholderQuestions(subject);
+                        } else {
+                            const data = await response.json();
+                            // Handle wrapped or unwrapped JSON structure
+                            this.questions[subject] = data[subject] || data;
+                            console.log(`✓ Loaded ${subject}`);
+                        }
+                    } catch (error) {
+                        console.error(`Failed to load ${subject}:`, error);
+                        this.questions[subject] = this.createPlaceholderQuestions(subject);
+                    }
+                }
+                
+                this.loaded = true;
+                console.log('Question loading complete!');
+            },
+            
+            // Create placeholder questions for missing files
+            createPlaceholderQuestions: function(subject) {
+                return {
+                    "1": {
+                        "tier": 1,
+                        "questions": [
+                            {"question": `Sample ${subject}: What is 2 + 2?`, "answer": "4", "type": "input"},
+                            {"question": `Sample ${subject}: What is 5 × 3?`, "answer": "15", "type": "input"}
+                        ]
+                    }
+                };
+            },
+            
+            // Get a random question from subject and tier
+            getRandomQuestion: function(subject, tier = 1) {
+                const tierKey = tier.toString();
+                
+                if (!this.questions[subject]) {
+                    console.error(`Subject ${subject} not loaded`);
+                    return null;
+                }
+                
+                if (!this.questions[subject][tierKey]) {
+                    // Fallback to tier 1
+                    if (this.questions[subject]["1"]) {
+                        const questions = this.questions[subject]["1"].questions;
+                        return questions[Math.floor(Math.random() * questions.length)];
+                    }
+                    return null;
+                }
+                
+                const questions = this.questions[subject][tierKey].questions;
+                return questions[Math.floor(Math.random() * questions.length)];
+            },
+            
+            // Start a quiz with specified parameters
+            startQuiz: function(params) {
+                if (this.isActive) {
+                    console.warn('Quiz already active');
+                    return;
+                }
+                
+                // Initialize quiz state
+                this.currentQuiz = {
+                    mode: params.mode,
+                    subject: params.subject,
+                    currentTier: params.startingTier || 1,
+                    threshold: params.threshold || 0,
+                    maxChain: params.maxChain || 0,
+                    callback: params.callback,
+                    reason: params.reason || 'quiz',
+                    target: params.target || null,
+                    
+                    // Progress tracking
+                    correctCount: 0,
+                    totalAsked: 0,
+                    currentQuestion: null,
+                    questionHistory: []
+                };
+                
+                this.isActive = true;
+                
+                // Show quiz start message
+                const subjectName = params.subject.charAt(0).toUpperCase() + params.subject.slice(1);
+                Game.addMessage(`${subjectName} challenge begins! (${this.getModeDescription(params.mode)})`, 'info');
+                
+                // Show first question
+                this.showNextQuestion();
+            },
+            
+            // Show the next question
+            showNextQuestion: function() {
+                const quiz = this.currentQuiz;
+                if (!quiz) return;
+                
+                // Check if quiz should end
+                if (this.shouldEndQuiz()) {
+                    this.endQuiz(true);
+                    return;
+                }
+                
+                // Get next question
+                const question = this.getRandomQuestion(quiz.subject, quiz.currentTier);
+                if (!question) {
+                    console.error(`No questions available for ${quiz.subject} tier ${quiz.currentTier}`);
+                    this.endQuiz(false);
+                    return;
+                }
+                
+                quiz.currentQuestion = question;
+                quiz.totalAsked++;
+                
+                // Calculate timer based on wisdom
+                this.timeRemaining = Math.max(10, Game.player.getQuizTimer());
+                
+                // Show quiz modal
+                this.showQuizModal(question);
+                
+                // Start timer
+                this.startTimer();
+            },
+            
+            // Display the quiz modal
+            showQuizModal: function(question) {
+                const modal = document.getElementById('quiz-modal');
+                const quiz = this.currentQuiz;
+                
+                // Update modal content
+                document.getElementById('quiz-title').textContent = quiz.reason || 'Knowledge Challenge';
+                document.getElementById('quiz-subject').textContent = quiz.subject.toUpperCase();
+                document.getElementById('quiz-question').textContent = question.question;
+                document.getElementById('quiz-timer').textContent = this.timeRemaining;
+                document.getElementById('quiz-progress').textContent = 
+                    `Question ${quiz.totalAsked} | Score: ${quiz.correctCount}`;
+                
+                // Clear previous answer
+                document.getElementById('quiz-answer').value = '';
+                document.getElementById('quiz-feedback').style.display = 'none';
+                
+                // Show modal
+                modal.classList.add('active');
+                document.getElementById('quiz-answer').focus();
+            },
+            
+            // Check if quiz should end
+            shouldEndQuiz: function() {
+                const quiz = this.currentQuiz;
+                
+                switch (quiz.mode) {
+                    case 'threshold':
+                    case 'escalator_threshold':
+                        return quiz.correctCount >= quiz.threshold;
+                    case 'chain':
+                    case 'escalator_chain':
+                        // Chain ends on first wrong answer, checked elsewhere
+                        return quiz.correctCount >= quiz.maxChain;
+                    default:
+                        return false;
+                }
+            },
+            
+            // Handle answer submission
+            handleAnswer: function(answer) {
+                const quiz = this.currentQuiz;
+                if (!quiz || !quiz.currentQuestion) return;
+                
+                // Stop timer
+                this.stopTimer();
+                
+                // Normalize answers for comparison
+                const normalizedAnswer = answer.toLowerCase().trim().replace(/[.,!?;]/g, '');
+                const normalizedCorrect = (quiz.currentQuestion.answer || '').toLowerCase().trim().replace(/[.,!?;]/g, '');
+                
+                // Check answer
+                const correct = normalizedAnswer === normalizedCorrect;
+                
+                if (correct) {
+                    quiz.correctCount++;
+                    quiz.questionHistory.push({question: quiz.currentQuestion, correct: true});
+                    
+                    // Show feedback
+                    const feedback = document.getElementById('quiz-feedback');
+                    feedback.textContent = 'Correct!';
+                    feedback.className = 'quiz-feedback correct';
+                    feedback.style.display = 'block';
+                    
+                    Game.addMessage('Correct!', 'success');
+                    
+                    // Handle tier escalation for escalator modes
+                    if (quiz.mode === 'escalator_threshold' || quiz.mode === 'escalator_chain') {
+                        if (quiz.currentTier < 5) quiz.currentTier++;
+                    }
+                    
+                    // Continue or end
+                    setTimeout(() => {
+                        if (this.shouldEndQuiz()) {
+                            this.endQuiz(true);
+                        } else {
+                            this.showNextQuestion();
+                        }
+                    }, 1000);
+                    
+                } else {
+                    // Wrong answer
+                    quiz.questionHistory.push({
+                        question: quiz.currentQuestion, 
+                        correct: false,
+                        userAnswer: answer
+                    });
+                    
+                    // Show feedback with correct answer
+                    const feedback = document.getElementById('quiz-feedback');
+                    feedback.textContent = `Wrong! The answer was: ${quiz.currentQuestion.answer}`;
+                    feedback.className = 'quiz-feedback wrong';
+                    feedback.style.display = 'block';
+                    
+                    Game.addMessage(`Wrong! The answer was: ${quiz.currentQuestion.answer}`, 'warning');
+                    
+                    // For chain modes, end immediately on wrong answer
+                    if (quiz.mode === 'chain' || quiz.mode === 'escalator_chain') {
+                        setTimeout(() => this.endQuiz(false), 2000);
+                    } else {
+                        // For threshold modes, continue
+                        setTimeout(() => this.showNextQuestion(), 2000);
+                    }
+                }
+            },
+            
+            // End the quiz
+            endQuiz: function(reachedGoal) {
+                const quiz = this.currentQuiz;
+                if (!quiz) return;
+                
+                this.stopTimer();
+                
+                // Build result
+                const result = {
+                    mode: quiz.mode,
+                    subject: quiz.subject,
+                    score: quiz.correctCount,
+                    totalAsked: quiz.totalAsked,
+                    success: false,
+                    target: quiz.target
+                };
+                
+                // Determine success based on mode
+                if (quiz.mode === 'threshold' || quiz.mode === 'escalator_threshold') {
+                    result.success = quiz.correctCount >= quiz.threshold;
+                } else if (quiz.mode === 'chain' || quiz.mode === 'escalator_chain') {
+                    result.success = reachedGoal && quiz.correctCount > 0;
+                }
+                
+                // Clear quiz state
+                this.currentQuiz = null;
+                this.isActive = false;
+                
+                // Hide modal
+                document.getElementById('quiz-modal').classList.remove('active');
+                
+                // Call callback
+                if (quiz.callback) {
+                    quiz.callback(result);
+                }
+                
+                // Show final message
+                if (result.success) {
+                    Game.addMessage(`Quiz completed! Score: ${result.score}/${result.totalAsked}`, 'success');
+                } else {
+                    Game.addMessage(`Quiz failed. Score: ${result.score}/${result.totalAsked}`, 'warning');
+                }
+            },
+            
+            // Timer functions
+            startTimer: function() {
+                this.stopTimer();
+                
+                this.timer = setInterval(() => {
+                    this.timeRemaining--;
+                    
+                    const timerEl = document.getElementById('quiz-timer');
+                    timerEl.textContent = this.timeRemaining;
+                    
+                    // Add warning colors
+                    if (this.timeRemaining <= 5) {
+                        timerEl.className = 'quiz-timer danger';
+                    } else if (this.timeRemaining <= 10) {
+                        timerEl.className = 'quiz-timer warning';
+                    }
+                    
+                    if (this.timeRemaining <= 0) {
+                        this.handleTimeout();
+                    }
+                }, 1000);
+            },
+            
+            stopTimer: function() {
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+            },
+            
+            handleTimeout: function() {
+                const quiz = this.currentQuiz;
+                if (!quiz) return;
+                
+                Game.addMessage("Time's up!", 'danger');
+                
+                quiz.questionHistory.push({
+                    question: quiz.currentQuestion,
+                    correct: false,
+                    timeout: true
+                });
+                
+                // Show correct answer
+                const feedback = document.getElementById('quiz-feedback');
+                feedback.textContent = `Time's up! The answer was: ${quiz.currentQuestion.answer}`;
+                feedback.className = 'quiz-feedback wrong';
+                feedback.style.display = 'block';
+                
+                setTimeout(() => this.endQuiz(false), 2000);
+            },
+            
+            getModeDescription: function(mode) {
+                switch (mode) {
+                    case 'threshold': return 'Answer correctly to succeed';
+                    case 'chain': return 'Build a chain of correct answers';
+                    case 'escalator_threshold': return 'Questions get harder';
+                    case 'escalator_chain': return 'Chain with increasing difficulty';
+                    default: return 'Quiz';
+                }
+            }
+        };
+
         // ===== PLAYER CLASS =====
         class Player {
             constructor(name = "Hero") {
@@ -1124,7 +1481,7 @@
         // Load monster data from JSON file
         Game.loadMonsterData = async function() {
             try {
-                const response = await fetch('monsters.json');
+                const response = await fetch('data/monsters.json');
                 Game.monsterData = await response.json();
                 console.log(`Loaded ${Game.monsterData.monsters.length} monster types`);
             } catch (error) {
@@ -1736,17 +2093,30 @@
         };
 
         Game.playerAttack = function(monster) {
-            // For now, simple attack without quiz
-            const damage = 2 + Math.floor(Math.random() * 4);
-            monster.takeDamage(damage);
-            Game.addMessage(`You hit the ${monster.name} for ${damage} damage!`, 'success');
-            
-            if (monster.dead) {
-                Game.addMessage(`The ${monster.name} dies!`, 'success');
-                Game.dropCorpse(monster);
-            }
-            
-            Game.processTurn();
+            // Start math quiz for combat
+            Game.QuizEngine.startQuiz({
+                mode: 'chain',
+                subject: 'math',
+                startingTier: 1,  // TODO: Base on weapon tier
+                maxChain: 10,     // Max damage multiplier
+                reason: `Attacking ${monster.name}`,
+                target: monster,
+                callback: function(result) {
+                    if (result.success && result.score > 0) {
+                        const damage = result.score * 2;  // 2 damage per correct answer
+                        monster.takeDamage(damage);
+                        Game.addMessage(`You hit the ${monster.name} for ${damage} damage!`, 'success');
+                        
+                        if (monster.dead) {
+                            Game.addMessage(`The ${monster.name} dies!`, 'success');
+                            Game.dropCorpse(monster);
+                        }
+                    } else {
+                        Game.addMessage(`You miss the ${monster.name}!`, 'warning');
+                    }
+                    Game.processTurn();
+                }
+            });
         };
 
         Game.dropCorpse = function(monster) {
@@ -1895,6 +2265,9 @@
             // Load monster data
             await Game.loadMonsterData();
             
+            // LOAD QUESTIONS:
+            await Game.QuizEngine.loadAllQuestions();
+
             // Create player
             Game.player = new Player(playerName);
             
@@ -1922,6 +2295,23 @@
             // Initial render
             render();
         };
+
+        // Quiz modal event handlers
+        document.getElementById('quiz-submit').addEventListener('click', function() {
+            const answer = document.getElementById('quiz-answer').value;
+            if (answer && Game.QuizEngine.isActive) {
+                Game.QuizEngine.handleAnswer(answer);
+            }
+        });
+
+        document.getElementById('quiz-answer').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const answer = e.target.value;
+                if (answer && Game.QuizEngine.isActive) {
+                    Game.QuizEngine.handleAnswer(answer);
+                }
+            }
+        });
 
         // Start when page loads
         window.addEventListener('load', Game.init);
