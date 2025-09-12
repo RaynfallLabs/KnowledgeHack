@@ -307,6 +307,99 @@
                 return false;
             }
         }
+        
+        // ===== FOV (FIELD OF VIEW) =====
+        // Shadowcasting algorithm for proper line of sight
+        Game.calculateFOV = function() {
+            const fov = [];
+            for (let y = 0; y < Game.config.mapHeight; y++) {
+                fov[y] = [];
+                for (let x = 0; x < Game.config.mapWidth; x++) {
+                    fov[y][x] = false;
+                }
+            }
+            
+            const px = Game.player.x;
+            const py = Game.player.y;
+            const radius = Game.player.getSightRadius();
+            
+            // Player can always see themselves
+            if (py >= 0 && py < fov.length && px >= 0 && px < fov[0].length) {
+                fov[py][px] = true;
+            }
+            
+            // Cast light in 8 octants
+            for (let octant = 0; octant < 8; octant++) {
+                Game.castLight(fov, px, py, radius, 1, 1.0, 0.0, 
+                    Game.multipliers[0][octant], Game.multipliers[1][octant],
+                    Game.multipliers[2][octant], Game.multipliers[3][octant]);
+            }
+            
+            return fov;
+        };
+        
+        // Shadowcasting octant multipliers
+        Game.multipliers = [
+            [1, 0, 0, -1, -1, 0, 0, 1],
+            [0, 1, -1, 0, 0, -1, 1, 0],
+            [0, 1, 1, 0, 0, -1, -1, 0],
+            [1, 0, 0, 1, -1, 0, 0, -1]
+        ];
+        
+        Game.castLight = function(fov, cx, cy, radius, row, start, end, xx, xy, yx, yy) {
+            if (start < end) return;
+            
+            const radius2 = radius * radius;
+            
+            for (let j = row; j <= radius; j++) {
+                let dx = -j - 1;
+                let dy = -j;
+                let blocked = false;
+                let newStart = start;
+                
+                while (dx <= 0) {
+                    dx++;
+                    
+                    const X = cx + dx * xx + dy * xy;
+                    const Y = cy + dx * yx + dy * yy;
+                    
+                    const lSlope = (dx - 0.5) / (dy + 0.5);
+                    const rSlope = (dx + 0.5) / (dy - 0.5);
+                    
+                    if (newStart < rSlope) continue;
+                    if (end > lSlope) break;
+                    
+                    if (dx * dx + dy * dy < radius2) {
+                        if (Y >= 0 && Y < fov.length && X >= 0 && X < fov[0].length) {
+                            fov[Y][X] = true;
+                        }
+                    }
+                    
+                    if (blocked) {
+                        if (Y >= 0 && Y < Game.dungeon.length && 
+                            X >= 0 && X < Game.dungeon[0].length && 
+                            Game.dungeon[Y][X] === '#') {
+                            newStart = rSlope;
+                            continue;
+                        } else {
+                            blocked = false;
+                            start = newStart;
+                        }
+                    } else {
+                        if (Y >= 0 && Y < Game.dungeon.length && 
+                            X >= 0 && X < Game.dungeon[0].length && 
+                            Game.dungeon[Y][X] === '#' && j < radius) {
+                            blocked = true;
+                            Game.castLight(fov, cx, cy, radius, j + 1, start, lSlope,
+                                xx, xy, yx, yy);
+                            newStart = rSlope;
+                        }
+                    }
+                }
+                
+                if (blocked) break;
+            }
+        };
 
         // ===== MONSTER CLASS =====
         class Monster {
@@ -495,61 +588,111 @@
         function render() {
             if (!Game.display || !Game.dungeon || !Game.player) return;
             
-            let display = '';
-            const sightRadius = Game.player.getSightRadius();
+            // Calculate field of view
+            const fov = Game.calculateFOV();
+            
+            // Build display with HTML for colors
+            let displayHTML = '';
             
             for (let y = 0; y < Game.config.mapHeight; y++) {
                 for (let x = 0; x < Game.config.mapWidth; x++) {
-                    // Check if in sight
-                    const dx = Math.abs(x - Game.player.x);
-                    const dy = Math.abs(y - Game.player.y);
-                    const inSight = dx <= sightRadius && dy <= sightRadius;
+                    let char = ' ';
+                    let color = '#222'; // Dark gray for unseen
                     
-                    // Player
-                    if (x === Game.player.x && y === Game.player.y) {
-                        display += '@';
-                        continue;
-                    }
-                    
-                    // Only show things in sight
-                    if (!inSight) {
-                        display += ' ';
-                        continue;
-                    }
-                    
-                    // Monsters
-                    let hasMonster = false;
-                    for (const monster of Game.monsters) {
-                        if (!monster.dead && monster.x === x && monster.y === y) {
-                            display += monster.symbol;
-                            hasMonster = true;
-                            break;
+                    // Only render if in FOV
+                    if (!fov[y][x]) {
+                        // Show remembered walls in dark gray
+                        if (Game.remembered && Game.remembered[y][x] === '#') {
+                            char = '#';
+                            color = '#333';
+                        } else {
+                            char = ' ';
                         }
-                    }
-                    if (hasMonster) continue;
-                    
-                    // Items
-                    let hasItem = false;
-                    for (const item of Game.items) {
-                        if (item.x === x && item.y === y) {
-                            display += item.symbol;
-                            hasItem = true;
-                            break;
-                        }
-                    }
-                    if (hasItem) continue;
-                    
-                    // Terrain
-                    if (y < Game.dungeon.length && x < Game.dungeon[y].length) {
-                        display += Game.dungeon[y][x];
                     } else {
-                        display += ' ';
+                        // Remember terrain
+                        if (!Game.remembered) Game.remembered = [];
+                        if (!Game.remembered[y]) Game.remembered[y] = [];
+                        Game.remembered[y][x] = Game.dungeon[y][x];
+                        
+                        // Player
+                        if (x === Game.player.x && y === Game.player.y) {
+                            char = '@';
+                            color = '#fff'; // White for player
+                        }
+                        // Monsters
+                        else {
+                            let hasMonster = false;
+                            for (const monster of Game.monsters) {
+                                if (!monster.dead && monster.x === x && monster.y === y) {
+                                    char = monster.symbol;
+                                    color = monster.color;
+                                    hasMonster = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!hasMonster) {
+                                // Items
+                                let hasItem = false;
+                                for (const item of Game.items) {
+                                    if (item.x === x && item.y === y) {
+                                        char = item.symbol;
+                                        // Item colors
+                                        switch(item.type) {
+                                            case 'food':
+                                            case 'corpse':
+                                                color = '#8b4513'; // Brown
+                                                break;
+                                            case 'weapon':
+                                                color = '#c0c0c0'; // Silver
+                                                break;
+                                            case 'armor':
+                                                color = '#4682b4'; // Steel blue
+                                                break;
+                                            case 'potion':
+                                                color = '#ff1493'; // Deep pink
+                                                break;
+                                            default:
+                                                color = '#ffd700'; // Gold
+                                        }
+                                        hasItem = true;
+                                        break;
+                                    }
+                                }
+                                
+                                if (!hasItem) {
+                                    // Terrain
+                                    if (y < Game.dungeon.length && x < Game.dungeon[y].length) {
+                                        char = Game.dungeon[y][x];
+                                        // Terrain colors
+                                        switch(char) {
+                                            case '#':
+                                                color = '#888'; // Light gray walls
+                                                break;
+                                            case '.':
+                                                color = '#666'; // Dark gray floor
+                                                break;
+                                            case '>':
+                                                color = '#ff0'; // Yellow stairs
+                                                break;
+                                            case '+':
+                                                color = '#8b4513'; // Brown door
+                                                break;
+                                            default:
+                                                color = '#666';
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
+                    
+                    displayHTML += `<span style="color:${color}">${char}</span>`;
                 }
-                display += '\n';
+                displayHTML += '\n';
             }
             
-            Game.display.textContent = display;
+            Game.display.innerHTML = displayHTML;
             updateUI();
         }
 

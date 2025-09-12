@@ -165,18 +165,16 @@ body {
 /* Game Display */
 #game-display {
     flex: 1;
-    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-panel) 100%);
-    color: var(--stamina-green);
-    font-family: 'Fira Code', monospace;
+    background: #000;
+    font-family: 'Courier New', 'Fira Code', monospace;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: bold;
     padding: 20px;
     overflow: hidden;
     white-space: pre;
-    line-height: 1.2;
-    letter-spacing: 0.05em;
-    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
-    text-shadow: 0 0 2px currentColor;
+    line-height: 1.0;
+    letter-spacing: 0.02em;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
 }
 
 /* Message Log */
