@@ -115,7 +115,7 @@ export class Game {
         
         try {
             const generator = new DungeonGenerator();
-            this.dungeon = await generator.generate(levelNumber, CONFIG.MAP_WIDTH, CONFIG.MAP_HEIGHT);
+            this.dungeon = generator.generateLevel(levelNumber);
             
             // Place player at starting position
             const startPos = this.dungeon.getEntrance();
@@ -128,11 +128,11 @@ export class Game {
                 this.player.y = Math.floor(CONFIG.MAP_HEIGHT / 2);
             }
             
-            // Clear monsters and items for new level
-            this.monsters = [];
-            this.items = [];
+            // Get monsters and items from the generated dungeon
+            this.monsters = this.dungeon.monsters || [];
+            this.items = this.dungeon.items || [];
             
-            // Populate level with monsters and items
+            // Additional population if needed
             this.populateLevel(levelNumber);
             
             // Update renderer with new dungeon state
