@@ -1262,7 +1262,7 @@
                 }
             }
         }
-        
+
         // ===== MONSTER SPAWNING (NetHack-style) =====
         Game.spawnMonster = function(currentLevel, playerLevel = 1, levelType = 'dungeon') {
             // NetHack's zlevel calculation
@@ -1416,17 +1416,6 @@
             if (rooms.length > 1) {
                 const lastRoom = rooms[rooms.length - 1];
                 dungeon[lastRoom.y][lastRoom.x] = '>';
-            }
-            
-            // Spawn monsters using the new system
-            Game.monsters = [];
-            const monsterBudget = 3 + Math.floor(Math.random() * 5) + Math.floor(Game.currentLevel / 3);
-            
-            for (let i = 0; i < monsterBudget; i++) {
-                const spawnedMonsters = Game.spawnMonster(Game.currentLevel, 1, 'dungeon');
-                if (spawnedMonsters) {
-                    Game.monsters.push(...spawnedMonsters);
-                }
             }
             
             // Spawn items
@@ -1909,8 +1898,18 @@
             // Create player
             Game.player = new Player(playerName);
             
-            // Generate first dungeon
+            // Generate first dungeon (without monsters)
             Game.dungeon = generateDungeon(Game.config.mapWidth, Game.config.mapHeight);
+
+            // Now spawn monsters after dungeon exists
+            Game.monsters = [];
+            const monsterBudget = 3 + Math.floor(Math.random() * 5);
+            for (let i = 0; i < monsterBudget; i++) {
+                const spawnedMonsters = Game.spawnMonster(Game.currentLevel, 1, 'dungeon');
+                if (spawnedMonsters) {
+                    Game.monsters.push(...spawnedMonsters);
+                }
+            }
             
             // Setup input
             document.addEventListener('keydown', Game.handleKeyPress);
