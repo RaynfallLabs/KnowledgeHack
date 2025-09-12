@@ -4,7 +4,660 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Philosopher's Quest - Knowledge is Power</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ===== PHILOSOPHER'S QUEST STYLESHEET ===== */
+
+        /* Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Fira+Code:wght@300;400;500;600&display=swap');
+
+        /* CSS Variables */
+        :root {
+            /* Dark Academia Color Palette */
+            --bg-void: #0a0a0f;
+            --bg-dark: #12121a;
+            --bg-panel: #1a1a28;
+            --bg-raised: #242438;
+            
+            /* Accent Colors */
+            --gold-bright: #ffd700;
+            --gold-dim: #b8860b;
+            --wisdom-purple: #9b59b6;
+            --knowledge-blue: #3498db;
+            --magic-cyan: #00ffff;
+            
+            /* Status Colors */
+            --health-red: #e74c3c;
+            --stamina-green: #27ae60;
+            --mana-blue: #2980b9;
+            --warning-orange: #f39c12;
+            
+            /* Text Colors */
+            --text-primary: #e8e3d8;
+            --text-secondary: #a09890;
+            --text-dim: #605850;
+            
+            /* Borders */
+            --border-color: #3a3654;
+            --border-gold: #8b7355;
+            --glow-color: rgba(255, 215, 0, 0.3);
+        }
+
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fira Code', monospace;
+            background: var(--bg-void);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            background-image: 
+                radial-gradient(ellipse at top left, rgba(155, 89, 182, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(52, 152, 219, 0.1) 0%, transparent 50%);
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Welcome Screen */
+        #welcome-screen {
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-panel) 100%);
+        }
+
+        .welcome-content {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+        }
+
+        .game-title {
+            font-family: 'Cinzel', serif;
+            font-size: 48px;
+            color: var(--gold-bright);
+            text-shadow: 0 0 30px var(--glow-color);
+            margin-bottom: 10px;
+            letter-spacing: 0.2em;
+        }
+
+        .game-subtitle {
+            font-size: 18px;
+            color: var(--wisdom-purple);
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+
+        .welcome-form {
+            margin: 30px 0;
+        }
+
+        #player-name-input {
+            width: 300px;
+            padding: 12px 20px;
+            font-size: 16px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        #player-name-input:focus {
+            outline: none;
+            border-color: var(--knowledge-blue);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
+        }
+
+        #start-game-btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--wisdom-purple), var(--knowledge-blue));
+            color: var(--text-primary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #start-game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(52, 152, 219, 0.3);
+        }
+
+        .welcome-info {
+            margin-top: 40px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .welcome-info p {
+            margin: 10px 0;
+        }
+
+        /* Game Screen */
+        #game-screen {
+            flex-direction: column;
+        }
+
+        #game-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Game Display */
+        #game-display {
+            flex: 1;
+            background: #000;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 20px;
+            overflow: hidden;
+            white-space: pre;
+            line-height: 1.0;
+            letter-spacing: 0.02em;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Message Log */
+        #message-log {
+            height: 180px;
+            background: var(--bg-dark);
+            border-top: 2px solid var(--border-color);
+            padding: 12px;
+            overflow-y: auto;
+            font-size: 13px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #message-log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #message-log::-webkit-scrollbar-track {
+            background: var(--bg-panel);
+        }
+
+        #message-log::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .message {
+            padding: 4px 8px;
+            margin: 2px 0;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .message.info { 
+            color: var(--knowledge-blue);
+            border-left-color: var(--knowledge-blue);
+        }
+
+        .message.success { 
+            color: var(--stamina-green);
+            border-left-color: var(--stamina-green);
+            text-shadow: 0 0 2px currentColor;
+        }
+
+        .message.warning { 
+            color: var(--warning-orange);
+            border-left-color: var(--warning-orange);
+        }
+
+        .message.danger { 
+            color: var(--health-red);
+            border-left-color: var(--health-red);
+            font-weight: 600;
+            text-shadow: 0 0 3px currentColor;
+        }
+
+        .message.action { 
+            color: var(--wisdom-purple);
+            border-left-color: var(--wisdom-purple);
+        }
+
+        .message.loot { 
+            color: var(--gold-bright);
+            border-left-color: var(--gold-bright);
+            text-shadow: 0 0 3px var(--glow-color);
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 340px;
+            background: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-panel) 100%);
+            padding: 15px;
+            overflow-y: auto;
+            box-shadow: inset 2px 0 5px rgba(0, 0, 0, 0.3);
+        }
+
+        #sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #sidebar::-webkit-scrollbar-track {
+            background: var(--bg-panel);
+        }
+
+        #sidebar::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* Stat Groups */
+        .stat-group {
+            margin-bottom: 20px;
+            background: var(--bg-raised);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-group::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        .stat-group h3 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-bright);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 10px var(--glow-color);
+        }
+
+        /* Stat Bars */
+        .stat-bar {
+            height: 24px;
+            background: linear-gradient(180deg, var(--bg-dark), rgba(0,0,0,0.8));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin: 8px 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 11px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.2), transparent);
+        }
+
+        .hp-bar { 
+            background: linear-gradient(90deg, #8b0000, var(--health-red), #ff6b6b);
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.5);
+        }
+
+        .sp-bar { 
+            background: linear-gradient(90deg, #1a5c2a, var(--stamina-green), #52c77a);
+            box-shadow: 0 0 20px rgba(39, 174, 96, 0.5);
+        }
+
+        .mp-bar { 
+            background: linear-gradient(90deg, #1a4c7a, var(--mana-blue), var(--knowledge-blue));
+            box-shadow: 0 0 20px rgba(41, 128, 185, 0.5);
+        }
+
+        .stat-bar-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: 600;
+            text-shadow: 0 0 3px #000, 0 0 6px #000;
+            color: var(--text-primary);
+            z-index: 10;
+            letter-spacing: 0.05em;
+        }
+
+        /* Attributes Display */
+        .stat-group div {
+            font-size: 13px;
+            margin: 4px 0;
+            color: var(--text-secondary);
+        }
+
+        .stat-group div span {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Status Effects */
+        #status-effects span {
+            display: inline-block;
+            padding: 2px 8px;
+            margin: 2px;
+            background: var(--bg-dark);
+            border: 1px solid currentColor;
+            border-radius: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        /* Inventory */
+        .inventory-item {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin: 2px 0;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .inventory-item:hover {
+            background: var(--bg-dark);
+            padding-left: 12px;
+        }
+
+        .inventory-item.equipped { 
+            color: var(--stamina-green);
+            background: rgba(39, 174, 96, 0.1);
+            border-left: 3px solid var(--stamina-green);
+        }
+
+        .inventory-item.blessed { 
+            color: var(--magic-cyan);
+            text-shadow: 0 0 3px currentColor;
+        }
+
+        .inventory-item.cursed { 
+            color: var(--health-red);
+            text-shadow: 0 0 3px currentColor;
+        }
+
+        .inventory-item.unidentified { 
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 20px;
+            padding: 12px;
+            background: var(--bg-raised);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 11px;
+        }
+
+        .controls h4 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-bright);
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .control-line {
+            color: var(--text-secondary);
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .control-line .key {
+            color: var(--knowledge-blue);
+            font-weight: 600;
+            background: var(--bg-dark);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 8px;
+            border: 1px solid var(--border-color);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Quiz Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-raised) 100%);
+            border: 2px solid var(--gold-dim);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 
+                0 0 50px rgba(255, 215, 0, 0.2),
+                0 10px 40px rgba(0, 0, 0, 0.8);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { 
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .quiz-title {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-bright);
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 20px var(--glow-color);
+        }
+
+        #quiz-subject {
+            color: var(--wisdom-purple);
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .quiz-timer {
+            font-size: 48px;
+            font-weight: 600;
+            color: var(--stamina-green);
+            margin: 20px 0;
+            text-shadow: 0 0 10px currentColor;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .quiz-timer.warning { 
+            color: var(--warning-orange);
+            animation: pulse 1s infinite;
+        }
+
+        .quiz-timer.danger { 
+            color: var(--health-red);
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .quiz-progress {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .quiz-question {
+            font-size: 18px;
+            line-height: 1.6;
+            margin: 25px 0;
+            padding: 20px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .quiz-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .quiz-input:focus {
+            outline: none;
+            border-color: var(--knowledge-blue);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .quiz-button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--wisdom-purple), var(--knowledge-blue));
+            color: var(--text-primary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .quiz-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .quiz-feedback {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { 
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .quiz-feedback.correct {
+            color: var(--stamina-green);
+            background: rgba(39, 174, 96, 0.1);
+            border: 2px solid var(--stamina-green);
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .quiz-feedback.wrong {
+            color: var(--health-red);
+            background: rgba(231, 76, 60, 0.1);
+            border: 2px solid var(--health-red);
+            text-shadow: 0 0 10px currentColor;
+        }
+    </style>
 </head>
 <body>
     <!-- Welcome Screen -->
@@ -600,9 +1253,9 @@
                     let color = '#222'; // Dark gray for unseen
                     
                     // Only render if in FOV
-                    if (!fov[y][x]) {
+                    if (!fov[y] || !fov[y][x]) {
                         // Show remembered walls in dark gray
-                        if (Game.remembered && Game.remembered[y][x] === '#') {
+                        if (Game.remembered && Game.remembered[y] && Game.remembered[y][x] === '#') {
                             char = '#';
                             color = '#333';
                         } else {
@@ -612,7 +1265,9 @@
                         // Remember terrain
                         if (!Game.remembered) Game.remembered = [];
                         if (!Game.remembered[y]) Game.remembered[y] = [];
-                        Game.remembered[y][x] = Game.dungeon[y][x];
+                        if (Game.dungeon[y] && Game.dungeon[y][x]) {
+                            Game.remembered[y][x] = Game.dungeon[y][x];
+                        }
                         
                         // Player
                         if (x === Game.player.x && y === Game.player.y) {
@@ -662,7 +1317,7 @@
                                 
                                 if (!hasItem) {
                                     // Terrain
-                                    if (y < Game.dungeon.length && x < Game.dungeon[y].length) {
+                                    if (Game.dungeon[y] && Game.dungeon[y][x]) {
                                         char = Game.dungeon[y][x];
                                         // Terrain colors
                                         switch(char) {
