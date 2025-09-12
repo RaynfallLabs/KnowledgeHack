@@ -4,321 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Philosopher's Quest - Knowledge is Power</title>
-    <style>
-        /* ===== RESET & BASE STYLES ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Courier New', monospace;
-            background-color: #0a0a0a;
-            color: #e0e0e0;
-            overflow: hidden;
-            height: 100vh;
-        }
-
-        /* ===== MAIN LAYOUT ===== */
-        #game-container {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-        }
-
-        #main-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #sidebar {
-            width: 300px;
-            background: #111;
-            border-left: 2px solid #333;
-            padding: 10px;
-            overflow-y: auto;
-        }
-
-        /* ===== GAME DISPLAY ===== */
-        #game-display {
-            flex: 1;
-            background: #000;
-            color: #0f0;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            padding: 10px;
-            overflow: hidden;
-            white-space: pre;
-            line-height: 1.2;
-        }
-
-        /* ===== MESSAGE LOG ===== */
-        #message-log {
-            height: 150px;
-            background: #0a0a0a;
-            border-top: 2px solid #333;
-            padding: 5px;
-            overflow-y: auto;
-            font-size: 12px;
-        }
-
-        .message {
-            padding: 2px 0;
-        }
-        .message.info { color: #8888ff; }
-        .message.success { color: #00ff00; }
-        .message.warning { color: #ffff00; }
-        .message.danger { color: #ff4444; }
-        .message.action { color: #ff88ff; }
-        .message.loot { color: #ffaa00; }
-
-        /* ===== STATS DISPLAY ===== */
-        .stat-group {
-            margin-bottom: 15px;
-            border: 1px solid #333;
-            padding: 5px;
-            background: #0a0a0a;
-        }
-
-        .stat-group h3 {
-            color: #ffff00;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .stat-bar {
-            height: 20px;
-            background: #222;
-            border: 1px solid #444;
-            margin: 2px 0;
-            position: relative;
-        }
-
-        .stat-bar-fill {
-            height: 100%;
-            transition: width 0.3s;
-        }
-
-        .stat-bar-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 11px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px #000;
-        }
-
-        .hp-bar { background: linear-gradient(90deg, #ff0000, #ff4444); }
-        .sp-bar { background: linear-gradient(90deg, #00ff00, #44ff44); }
-        .mp-bar { background: linear-gradient(90deg, #0088ff, #44aaff); }
-
-        /* ===== INVENTORY ===== */
-        .inventory-item {
-            padding: 2px;
-            font-size: 12px;
-        }
-        .inventory-item.equipped { color: #00ff00; }
-        .inventory-item.blessed { color: #00ffff; }
-        .inventory-item.cursed { color: #ff0000; }
-        .inventory-item.unidentified { color: #888888; }
-
-        /* ===== QUIZ MODAL ===== */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: #1a1a1a;
-            border: 2px solid #444;
-            padding: 20px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .quiz-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .quiz-title {
-            color: #ffff00;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .quiz-timer {
-            font-size: 32px;
-            color: #00ff00;
-            margin: 10px 0;
-        }
-
-        .quiz-timer.warning { color: #ffff00; }
-        .quiz-timer.danger { color: #ff0000; }
-
-        .quiz-question {
-            font-size: 18px;
-            margin: 20px 0;
-            padding: 15px;
-            background: #222;
-            border: 1px solid #444;
-        }
-
-        .quiz-input {
-            width: 100%;
-            padding: 10px;
-            font-size: 16px;
-            background: #111;
-            color: #fff;
-            border: 1px solid #444;
-            margin: 10px 0;
-        }
-
-        .quiz-button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background: #004400;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-            cursor: pointer;
-            margin: 5px;
-        }
-
-        .quiz-button:hover {
-            background: #006600;
-        }
-
-        .quiz-feedback {
-            text-align: center;
-            font-size: 20px;
-            margin: 20px 0;
-            padding: 10px;
-        }
-
-        .quiz-feedback.correct {
-            color: #00ff00;
-            border: 2px solid #00ff00;
-        }
-
-        .quiz-feedback.wrong {
-            color: #ff0000;
-            border: 2px solid #ff0000;
-        }
-
-        .quiz-progress {
-            text-align: center;
-            margin: 10px 0;
-            color: #888;
-        }
-
-        /* ===== CONTROLS HELP ===== */
-        .controls {
-            margin-top: 10px;
-            padding: 10px;
-            background: #0a0a0a;
-            border: 1px solid #333;
-            font-size: 11px;
-        }
-
-        .controls h4 {
-            color: #ffff00;
-            margin-bottom: 5px;
-        }
-
-        .control-line {
-            color: #888;
-            margin: 2px 0;
-        }
-
-        .control-line .key {
-            color: #00ff00;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container">
-        <div id="main-area">
-            <div id="game-display"></div>
-            <div id="message-log"></div>
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="screen active">
+        <div class="welcome-content">
+            <h1 class="game-title">PHILOSOPHER'S QUEST</h1>
+            <p class="game-subtitle">Knowledge is Literally Power</p>
+            <div class="welcome-form">
+                <input type="text" id="player-name-input" placeholder="Enter your name, seeker..." maxlength="20">
+                <button id="start-game-btn">Begin Your Quest</button>
+            </div>
+            <div class="welcome-info">
+                <p>Every action requires knowledge.</p>
+                <p>Every swing of your sword demands mathematics.</p>
+                <p>Every piece of armor requires geography.</p>
+                <p>Learn or perish in the depths.</p>
+            </div>
         </div>
-        <div id="sidebar">
-            <!-- Player Stats -->
-            <div class="stat-group">
-                <h3>VITALS</h3>
-                <div class="stat-bar">
-                    <div class="stat-bar-fill hp-bar" id="hp-bar"></div>
-                    <div class="stat-bar-text" id="hp-text">0/0</div>
-                </div>
-                <div class="stat-bar">
-                    <div class="stat-bar-fill sp-bar" id="sp-bar"></div>
-                    <div class="stat-bar-text" id="sp-text">0/0</div>
-                </div>
-                <div class="stat-bar">
-                    <div class="stat-bar-fill mp-bar" id="mp-bar"></div>
-                    <div class="stat-bar-text" id="mp-text">0/0</div>
-                </div>
-            </div>
-            
-            <!-- Attributes -->
-            <div class="stat-group">
-                <h3>ATTRIBUTES</h3>
-                <div>STR: <span id="str">10</span> | CON: <span id="con">10</span></div>
-                <div>DEX: <span id="dex">10</span> | INT: <span id="int">10</span></div>
-                <div>WIS: <span id="wis">10</span> | PER: <span id="per">10</span></div>
-            </div>
-            
-            <!-- Status -->
-            <div class="stat-group">
-                <h3>STATUS</h3>
-                <div>AC: <span id="ac">10</span> | Level: <span id="dungeon-level">1</span></div>
-                <div>Sight: <span id="sight">3</span> | Timer: <span id="timer">10</span>s</div>
-                <div id="hunger-status"></div>
-                <div id="burden-status"></div>
-                <div id="status-effects"></div>
-            </div>
+    </div>
 
-            <!-- Equipment -->
-            <div class="stat-group">
-                <h3>EQUIPMENT</h3>
-                <div id="equipment-list"></div>
+    <!-- Main Game Screen -->
+    <div id="game-screen" class="screen">
+        <div id="game-container">
+            <div id="main-area">
+                <div id="game-display"></div>
+                <div id="message-log"></div>
             </div>
+            <div id="sidebar">
+                <!-- Player Stats -->
+                <div class="stat-group">
+                    <h3>VITALS</h3>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill hp-bar" id="hp-bar"></div>
+                        <div class="stat-bar-text" id="hp-text">HP: 20/20</div>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill sp-bar" id="sp-bar"></div>
+                        <div class="stat-bar-text" id="sp-text">SP: 100/100</div>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-bar-fill mp-bar" id="mp-bar"></div>
+                        <div class="stat-bar-text" id="mp-text">MP: 10/10</div>
+                    </div>
+                </div>
+                
+                <!-- Attributes -->
+                <div class="stat-group">
+                    <h3>ATTRIBUTES</h3>
+                    <div>STR: <span id="str">10</span> | CON: <span id="con">10</span></div>
+                    <div>DEX: <span id="dex">10</span> | INT: <span id="int">10</span></div>
+                    <div>WIS: <span id="wis">10</span> | PER: <span id="per">10</span></div>
+                </div>
+                
+                <!-- Status -->
+                <div class="stat-group">
+                    <h3>STATUS</h3>
+                    <div>AC: <span id="ac">10</span> | Level: <span id="dungeon-level">1</span></div>
+                    <div>Sight: <span id="sight">5</span> | Timer: <span id="timer">10</span>s</div>
+                    <div id="hunger-status"></div>
+                    <div id="burden-status"></div>
+                    <div id="status-effects"></div>
+                </div>
 
-            <!-- Inventory -->
-            <div class="stat-group">
-                <h3>INVENTORY (<span id="weight">0/50</span>)</h3>
-                <div id="inventory-list"></div>
-            </div>
+                <!-- Equipment -->
+                <div class="stat-group">
+                    <h3>EQUIPMENT</h3>
+                    <div id="equipment-list">
+                        <div class="inventory-item">Nothing equipped</div>
+                    </div>
+                </div>
 
-            <!-- Controls -->
-            <div class="controls">
-                <h4>CONTROLS</h4>
-                <div class="control-line"><span class="key">↑↓←→/HJKL</span> Move</div>
-                <div class="control-line"><span class="key">,/g</span> Get item</div>
-                <div class="control-line"><span class="key">i</span> Inventory</div>
-                <div class="control-line"><span class="key">e</span> Equipment</div>
-                <div class="control-line"><span class="key">E</span> Eat food</div>
-                <div class="control-line"><span class="key">c</span> Cook</div>
-                <div class="control-line"><span class="key">I</span> Identify</div>
-                <div class="control-line"><span class="key">./Space</span> Wait</div>
-                <div class="control-line"><span class="key">?</span> Help</div>
+                <!-- Inventory -->
+                <div class="stat-group">
+                    <h3>INVENTORY (<span id="weight">0/50</span>)</h3>
+                    <div id="inventory-list">
+                        <div class="inventory-item">Empty</div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls">
+                    <h4>CONTROLS</h4>
+                    <div class="control-line"><span class="key">↑↓←→/HJKL</span> Move</div>
+                    <div class="control-line"><span class="key">,/g</span> Get item</div>
+                    <div class="control-line"><span class="key">E</span> Eat food</div>
+                    <div class="control-line"><span class="key">c</span> Cook</div>
+                    <div class="control-line"><span class="key">I</span> Identify</div>
+                    <div class="control-line"><span class="key">./Space</span> Wait</div>
+                    <div class="control-line"><span class="key">?</span> Help</div>
+                </div>
             </div>
         </div>
     </div>
@@ -334,17 +110,17 @@
             </div>
             <div class="quiz-question" id="quiz-question">Question will appear here</div>
             <div id="quiz-input-area">
-                <input type="text" class="quiz-input" id="quiz-answer" placeholder="Type your answer...">
-                <button class="quiz-button" id="quiz-submit">Submit</button>
+                <input type="text" class="quiz-input" id="quiz-answer" placeholder="Type your answer..." autocomplete="off">
+                <button class="quiz-button" id="quiz-submit">Submit Answer</button>
             </div>
             <div class="quiz-feedback" id="quiz-feedback" style="display: none;"></div>
         </div>
     </div>
 
     <script>
-        // ===== PHILOSOPHER'S QUEST - COMPLETE SINGLE FILE IMPLEMENTATION =====
+        // ===== PHILOSOPHER'S QUEST - COMPLETE GAME =====
         
-        // Global game object
+        // Global game state
         const Game = {
             // Core state
             player: null,
@@ -364,27 +140,14 @@
             quizTimer: null,
             quizTimeRemaining: 0,
             
-            // Game data (will be loaded from JSON files)
-            questionBanks: {},
-            itemDatabase: {},
-            monsterDatabase: {},
-            
-            // Configuration
+            // Game configuration
             config: {
                 mapWidth: 80,
                 mapHeight: 25,
-                viewWidth: 80,
-                viewHeight: 25,
                 baseHP: 20,
                 baseSP: 100,
                 baseMP: 10,
-                startingWisdom: 10,
-                quizModes: {
-                    THRESHOLD: 'threshold',
-                    CHAIN: 'chain',
-                    ESCALATOR_THRESHOLD: 'escalator_threshold',
-                    ESCALATOR_CHAIN: 'escalator_chain'
-                }
+                startingWisdom: 10
             }
         };
 
@@ -393,12 +156,12 @@
             constructor(name = "Hero") {
                 this.name = name;
                 
-                // Stats
+                // Core attributes
                 this.strength = 10;
                 this.constitution = 10;
                 this.dexterity = 10;
                 this.intelligence = 10;
-                this.wisdom = Game.config.startingWisdom;
+                this.wisdom = 10;
                 this.perception = 10;
                 
                 // Derived stats
@@ -413,18 +176,20 @@
                 this.x = 0;
                 this.y = 0;
                 
-                // Equipment
+                // Equipment slots
                 this.equipped = {
                     weapon: null,
                     armor: {
                         head: null,
                         body: null,
                         hands: null,
-                        legs: null
+                        legs: null,
+                        cloak: null,
+                        shirt: null
                     },
                     accessories: {
-                        ring1: null,
-                        ring2: null,
+                        leftRing: null,
+                        rightRing: null,
                         amulet: null
                     }
                 };
@@ -434,23 +199,61 @@
                 this.maxCarry = 50 + this.strength * 2;
                 this.currentWeight = 0;
                 
-                // Status
-                this.isStarving = false;
-                this.isBurdened = false;
-                this.effects = [];
+                // Status flags
+                this.statusFlags = {
+                    isStarving: false,
+                    isConfused: false,
+                    isBlind: false,
+                    isStunned: false,
+                    isHallucinating: false,
+                    isParalyzed: false,
+                    isSick: false,
+                    isPoisoned: false,
+                    isStoned: false,
+                    isSlimed: false,
+                    isLevitating: false,
+                    isFlying: false,
+                    isInvisible: false
+                };
+                
+                // Inventory letter assignment
+                this.nextInventoryLetter = 'a';
             }
             
             getAC() {
                 let ac = 10 + Math.floor((this.dexterity - 10) / 2);
-                // Add armor bonuses
                 Object.values(this.equipped.armor).forEach(armor => {
                     if (armor) ac += armor.acBonus || 0;
                 });
                 return ac;
             }
             
+            getSightRadius() {
+                return 3 + Math.floor(this.perception / 5);
+            }
+            
             getQuizTimer() {
                 return Math.max(10, this.wisdom);
+            }
+            
+            getHungerStatus() {
+                const percent = this.sp / this.maxSp;
+                if (this.sp <= 0) return "Starving";
+                if (percent <= 0.1) return "Fainting";
+                if (percent <= 0.2) return "Weak";
+                if (percent <= 0.3) return "Hungry";
+                if (percent >= 1.2) return "Satiated";
+                return "";
+            }
+            
+            getBurdenStatus() {
+                const percent = (this.currentWeight / this.maxCarry) * 100;
+                if (percent > 300) return "Overloaded";
+                if (percent > 200) return "Overtaxed";
+                if (percent > 150) return "Strained";
+                if (percent > 100) return "Stressed";
+                if (percent > 75) return "Burdened";
+                return "";
             }
             
             takeDamage(amount) {
@@ -465,29 +268,32 @@
                 this.sp -= amount;
                 if (this.sp <= 0) {
                     this.sp = 0;
-                    this.isStarving = true;
-                    // Start taking HP damage when starving
-                    if (this.isStarving) {
-                        this.takeDamage(1);
-                        Game.addMessage("You're starving! You take damage!", 'danger');
-                    }
+                    this.statusFlags.isStarving = true;
+                    this.takeDamage(1);
+                    Game.addMessage("You're starving! You take damage!", 'danger');
                 } else {
-                    this.isStarving = false;
+                    this.statusFlags.isStarving = false;
                 }
             }
             
             restoreSP(amount) {
                 this.sp = Math.min(this.maxSp, this.sp + amount);
-                if (this.sp > 0) this.isStarving = false;
+                if (this.sp > 0) this.statusFlags.isStarving = false;
             }
             
             addToInventory(item) {
-                if (this.currentWeight + (item.weight || 0) > this.maxCarry) {
+                if (this.currentWeight + (item.weight || 1) > this.maxCarry) {
                     Game.addMessage("You can't carry that much weight!", 'warning');
                     return false;
                 }
+                
+                // Assign inventory letter
+                item.letter = this.nextInventoryLetter;
+                this.nextInventoryLetter = String.fromCharCode(this.nextInventoryLetter.charCodeAt(0) + 1);
+                if (this.nextInventoryLetter > 'z') this.nextInventoryLetter = 'A';
+                
                 this.inventory.push(item);
-                this.currentWeight += item.weight || 0;
+                this.currentWeight += item.weight || 1;
                 return true;
             }
             
@@ -495,7 +301,7 @@
                 const index = this.inventory.indexOf(item);
                 if (index > -1) {
                     this.inventory.splice(index, 1);
-                    this.currentWeight -= item.weight || 0;
+                    this.currentWeight -= item.weight || 1;
                     return true;
                 }
                 return false;
@@ -504,11 +310,27 @@
 
         // ===== MONSTER CLASS =====
         class Monster {
-            constructor(data, x, y) {
-                Object.assign(this, data);
+            constructor(type, x, y) {
+                this.type = type;
                 this.x = x;
                 this.y = y;
-                this.hp = this.maxHp || 10;
+                
+                // Default stats for basic monsters
+                const monsterTypes = {
+                    'goblin': { symbol: 'g', hp: 5, damage: 2, color: '#8b8' },
+                    'orc': { symbol: 'o', hp: 10, damage: 3, color: '#a82' },
+                    'skeleton': { symbol: 's', hp: 8, damage: 2, color: '#ddd' },
+                    'rat': { symbol: 'r', hp: 3, damage: 1, color: '#888' },
+                    'kobold': { symbol: 'k', hp: 4, damage: 2, color: '#88f' }
+                };
+                
+                const data = monsterTypes[type] || monsterTypes['goblin'];
+                this.name = type;
+                this.symbol = data.symbol;
+                this.color = data.color;
+                this.maxHp = data.hp;
+                this.hp = this.maxHp;
+                this.damage = data.damage;
                 this.dead = false;
             }
             
@@ -523,9 +345,12 @@
             move() {
                 if (this.dead) return;
                 
-                // Simple AI: move toward player
+                // Simple AI: move toward player if within 10 tiles
                 const dx = Game.player.x - this.x;
                 const dy = Game.player.y - this.y;
+                const distance = Math.abs(dx) + Math.abs(dy);
+                
+                if (distance > 10) return; // Too far, don't chase
                 
                 let moveX = 0, moveY = 0;
                 
@@ -538,16 +363,18 @@
                 const newX = this.x + moveX;
                 const newY = this.y + moveY;
                 
-                // Check if can move there
-                if (Game.canMoveTo(newX, newY) && !Game.getMonsterAt(newX, newY)) {
-                    // Check if attacking player
-                    if (newX === Game.player.x && newY === Game.player.y) {
-                        Game.monsterAttack(this);
-                    } else {
-                        this.x = newX;
-                        this.y = newY;
-                    }
+                // Check if attacking player
+                if (newX === Game.player.x && newY === Game.player.y) {
+                    this.attack();
+                } else if (Game.canMoveTo(newX, newY) && !Game.getMonsterAt(newX, newY)) {
+                    this.x = newX;
+                    this.y = newY;
                 }
+            }
+            
+            attack() {
+                Game.player.takeDamage(this.damage);
+                Game.addMessage(`The ${this.name} hits you for ${this.damage} damage!`, 'danger');
             }
         }
 
@@ -593,14 +420,13 @@
                 const room1 = rooms[i];
                 const room2 = rooms[i + 1];
                 
-                // Horizontal corridor
+                // Horizontal then vertical
                 const startX = Math.min(room1.x, room2.x);
                 const endX = Math.max(room1.x, room2.x);
                 for (let x = startX; x <= endX; x++) {
                     dungeon[room1.y][x] = '.';
                 }
                 
-                // Vertical corridor
                 const startY = Math.min(room1.y, room2.y);
                 const endY = Math.max(room1.y, room2.y);
                 for (let y = startY; y <= endY; y++) {
@@ -620,39 +446,31 @@
                 dungeon[lastRoom.y][lastRoom.x] = '>';
             }
             
-            // Spawn monsters using loaded data if available
+            // Spawn monsters
             Game.monsters = [];
+            const monsterTypes = ['goblin', 'rat', 'kobold', 'orc', 'skeleton'];
             const numMonsters = 3 + Math.floor(Math.random() * 5);
-            for (let i = 0; i < numMonsters; i++) {
-                const room = rooms[1 + Math.floor(Math.random() * (rooms.length - 1))];
+            
+            for (let i = 0; i < numMonsters && i < rooms.length - 1; i++) {
+                const room = rooms[1 + i]; // Skip first room (player spawn)
+                const type = monsterTypes[Math.floor(Math.random() * monsterTypes.length)];
                 const x = room.x - 2 + Math.floor(Math.random() * 5);
                 const y = room.y - 2 + Math.floor(Math.random() * 5);
                 
-                if (dungeon[y][x] === '.' && !(x === Game.player.x && y === Game.player.y)) {
-                    let monsterData;
-                    
-                    // Use loaded monster data if available
-                    if (Game.monsterDatabase && Game.monsterDatabase.length > 0) {
-                        const template = Game.monsterDatabase[Math.floor(Math.random() * Game.monsterDatabase.length)];
-                        monsterData = { ...template };
-                    } else {
-                        // Fallback monsters
-                        const monsterType = ['goblin', 'orc', 'skeleton'][Math.floor(Math.random() * 3)];
-                        monsterData = {
-                            name: monsterType,
-                            symbol: monsterType[0].toUpperCase(),
-                            maxHp: 5 + Math.floor(Math.random() * 10),
-                            damage: 1 + Math.floor(Math.random() * 3),
-                            type: monsterType
-                        };
-                    }
-                    
-                    Game.monsters.push(new Monster(monsterData, x, y));
+                if (dungeon[y][x] === '.') {
+                    Game.monsters.push(new Monster(type, x, y));
                 }
             }
             
-            // Spawn items using loaded data if available
+            // Spawn items
             Game.items = [];
+            const itemTypes = [
+                { type: 'food', name: 'ration', symbol: '%', weight: 1 },
+                { type: 'weapon', name: 'dagger', symbol: ')', weight: 3 },
+                { type: 'armor', name: 'leather armor', symbol: '[', weight: 8 },
+                { type: 'potion', name: 'healing potion', symbol: '!', weight: 1 }
+            ];
+            
             const numItems = 2 + Math.floor(Math.random() * 4);
             for (let i = 0; i < numItems; i++) {
                 const room = rooms[Math.floor(Math.random() * rooms.length)];
@@ -660,39 +478,13 @@
                 const y = room.y - 2 + Math.floor(Math.random() * 5);
                 
                 if (dungeon[y][x] === '.') {
-                    let item;
-                    
-                    // Try to use loaded item data
-                    if (Game.itemDatabase && Object.keys(Game.itemDatabase).length > 0) {
-                        const types = Object.keys(Game.itemDatabase);
-                        const type = types[Math.floor(Math.random() * types.length)];
-                        const items = Game.itemDatabase[type];
-                        
-                        if (items && items.length > 0) {
-                            item = { ...items[Math.floor(Math.random() * items.length)] };
-                            item.x = x;
-                            item.y = y;
-                            item.symbol = type === 'food' ? '%' : type === 'weapons' ? ')' : '!';
-                        }
-                    }
-                    
-                    // Fallback if no loaded data
-                    if (!item) {
-                        const itemTypes = ['food', 'weapon', 'armor', 'potion'];
-                        const itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
-                        
-                        item = {
-                            x: x,
-                            y: y,
-                            type: itemType,
-                            name: `${itemType}`,
-                            symbol: '!',
-                            weight: 1 + Math.floor(Math.random() * 5),
-                            identified: false
-                        };
-                    }
-                    
-                    Game.items.push(item);
+                    const template = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+                    Game.items.push({
+                        ...template,
+                        x: x,
+                        y: y,
+                        identified: false
+                    });
                 }
             }
             
@@ -704,17 +496,28 @@
             if (!Game.display || !Game.dungeon || !Game.player) return;
             
             let display = '';
+            const sightRadius = Game.player.getSightRadius();
             
-            // Render dungeon
-            for (let y = 0; y < Game.config.viewHeight; y++) {
-                for (let x = 0; x < Game.config.viewWidth; x++) {
-                    // Check for player
+            for (let y = 0; y < Game.config.mapHeight; y++) {
+                for (let x = 0; x < Game.config.mapWidth; x++) {
+                    // Check if in sight
+                    const dx = Math.abs(x - Game.player.x);
+                    const dy = Math.abs(y - Game.player.y);
+                    const inSight = dx <= sightRadius && dy <= sightRadius;
+                    
+                    // Player
                     if (x === Game.player.x && y === Game.player.y) {
                         display += '@';
                         continue;
                     }
                     
-                    // Check for monsters
+                    // Only show things in sight
+                    if (!inSight) {
+                        display += ' ';
+                        continue;
+                    }
+                    
+                    // Monsters
                     let hasMonster = false;
                     for (const monster of Game.monsters) {
                         if (!monster.dead && monster.x === x && monster.y === y) {
@@ -725,7 +528,7 @@
                     }
                     if (hasMonster) continue;
                     
-                    // Check for items
+                    // Items
                     let hasItem = false;
                     for (const item of Game.items) {
                         if (item.x === x && item.y === y) {
@@ -736,7 +539,7 @@
                     }
                     if (hasItem) continue;
                     
-                    // Render terrain
+                    // Terrain
                     if (y < Game.dungeon.length && x < Game.dungeon[y].length) {
                         display += Game.dungeon[y][x];
                     } else {
@@ -747,11 +550,7 @@
             }
             
             Game.display.textContent = display;
-            
-            // Always update UI when rendering
-            if (typeof updateUI === 'function') {
-                updateUI();
-            }
+            updateUI();
         }
 
         // ===== UI UPDATES =====
@@ -759,255 +558,53 @@
             const player = Game.player;
             if (!player) return;
             
-            // Update vital bars
-            const hpBar = document.getElementById('hp-bar');
-            const hpText = document.getElementById('hp-text');
-            if (hpBar && hpText) {
-                const hpPercent = (player.hp / player.maxHp) * 100;
-                hpBar.style.width = hpPercent + '%';
-                hpText.textContent = `HP: ${player.hp}/${player.maxHp}`;
-            }
+            // Update bars
+            document.getElementById('hp-bar').style.width = (player.hp / player.maxHp * 100) + '%';
+            document.getElementById('hp-text').textContent = `HP: ${player.hp}/${player.maxHp}`;
             
-            const spBar = document.getElementById('sp-bar');
-            const spText = document.getElementById('sp-text');
-            if (spBar && spText) {
-                const spPercent = (player.sp / player.maxSp) * 100;
-                spBar.style.width = spPercent + '%';
-                spText.textContent = `SP: ${player.sp}/${player.maxSp}`;
-                
-                // Color code SP bar based on hunger
-                if (player.sp <= 0) {
-                    spBar.style.background = 'linear-gradient(90deg, #440000, #880000)'; // Dark red - starving
-                } else if (player.sp <= player.maxSp * 0.1) {
-                    spBar.style.background = 'linear-gradient(90deg, #880000, #ff0000)'; // Red - fainting
-                } else if (player.sp <= player.maxSp * 0.2) {
-                    spBar.style.background = 'linear-gradient(90deg, #ff4400, #ff8800)'; // Orange - weak
-                } else if (player.sp <= player.maxSp * 0.3) {
-                    spBar.style.background = 'linear-gradient(90deg, #ffaa00, #ffdd00)'; // Yellow - hungry
-                } else if (player.sp >= player.maxSp * 1.2) {
-                    spBar.style.background = 'linear-gradient(90deg, #00aa00, #00ff00)'; // Bright green - satiated
-                } else {
-                    spBar.style.background = 'linear-gradient(90deg, #008800, #00ff00)'; // Normal green
-                }
-            }
+            document.getElementById('sp-bar').style.width = (player.sp / player.maxSp * 100) + '%';
+            document.getElementById('sp-text').textContent = `SP: ${player.sp}/${player.maxSp}`;
             
-            const mpBar = document.getElementById('mp-bar');
-            const mpText = document.getElementById('mp-text');
-            if (mpBar && mpText) {
-                const mpPercent = (player.mp / player.maxMp) * 100;
-                mpBar.style.width = mpPercent + '%';
-                mpText.textContent = `MP: ${player.mp}/${player.maxMp}`;
-            }
+            document.getElementById('mp-bar').style.width = (player.mp / player.maxMp * 100) + '%';
+            document.getElementById('mp-text').textContent = `MP: ${player.mp}/${player.maxMp}`;
             
-            // Update attributes - with null checks
-            const strEl = document.getElementById('str');
-            if (strEl) strEl.textContent = player.strength;
+            // Update attributes
+            document.getElementById('str').textContent = player.strength;
+            document.getElementById('con').textContent = player.constitution;
+            document.getElementById('dex').textContent = player.dexterity;
+            document.getElementById('int').textContent = player.intelligence;
+            document.getElementById('wis').textContent = player.wisdom;
+            document.getElementById('per').textContent = player.perception;
             
-            const conEl = document.getElementById('con');
-            if (conEl) conEl.textContent = player.constitution;
+            // Update status
+            document.getElementById('ac').textContent = player.getAC();
+            document.getElementById('sight').textContent = player.getSightRadius();
+            document.getElementById('timer').textContent = player.getQuizTimer();
+            document.getElementById('dungeon-level').textContent = Game.currentLevel;
             
-            const dexEl = document.getElementById('dex');
-            if (dexEl) dexEl.textContent = player.dexterity;
+            // Hunger status
+            const hungerStatus = player.getHungerStatus();
+            document.getElementById('hunger-status').textContent = hungerStatus;
             
-            const intEl = document.getElementById('int');
-            if (intEl) intEl.textContent = player.intelligence;
+            // Burden status
+            const burdenStatus = player.getBurdenStatus();
+            document.getElementById('burden-status').textContent = burdenStatus;
             
-            const wisEl = document.getElementById('wis');
-            if (wisEl) wisEl.textContent = player.wisdom;
+            // Weight
+            document.getElementById('weight').textContent = `${player.currentWeight}/${player.maxCarry}`;
             
-            const perEl = document.getElementById('per');
-            if (perEl) perEl.textContent = player.perception;
-            
-            // Update derived stats - with null checks
-            const acEl = document.getElementById('ac');
-            if (acEl) acEl.textContent = player.getAC();
-            
-            const sightEl = document.getElementById('sight');
-            if (sightEl) sightEl.textContent = player.sightRadius;
-            
-            const timerEl = document.getElementById('timer');
-            if (timerEl) timerEl.textContent = player.getQuizTimer();
-            
-            const dungeonEl = document.getElementById('dungeon-level');
-            if (dungeonEl) dungeonEl.textContent = Game.currentLevel;
-            
-            // Update hunger status
-            const hungerEl = document.getElementById('hunger-status');
-            if (hungerEl) {
-                const hungerStatus = player.getHungerStatus();
-                if (hungerStatus) {
-                    hungerEl.innerHTML = `<span style="color: ${
-                        hungerStatus === 'Starving' ? '#ff0000' :
-                        hungerStatus === 'Fainting' ? '#ff4400' :
-                        hungerStatus === 'Weak' ? '#ff8800' :
-                        hungerStatus === 'Hungry' ? '#ffaa00' :
-                        hungerStatus === 'Satiated' ? '#00ff00' :
-                        '#00aa00'
-                    }">${hungerStatus}</span>`;
-                } else {
-                    hungerEl.innerHTML = '';
-                }
-            }
-            
-            // Update burden status
-            const burdenEl = document.getElementById('burden-status');
-            if (burdenEl) {
-                const burdenStatus = player.getBurdenStatus();
-                if (burdenStatus) {
-                    burdenEl.innerHTML = `<span style="color: ${
-                        burdenStatus === 'Overloaded' ? '#ff0000' :
-                        burdenStatus === 'Overtaxed' ? '#ff4400' :
-                        burdenStatus === 'Strained' ? '#ff8800' :
-                        burdenStatus === 'Stressed' ? '#ffaa00' :
-                        burdenStatus === 'Burdened' ? '#ffff00' :
-                        '#ffffff'
-                    }">${burdenStatus}</span>`;
-                } else {
-                    burdenEl.innerHTML = '';
-                }
-            }
-            
-            // Update status effects
-            const statusEl = document.getElementById('status-effects');
-            if (statusEl) {
-                const activeEffects = [];
-                
-                // Check all status flags
-                if (player.statusFlags.isConfused) activeEffects.push('Confused');
-                if (player.statusFlags.isBlind) activeEffects.push('Blind');
-                if (player.statusFlags.isStunned) activeEffects.push('Stunned');
-                if (player.statusFlags.isHallucinating) activeEffects.push('Hallucinating');
-                if (player.statusFlags.isParalyzed) activeEffects.push('Paralyzed');
-                if (player.statusFlags.isSick) activeEffects.push('Sick');
-                if (player.statusFlags.isPoisoned) activeEffects.push('Poisoned');
-                if (player.statusFlags.isStoned) activeEffects.push('Stoning');
-                if (player.statusFlags.isSlimed) activeEffects.push('Slimed');
-                if (player.statusFlags.isLevitating) activeEffects.push('Levitating');
-                if (player.statusFlags.isFlying) activeEffects.push('Flying');
-                if (player.statusFlags.isInvisible) activeEffects.push('Invisible');
-                
-                if (activeEffects.length > 0) {
-                    statusEl.innerHTML = activeEffects.map(e => 
-                        `<span style="color: #ff88ff">${e}</span>`
-                    ).join(' ');
-                } else {
-                    statusEl.innerHTML = '';
-                }
-            }
-            
-            // Update equipment display
-            const equipList = document.getElementById('equipment-list');
-            if (equipList) {
-                let equipHtml = '';
-                
-                // Weapon
-                if (player.equipped.weapon) {
-                    const w = player.equipped.weapon;
-                    equipHtml += `<div class="inventory-item equipped">a) ${w.name}${w.enchantment ? ` +${w.enchantment}` : ''}</div>`;
-                } else {
-                    equipHtml += `<div class="inventory-item">a) Fists</div>`;
-                }
-                
-                // Armor pieces
-                const armorSlots = {
-                    'head': 'b) Head',
-                    'body': 'c) Body',
-                    'hands': 'd) Hands',
-                    'legs': 'e) Legs',
-                    'cloak': 'f) Cloak',
-                    'shirt': 'g) Shirt'
-                };
-                
-                Object.entries(armorSlots).forEach(([slot, label]) => {
-                    const item = player.equipped.armor[slot];
-                    if (item) {
-                        equipHtml += `<div class="inventory-item equipped">${label}: ${item.name}${item.enchantment ? ` +${item.enchantment}` : ''}</div>`;
-                    }
-                });
-                
-                // Accessories
-                if (player.equipped.accessories.leftRing) {
-                    const r = player.equipped.accessories.leftRing;
-                    equipHtml += `<div class="inventory-item equipped">h) L.Ring: ${r.name}</div>`;
-                }
-                if (player.equipped.accessories.rightRing) {
-                    const r = player.equipped.accessories.rightRing;
-                    equipHtml += `<div class="inventory-item equipped">i) R.Ring: ${r.name}</div>`;
-                }
-                if (player.equipped.accessories.amulet) {
-                    const a = player.equipped.accessories.amulet;
-                    equipHtml += `<div class="inventory-item equipped">j) Amulet: ${a.name}</div>`;
-                }
-                
-                equipList.innerHTML = equipHtml || '<div class="inventory-item">Nothing equipped</div>';
-            }
-            
-            // Update inventory with NetHack-style letters
+            // Inventory
             const invList = document.getElementById('inventory-list');
-            if (invList) {
-                let invHtml = '';
-                
-                player.inventory.forEach((item) => {
-                    // Build item display string
-                    let itemStr = `${item.letter}) ${item.name}`;
-                    
-                    // Add quantity for stackables
-                    if (item.quantity && item.quantity > 1) {
-                        itemStr = `${item.letter}) ${item.quantity} ${item.name}`;
-                    }
-                    
-                    // Add blessed/cursed status if identified
-                    if (item.identified) {
-                        if (item.blessed) itemStr += ' (blessed)';
-                        else if (item.cursed) itemStr += ' (cursed)';
-                        
-                        // Add enchantment
-                        if (item.enchantment) {
-                            const sign = item.enchantment >= 0 ? '+' : '';
-                            itemStr += ` ${sign}${item.enchantment}`;
-                        }
-                    } else {
-                        itemStr += ' (?)';
-                    }
-                    
-                    // Add equipped marker
-                    if (item.equipped) itemStr += ' [wielded]';
-                    
-                    // Color based on BUC status
-                    let className = 'inventory-item';
-                    if (item.identified) {
-                        if (item.blessed) className += ' blessed';
-                        else if (item.cursed) className += ' cursed';
-                    } else {
-                        className += ' unidentified';
-                    }
-                    
-                    invHtml += `<div class="${className}">${itemStr}</div>`;
-                });
-                
-                invList.innerHTML = invHtml || '<div class="inventory-item">Empty</div>';
-            }
-            
-            // Update weight display with burden indicator
-            const weightEl = document.getElementById('weight');
-            if (weightEl) {
-                const weightPercent = (player.currentWeight / player.maxCarry) * 100;
-                let weightColor = '#ffffff';
-                
-                if (weightPercent > 300) weightColor = '#ff0000';      // Overloaded
-                else if (weightPercent > 200) weightColor = '#ff4400';  // Overtaxed
-                else if (weightPercent > 150) weightColor = '#ff8800';  // Strained
-                else if (weightPercent > 100) weightColor = '#ffaa00';  // Stressed
-                else if (weightPercent > 75) weightColor = '#ffff00';   // Burdened
-                else if (weightPercent > 50) weightColor = '#aaffaa';   // Normal
-                else weightColor = '#ffffff';                           // Unencumbered
-                
-                weightEl.style.color = weightColor;
-                weightEl.textContent = `${player.currentWeight}/${player.maxCarry}`;
+            if (player.inventory.length === 0) {
+                invList.innerHTML = '<div class="inventory-item">Empty</div>';
+            } else {
+                invList.innerHTML = player.inventory.map(item => 
+                    `<div class="inventory-item">${item.letter}) ${item.name}${item.identified ? '' : ' (?)'}</div>`
+                ).join('');
             }
         }
 
-        // ===== MESSAGE SYSTEM =====
+        // ===== MESSAGE LOG =====
         Game.addMessage = function(text, type = 'info') {
             const messageLog = document.getElementById('message-log');
             const message = document.createElement('div');
@@ -1015,8 +612,6 @@
             message.textContent = text;
             
             messageLog.appendChild(message);
-            
-            // Auto-scroll to bottom
             messageLog.scrollTop = messageLog.scrollHeight;
             
             // Limit messages
@@ -1025,379 +620,61 @@
             }
         };
 
-        // ===== QUIZ SYSTEM =====
-        Game.startQuiz = function(params) {
-            if (Game.activeQuiz) {
-                Game.addMessage("Quiz already in progress!", 'warning');
-                return;
-            }
+        // ===== INPUT HANDLING =====
+        Game.handleKeyPress = function(e) {
+            // Don't handle input during quiz
+            if (Game.activeQuiz) return;
             
-            Game.activeQuiz = {
-                mode: params.mode,
-                subject: params.subject,
-                tier: params.tier || 1,
-                maxQuestions: params.maxQuestions || 10,
-                threshold: params.threshold,
-                callback: params.callback,
-                reason: params.reason,
+            let dx = 0, dy = 0;
+            
+            // Movement keys
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'k': dy = -1; break;
+                case 'ArrowDown':
+                case 'j': dy = 1; break;
+                case 'ArrowLeft':
+                case 'h': dx = -1; break;
+                case 'ArrowRight':
+                case 'l': dx = 1; break;
+                case 'y': dx = -1; dy = -1; break;
+                case 'u': dx = 1; dy = -1; break;
+                case 'b': dx = -1; dy = 1; break;
+                case 'n': dx = 1; dy = 1; break;
                 
-                currentQuestion: 0,
-                correctAnswers: 0,
-                questions: [],
-                startTime: Date.now()
-            };
-            
-            // Get questions for this quiz
-            const questions = Game.getQuestions(params.subject, params.tier, params.maxQuestions);
-            if (!questions || questions.length === 0) {
-                Game.addMessage("No questions available for " + params.subject, 'warning');
-                Game.endQuiz(false);
-                return;
-            }
-            
-            Game.activeQuiz.questions = questions;
-            Game.showNextQuestion();
-        };
-        
-        Game.showNextQuestion = function() {
-            const quiz = Game.activeQuiz;
-            if (!quiz) return;
-            
-            // Check if quiz should end
-            if (quiz.mode === Game.config.quizModes.THRESHOLD && quiz.correctAnswers >= quiz.threshold) {
-                Game.endQuiz(true);
-                return;
-            }
-            
-            if (quiz.currentQuestion >= quiz.questions.length) {
-                Game.endQuiz(true);
-                return;
-            }
-            
-            const question = quiz.questions[quiz.currentQuestion];
-            const modal = document.getElementById('quiz-modal');
-            
-            // Update modal content
-            document.getElementById('quiz-title').textContent = quiz.reason || 'Knowledge Challenge';
-            document.getElementById('quiz-subject').textContent = `${quiz.subject} - Tier ${quiz.tier}`;
-            document.getElementById('quiz-progress').textContent = 
-                `Question ${quiz.currentQuestion + 1}/${quiz.questions.length} | Score: ${quiz.correctAnswers}`;
-            document.getElementById('quiz-question').textContent = question.question;
-            
-            // Clear previous feedback
-            const feedback = document.getElementById('quiz-feedback');
-            feedback.style.display = 'none';
-            feedback.className = 'quiz-feedback';
-            
-            // Setup input
-            const inputArea = document.getElementById('quiz-input-area');
-            inputArea.style.display = 'block';
-            const input = document.getElementById('quiz-answer');
-            input.value = '';
-            input.disabled = false;
-            input.focus();
-            
-            // Start timer
-            Game.quizTimeRemaining = Game.player.getQuizTimer();
-            Game.updateQuizTimer();
-            
-            if (Game.quizTimer) clearInterval(Game.quizTimer);
-            Game.quizTimer = setInterval(() => {
-                Game.quizTimeRemaining--;
-                Game.updateQuizTimer();
-                
-                if (Game.quizTimeRemaining <= 0) {
-                    Game.submitQuizAnswer(null, true);
-                }
-            }, 1000);
-            
-            // Show modal
-            modal.classList.add('active');
-        };
-        
-        Game.updateQuizTimer = function() {
-            const timerEl = document.getElementById('quiz-timer');
-            timerEl.textContent = Game.quizTimeRemaining;
-            
-            if (Game.quizTimeRemaining <= 5) {
-                timerEl.className = 'quiz-timer danger';
-            } else if (Game.quizTimeRemaining <= 10) {
-                timerEl.className = 'quiz-timer warning';
-            } else {
-                timerEl.className = 'quiz-timer';
-            }
-        };
-        
-        Game.submitQuizAnswer = function(answer, timeout = false) {
-            const quiz = Game.activeQuiz;
-            if (!quiz) return;
-            
-            clearInterval(Game.quizTimer);
-            
-            const question = quiz.questions[quiz.currentQuestion];
-            const correctAnswer = question.answer || question.correct;
-            
-            let isCorrect = false;
-            if (!timeout && answer) {
-                const normalizedAnswer = answer.toString().toLowerCase().trim();
-                const normalizedCorrect = correctAnswer.toString().toLowerCase().trim();
-                isCorrect = normalizedAnswer === normalizedCorrect;
-            }
-            
-            // Show feedback IN THE MODAL
-            const feedback = document.getElementById('quiz-feedback');
-            const inputArea = document.getElementById('quiz-input-area');
-            
-            if (timeout) {
-                feedback.textContent = `Time's up! The answer was: ${correctAnswer}`;
-                feedback.className = 'quiz-feedback wrong';
-            } else if (isCorrect) {
-                feedback.textContent = 'Correct!';
-                feedback.className = 'quiz-feedback correct';
-                quiz.correctAnswers++;
-            } else {
-                feedback.textContent = `Wrong! The answer was: ${correctAnswer}`;
-                feedback.className = 'quiz-feedback wrong';
-            }
-            
-            feedback.style.display = 'block';
-            inputArea.style.display = 'none';
-            
-            // Continue or end quiz after delay
-            setTimeout(() => {
-                quiz.currentQuestion++;
-                
-                // For chain mode, end on first wrong answer
-                if (quiz.mode === Game.config.quizModes.CHAIN && !isCorrect) {
-                    Game.endQuiz(false);
-                } else if (quiz.currentQuestion < quiz.questions.length) {
-                    Game.showNextQuestion();
-                } else {
-                    Game.endQuiz(true);
-                }
-            }, isCorrect ? 1000 : 2000); // Shorter delay for correct, longer for wrong
-        };
-        
-        Game.endQuiz = function(success) {
-            clearInterval(Game.quizTimer);
-            
-            const quiz = Game.activeQuiz;
-            if (!quiz) return;
-            
-            // Hide modal
-            document.getElementById('quiz-modal').classList.remove('active');
-            
-            // Calculate result
-            const result = {
-                success: success,
-                score: quiz.correctAnswers,
-                total: quiz.currentQuestion,
-                mode: quiz.mode,
-                subject: quiz.subject
-            };
-            
-            // Call callback
-            if (quiz.callback) {
-                quiz.callback(result);
-            }
-            
-            Game.activeQuiz = null;
-        };
-        
-        Game.getQuestions = function(subject, tier, count) {
-            // For now, return dummy questions
-            // In production, these would come from loaded JSON files
-            const questions = [];
-            
-            if (subject === 'math') {
-                const operations = [
-                    { q: "What is 7 + 5?", a: "12" },
-                    { q: "What is 9 × 3?", a: "27" },
-                    { q: "What is 15 - 8?", a: "7" },
-                    { q: "What is 24 ÷ 4?", a: "6" },
-                    { q: "What is 6 × 7?", a: "42" },
-                    { q: "What is 18 + 14?", a: "32" },
-                    { q: "What is 45 ÷ 5?", a: "9" },
-                    { q: "What is 8 × 8?", a: "64" },
-                    { q: "What is 100 - 37?", a: "63" },
-                    { q: "What is 11 × 11?", a: "121" }
-                ];
-                
-                for (let i = 0; i < Math.min(count, operations.length); i++) {
-                    questions.push({
-                        question: operations[i].q,
-                        answer: operations[i].a,
-                        type: 'input'
-                    });
-                }
-            } else if (subject === 'cooking') {
-                questions.push(
-                    { question: "What temperature kills most bacteria in meat?", answer: "165", type: 'input' },
-                    { question: "How many teaspoons in a tablespoon?", answer: "3", type: 'input' },
-                    { question: "What does 'sauté' mean?", answer: "fry", type: 'input' }
-                );
-            }
-            
-            return questions;
-        };
-
-        // ===== COMBAT SYSTEM =====
-        Game.playerAttack = function(monster) {
-            Game.addMessage(`You attack the ${monster.name}!`, 'action');
-            
-            Game.startQuiz({
-                mode: Game.config.quizModes.CHAIN,
-                subject: 'math',
-                tier: 1,
-                maxQuestions: 10,
-                reason: 'Combat Attack',
-                callback: (result) => {
-                    if (result.score === 0) {
-                        Game.addMessage(`You miss the ${monster.name}!`, 'warning');
-                    } else {
-                        const damage = 2 * result.score; // 2 damage per correct answer
-                        monster.takeDamage(damage);
-                        Game.addMessage(`You hit the ${monster.name} for ${damage} damage!`, 'success');
-                        
-                        if (monster.dead) {
-                            Game.addMessage(`The ${monster.name} dies!`, 'success');
-                            Game.dropCorpse(monster);
-                        }
-                    }
-                    
-                    // Process turn after combat
+                // Actions
+                case ',':
+                case 'g':
+                    Game.pickupItem();
                     Game.processTurn();
-                }
-            });
-        };
-        
-        Game.monsterAttack = function(monster) {
-            const damage = monster.damage || 1;
-            Game.player.takeDamage(damage);
-            Game.addMessage(`The ${monster.name} hits you for ${damage} damage!`, 'danger');
-        };
-        
-        Game.dropCorpse = function(monster) {
-            Game.items.push({
-                x: monster.x,
-                y: monster.y,
-                type: 'corpse',
-                name: `${monster.name} corpse`,
-                symbol: '%',
-                weight: 10,
-                monsterType: monster.type
-            });
-            Game.addMessage(`The ${monster.name} drops a corpse.`, 'loot');
+                    return;
+                case 'E':
+                    Game.eatFood();
+                    Game.processTurn();
+                    return;
+                case '.':
+                case ' ':
+                    Game.addMessage("You wait.", 'info');
+                    Game.player.spendSP(1);
+                    Game.processTurn();
+                    return;
+                case '>':
+                    if (Game.dungeon[Game.player.y][Game.player.x] === '>') {
+                        Game.nextLevel();
+                    }
+                    return;
+                case '?':
+                    Game.showHelp();
+                    return;
+            }
+            
+            // Process movement
+            if (dx !== 0 || dy !== 0) {
+                Game.movePlayer(dx, dy);
+                e.preventDefault();
+            }
         };
 
-        // ===== ITEM INTERACTIONS =====
-        Game.pickupItem = function() {
-            const player = Game.player;
-            const itemsHere = Game.items.filter(i => i.x === player.x && i.y === player.y);
-            
-            if (itemsHere.length === 0) {
-                Game.addMessage("There's nothing here to pick up.", 'info');
-                return;
-            }
-            
-            const item = itemsHere[0];
-            if (player.addToInventory(item)) {
-                Game.items = Game.items.filter(i => i !== item);
-                Game.addMessage(`You pick up the ${item.name}.`, 'action');
-            }
-        };
-        
-        Game.eatFood = function() {
-            const player = Game.player;
-            const food = player.inventory.find(i => i.type === 'food' || i.type === 'corpse');
-            
-            if (!food) {
-                Game.addMessage("You have no food to eat.", 'warning');
-                return;
-            }
-            
-            player.removeFromInventory(food);
-            const spRestore = 20 + Math.floor(Math.random() * 20);
-            player.restoreSP(spRestore);
-            Game.addMessage(`You eat the ${food.name} and restore ${spRestore} SP.`, 'success');
-        };
-        
-        Game.cookFood = function() {
-            const player = Game.player;
-            const cookable = player.inventory.find(i => i.type === 'food' || i.type === 'corpse');
-            
-            if (!cookable) {
-                Game.addMessage("You have nothing to cook.", 'warning');
-                return;
-            }
-            
-            Game.addMessage(`You attempt to cook the ${cookable.name}...`, 'action');
-            
-            Game.startQuiz({
-                mode: Game.config.quizModes.ESCALATOR_CHAIN,
-                subject: 'cooking',
-                tier: 1,
-                maxQuestions: 5,
-                reason: 'Cooking',
-                callback: (result) => {
-                    if (result.score === 0) {
-                        Game.addMessage("You burn the food! It's ruined.", 'danger');
-                        player.removeFromInventory(cookable);
-                    } else {
-                        const quality = ['poorly cooked', 'decently cooked', 'well cooked', 
-                                       'expertly cooked', 'masterfully cooked'][Math.min(result.score - 1, 4)];
-                        const cookedFood = {
-                            type: 'food',
-                            name: `${quality} ${cookable.name}`,
-                            weight: cookable.weight,
-                            spRestore: 30 + (result.score * 10),
-                            statBonus: result.score >= 3 ? { stat: 'constitution', value: 1 } : null
-                        };
-                        
-                        player.removeFromInventory(cookable);
-                        player.addToInventory(cookedFood);
-                        
-                        Game.addMessage(`You create a ${cookedFood.name}!`, 'success');
-                        if (cookedFood.statBonus) {
-                            Game.addMessage("This meal is so good it will permanently increase your stats when eaten!", 'success');
-                        }
-                    }
-                }
-            });
-        };
-        
-        Game.identifyItem = function() {
-            const player = Game.player;
-            const unidentified = player.inventory.filter(i => !i.identified);
-            
-            if (unidentified.length === 0) {
-                Game.addMessage("You have nothing to identify.", 'info');
-                return;
-            }
-            
-            const item = unidentified[0];
-            Game.addMessage(`You examine the ${item.name}...`, 'action');
-            
-            Game.startQuiz({
-                mode: Game.config.quizModes.THRESHOLD,
-                subject: 'philosophy',
-                tier: 1,
-                threshold: 3,
-                maxQuestions: 5,
-                reason: 'Identification',
-                callback: (result) => {
-                    if (result.success) {
-                        item.identified = true;
-                        item.trueName = item.name + ' of power';
-                        Game.addMessage(`You identify the item as a ${item.trueName}!`, 'success');
-                    } else {
-                        Game.addMessage("You fail to identify the item.", 'warning');
-                    }
-                }
-            });
-        };
-
-        // ===== MOVEMENT & INPUT =====
         Game.movePlayer = function(dx, dy) {
             const player = Game.player;
             const newX = player.x + dx;
@@ -1426,20 +703,19 @@
                 Game.addMessage("You see stairs leading down. Press > to descend.", 'info');
             }
             
-            // Process turn
             Game.processTurn();
         };
-        
+
         Game.canMoveTo = function(x, y) {
             if (y < 0 || y >= Game.dungeon.length) return false;
             if (x < 0 || x >= Game.dungeon[y].length) return false;
             return Game.dungeon[y][x] !== '#';
         };
-        
+
         Game.getMonsterAt = function(x, y) {
             return Game.monsters.find(m => !m.dead && m.x === x && m.y === y);
         };
-        
+
         Game.processTurn = function() {
             // Move monsters
             Game.monsters.forEach(m => m.move());
@@ -1447,134 +723,128 @@
             // Increment turn
             Game.turn++;
             
-            // Update display
+            // Render
             render();
         };
-        
-        Game.handleKeyPress = function(e) {
-            // Don't handle input during quiz
-            if (Game.activeQuiz) {
-                if (e.key === 'Enter') {
-                    const input = document.getElementById('quiz-answer');
-                    if (input && !input.disabled) {
-                        Game.submitQuizAnswer(input.value);
-                    }
-                }
+
+        Game.playerAttack = function(monster) {
+            // For now, simple attack without quiz
+            const damage = 2 + Math.floor(Math.random() * 4);
+            monster.takeDamage(damage);
+            Game.addMessage(`You hit the ${monster.name} for ${damage} damage!`, 'success');
+            
+            if (monster.dead) {
+                Game.addMessage(`The ${monster.name} dies!`, 'success');
+                Game.dropCorpse(monster);
+            }
+            
+            Game.processTurn();
+        };
+
+        Game.dropCorpse = function(monster) {
+            Game.items.push({
+                x: monster.x,
+                y: monster.y,
+                type: 'corpse',
+                name: `${monster.name} corpse`,
+                symbol: '%',
+                weight: 10
+            });
+        };
+
+        Game.pickupItem = function() {
+            const player = Game.player;
+            const itemsHere = Game.items.filter(i => i.x === player.x && i.y === player.y);
+            
+            if (itemsHere.length === 0) {
+                Game.addMessage("There's nothing here to pick up.", 'info');
                 return;
             }
             
-            // Movement
-            switch(e.key) {
-                case 'ArrowUp':
-                case 'k':
-                    Game.movePlayer(0, -1);
-                    break;
-                case 'ArrowDown':
-                case 'j':
-                    Game.movePlayer(0, 1);
-                    break;
-                case 'ArrowLeft':
-                case 'h':
-                    Game.movePlayer(-1, 0);
-                    break;
-                case 'ArrowRight':
-                case 'l':
-                    Game.movePlayer(1, 0);
-                    break;
-                case 'y':
-                    Game.movePlayer(-1, -1);
-                    break;
-                case 'u':
-                    Game.movePlayer(1, -1);
-                    break;
-                case 'b':
-                    Game.movePlayer(-1, 1);
-                    break;
-                case 'n':
-                    Game.movePlayer(1, 1);
-                    break;
-                    
-                // Actions
-                case ',':
-                case 'g':
-                    Game.pickupItem();
-                    Game.processTurn();
-                    break;
-                case 'E':
-                    Game.eatFood();
-                    Game.processTurn();
-                    break;
-                case 'c':
-                    Game.cookFood();
-                    break;
-                case 'I':
-                    Game.identifyItem();
-                    break;
-                case '.':
-                case ' ':
-                    Game.addMessage("You wait.", 'info');
-                    Game.player.spendSP(1);
-                    Game.processTurn();
-                    break;
-                case '>':
-                    if (Game.dungeon[Game.player.y][Game.player.x] === '>') {
-                        Game.nextLevel();
-                    }
-                    break;
-                case '?':
-                    Game.showHelp();
-                    break;
+            const item = itemsHere[0];
+            if (player.addToInventory(item)) {
+                Game.items = Game.items.filter(i => i !== item);
+                Game.addMessage(`You pick up the ${item.name}.`, 'action');
+            }
+        };
+
+        Game.eatFood = function() {
+            const player = Game.player;
+            const food = player.inventory.find(i => i.type === 'food' || i.type === 'corpse');
+            
+            if (!food) {
+                Game.addMessage("You have no food to eat.", 'warning');
+                return;
             }
             
-            e.preventDefault();
+            player.removeFromInventory(food);
+            const spRestore = 20 + Math.floor(Math.random() * 20);
+            player.restoreSP(spRestore);
+            Game.addMessage(`You eat the ${food.name} and restore ${spRestore} SP.`, 'success');
         };
-        
+
         Game.nextLevel = function() {
             Game.currentLevel++;
             Game.addMessage(`You descend to level ${Game.currentLevel}...`, 'action');
             Game.dungeon = generateDungeon(Game.config.mapWidth, Game.config.mapHeight);
             render();
         };
-        
+
         Game.showHelp = function() {
             Game.addMessage("=== CONTROLS ===", 'info');
-            Game.addMessage("Movement: Arrow keys, HJKLYUBN", 'info');
+            Game.addMessage("Movement: Arrow keys or HJKLYUBN", 'info');
             Game.addMessage("Get item: , or g", 'info');
-            Game.addMessage("Eat: E | Cook: c | Identify: I", 'info');
-            Game.addMessage("Wait: . or Space", 'info');
+            Game.addMessage("Eat: E | Wait: . or Space", 'info');
             Game.addMessage("Descend stairs: >", 'info');
         };
-        
+
         Game.gameOver = function(message) {
             Game.addMessage("=== GAME OVER ===", 'danger');
             Game.addMessage(message, 'danger');
+            Game.addMessage(`You survived ${Game.turn} turns and reached level ${Game.currentLevel}.`, 'info');
             document.removeEventListener('keydown', Game.handleKeyPress);
         };
 
         // ===== INITIALIZATION =====
         Game.init = function() {
+            // Setup welcome screen
+            const nameInput = document.getElementById('player-name-input');
+            const startBtn = document.getElementById('start-game-btn');
+            
+            nameInput.focus();
+            
+            // Handle Enter key on name input
+            nameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    Game.startGame();
+                }
+            });
+            
+            startBtn.addEventListener('click', Game.startGame);
+        };
+
+        Game.startGame = function() {
+            const nameInput = document.getElementById('player-name-input');
+            const playerName = nameInput.value.trim() || 'Hero';
+            
+            // Hide welcome, show game
+            document.getElementById('welcome-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            
             // Get display element
             Game.display = document.getElementById('game-display');
             
             // Create player
-            Game.player = new Player("Hero");
+            Game.player = new Player(playerName);
             
             // Generate first dungeon
             Game.dungeon = generateDungeon(Game.config.mapWidth, Game.config.mapHeight);
             
-            // Setup input handling
+            // Setup input
             document.addEventListener('keydown', Game.handleKeyPress);
             
-            // Setup quiz submit button
-            document.getElementById('quiz-submit').addEventListener('click', () => {
-                const input = document.getElementById('quiz-answer');
-                if (input && !input.disabled) {
-                    Game.submitQuizAnswer(input.value);
-                }
-            });
-            
             // Initial messages
-            Game.addMessage("=== PHILOSOPHER'S QUEST ===", 'success');
+            Game.addMessage(`Welcome, ${playerName}, to the Philosopher's Quest!`, 'success');
             Game.addMessage("Knowledge is power. Every action requires learning.", 'info');
             Game.addMessage("Press ? for help.", 'info');
             
@@ -1582,7 +852,7 @@
             render();
         };
 
-        // Start game when page loads
+        // Start when page loads
         window.addEventListener('load', Game.init);
     </script>
 </body>
