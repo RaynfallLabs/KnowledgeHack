@@ -804,6 +804,68 @@
             }
         };
 
+        // ===== DICE SYSTEM =====
+        Game.Dice = {
+            // Parse and roll dice notation: "2d6+3", "1d20", "3d4-2", etc.
+            roll: function(notation) {
+                if (!notation) return 0;
+                
+                // Handle plain numbers
+                if (!isNaN(notation)) return parseInt(notation);
+                
+                // Parse dice notation with regex
+                const match = notation.match(/^(\d+)?d(\d+)([+-]\d+)?$/i);
+                if (!match) return parseInt(notation) || 0;
+                
+                const count = parseInt(match[1] || 1);
+                const sides = parseInt(match[2]);
+                const modifier = parseInt(match[3] || 0);
+                
+                let total = modifier;
+                for (let i = 0; i < count; i++) {
+                    total += Math.floor(Math.random() * sides) + 1;
+                }
+                
+                return Math.max(0, total); // Never return negative
+            },
+            
+            // Roll with advantage (roll twice, take higher)
+            rollAdvantage: function(notation) {
+                return Math.max(this.roll(notation), this.roll(notation));
+            },
+            
+            // Roll with disadvantage (roll twice, take lower)
+            rollDisadvantage: function(notation) {
+                return Math.min(this.roll(notation), this.roll(notation));
+            },
+            
+            // Roll multiple times and return array
+            rollMultiple: function(notation, times) {
+                const results = [];
+                for (let i = 0; i < times; i++) {
+                    results.push(this.roll(notation));
+                }
+                return results;
+            },
+            
+            // Check if roll meets or exceeds target
+            check: function(notation, target) {
+                return this.roll(notation) >= target;
+            },
+            
+            // Get average result for a dice notation (for balancing)
+            average: function(notation) {
+                const match = notation.match(/^(\d+)?d(\d+)([+-]\d+)?$/i);
+                if (!match) return parseInt(notation) || 0;
+                
+                const count = parseInt(match[1] || 1);
+                const sides = parseInt(match[2]);
+                const modifier = parseInt(match[3] || 0);
+                
+                return (count * (sides + 1) / 2) + modifier;
+            }
+        };
+
         // ===== PLAYER CLASS =====
         class Player {
             constructor(name = "Hero") {
@@ -1054,30 +1116,41 @@
             }
         };
 
+        // ===== MONSTER SYSTEM =====
+        // Track extinctions globally
+        Game.extinctions = {};
+        Game.monsterData = { monsters: [] };
+
+        // Load monster data from JSON file
+        Game.loadMonsterData = async function() {
+            try {
+                const response = await fetch('monsters.json');
+                Game.monsterData = await response.json();
+                console.log(`Loaded ${Game.monsterData.monsters.length} monster types`);
+            } catch (error) {
+                console.error('Failed to load monsters.json:', error);
+                // Fallback to basic monsters if file fails
+                Game.monsterData = {
+                    monsters: [
+                        {id: "goblin", name: "goblin", symbol: "o", color: "#00FF00", mlevel: 1, speed: 12, hit_dice: "1d8", attacks: [{type: "weapon", adtyp: "phys", dam: "1d4"}], frequency: 6, geno_flags: ["geno"], environment_flags: ["dungeon"], extinction_cap: 120, pack_size: "1", ai_pattern: "aggressive", carries: {gold: true}, loot_system: "none"}
+                    ]
+                };
+            }
+        };
+
         // ===== MONSTER CLASS =====
         class Monster {
-            constructor(type, x, y) {
-                this.type = type;
+            constructor(monsterDef, x, y) {
+                // Copy all definition fields
+                Object.assign(this, monsterDef);
+                
+                // Instance-specific data
                 this.x = x;
                 this.y = y;
-                
-                // Default stats for basic monsters
-                const monsterTypes = {
-                    'goblin': { symbol: 'g', hp: 5, damage: 2, color: '#8b8' },
-                    'orc': { symbol: 'o', hp: 10, damage: 3, color: '#a82' },
-                    'skeleton': { symbol: 's', hp: 8, damage: 2, color: '#ddd' },
-                    'rat': { symbol: 'r', hp: 3, damage: 1, color: '#888' },
-                    'kobold': { symbol: 'k', hp: 4, damage: 2, color: '#88f' }
-                };
-                
-                const data = monsterTypes[type] || monsterTypes['goblin'];
-                this.name = type;
-                this.symbol = data.symbol;
-                this.color = data.color;
-                this.maxHp = data.hp;
+                this.maxHp = Game.Dice.roll(this.hit_dice || "1d8");
                 this.hp = this.maxHp;
-                this.damage = data.damage;
                 this.dead = false;
+                this.paralyzeTurns = 0;
             }
             
             takeDamage(amount) {
@@ -1090,26 +1163,83 @@
             
             move() {
                 if (this.dead) return;
+                if (this.paralyzeTurns > 0) {
+                    this.paralyzeTurns--;
+                    return;
+                }
                 
-                // Simple AI: move toward player if within 10 tiles
+                // Speed check
+                const speedRoll = Math.random() * 12;
+                if (speedRoll > (this.speed || 12)) return;
+                
+                // AI patterns
+                const pattern = this.ai_pattern || 'aggressive';
+                switch(pattern) {
+                    case 'aggressive':
+                        this.moveAggressive();
+                        break;
+                    case 'cowardly':
+                        this.moveCowardly();
+                        break;
+                    case 'grid':
+                        this.moveGrid();
+                        break;
+                    case 'sessile':
+                        break;
+                    case 'slow':
+                    case 'slow_pursuit':
+                        if (Game.turn % 2 === 0) this.moveAggressive();
+                        break;
+                    default:
+                        this.moveAggressive();
+                }
+            }
+            
+            moveAggressive() {
                 const dx = Game.player.x - this.x;
                 const dy = Game.player.y - this.y;
                 const distance = Math.abs(dx) + Math.abs(dy);
                 
-                if (distance > 10) return; // Too far, don't chase
+                if (distance > 10) return;
                 
                 let moveX = 0, moveY = 0;
-                
                 if (Math.abs(dx) > Math.abs(dy)) {
                     moveX = dx > 0 ? 1 : -1;
                 } else if (dy !== 0) {
                     moveY = dy > 0 ? 1 : -1;
                 }
                 
-                const newX = this.x + moveX;
-                const newY = this.y + moveY;
+                this.tryMove(this.x + moveX, this.y + moveY);
+            }
+            
+            moveCowardly() {
+                const dx = Game.player.x - this.x;
+                const dy = Game.player.y - this.y;
+                const distance = Math.abs(dx) + Math.abs(dy);
                 
-                // Check if attacking player
+                if (distance < 3) {
+                    const moveX = dx > 0 ? -1 : (dx < 0 ? 1 : 0);
+                    const moveY = dy > 0 ? -1 : (dy < 0 ? 1 : 0);
+                    this.tryMove(this.x + moveX, this.y + moveY);
+                }
+            }
+            
+            moveGrid() {
+                // Grid bugs only move orthogonally
+                const moves = [[0,1], [0,-1], [1,0], [-1,0]];
+                const validMoves = moves.filter(([dx, dy]) => {
+                    const newX = this.x + dx;
+                    const newY = this.y + dy;
+                    return Game.canMoveTo(newX, newY) && !Game.getMonsterAt(newX, newY);
+                });
+                
+                if (validMoves.length > 0) {
+                    const [dx, dy] = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    this.tryMove(this.x + dx, this.y + dy);
+                }
+            }
+            
+            tryMove(newX, newY) {
                 if (newX === Game.player.x && newY === Game.player.y) {
                     this.attack();
                 } else if (Game.canMoveTo(newX, newY) && !Game.getMonsterAt(newX, newY)) {
@@ -1119,10 +1249,103 @@
             }
             
             attack() {
-                Game.player.takeDamage(this.damage);
-                Game.addMessage(`The ${this.name} hits you for ${this.damage} damage!`, 'danger');
+                if (!this.attacks || this.attacks.length === 0) return;
+                
+                let totalDamage = 0;
+                for (const attack of this.attacks) {
+                    totalDamage += Game.Dice.roll(attack.dam || "1d2");
+                }
+                
+                if (totalDamage > 0) {
+                    Game.player.takeDamage(totalDamage);
+                    Game.addMessage(`The ${this.name} hits you for ${totalDamage} damage!`, 'danger');
+                }
             }
         }
+        
+        // ===== MONSTER SPAWNING (NetHack-style) =====
+        Game.spawnMonster = function(currentLevel, playerLevel = 1, levelType = 'dungeon') {
+            // NetHack's zlevel calculation
+            const zlevel = Math.max(currentLevel, Math.floor(playerLevel / 2)) + Math.floor(Math.random() * 3);
+            
+            // Filter eligible monsters
+            const eligible = Game.monsterData.monsters.filter(m => {
+                if ((m.mlevel || 0) > zlevel + 2) return false;
+                if (m.environment_flags && !m.environment_flags.includes(levelType)) return false;
+                const extinctCount = Game.extinctions[m.id] || 0;
+                if (extinctCount >= (m.extinction_cap || 120)) return false;
+                if (m.geno_flags && !m.geno_flags.includes('geno')) return false;
+                return true;
+            });
+            
+            if (eligible.length === 0) return null;
+            
+            // Weighted selection
+            const totalFreq = eligible.reduce((sum, m) => sum + (m.frequency || 1), 0);
+            let pick = Math.random() * totalFreq;
+            let selected = null;
+            
+            for (const m of eligible) {
+                pick -= (m.frequency || 1);
+                if (pick <= 0) {
+                    selected = m;
+                    break;
+                }
+            }
+            
+            if (!selected) return null;
+            
+            // Track extinction
+            Game.extinctions[selected.id] = (Game.extinctions[selected.id] || 0) + 1;
+            
+            // Find spawn location
+            const pos = Game.findSpawnLocation();
+            if (!pos) return null;
+            
+            // Handle pack spawning
+            const packSize = Game.Dice.roll(selected.pack_size || "1");
+            const monsters = [];
+            
+            for (let i = 0; i < packSize; i++) {
+                const spawnPos = i === 0 ? pos : Game.findNearbySpawnLocation(pos.x, pos.y);
+                if (spawnPos) {
+                    monsters.push(new Monster(selected, spawnPos.x, spawnPos.y));
+                }
+            }
+            
+            return monsters;
+        };
+        
+        Game.findSpawnLocation = function() {
+            for (let attempts = 0; attempts < 100; attempts++) {
+                const x = Math.floor(Math.random() * Game.config.mapWidth);
+                const y = Math.floor(Math.random() * Game.config.mapHeight);
+                
+                if (Game.dungeon[y] && Game.dungeon[y][x] === '.' &&
+                    !Game.getMonsterAt(x, y) && 
+                    !(x === Game.player.x && y === Game.player.y)) {
+                    const dist = Math.abs(x - Game.player.x) + Math.abs(y - Game.player.y);
+                    if (dist > 10) return { x, y };
+                }
+            }
+            return null;
+        };
+        
+        Game.findNearbySpawnLocation = function(centerX, centerY) {
+            for (let dx = -2; dx <= 2; dx++) {
+                for (let dy = -2; dy <= 2; dy++) {
+                    if (dx === 0 && dy === 0) continue;
+                    const x = centerX + dx;
+                    const y = centerY + dy;
+                    if (Game.dungeon[y] && Game.dungeon[y][x] === '.' &&
+                        !Game.getMonsterAt(x, y) && 
+                        !(x === Game.player.x && y === Game.player.y)) {
+                        return { x, y };
+                    }
+                }
+            }
+            return null;
+        };
 
         // ===== DUNGEON GENERATION =====
         function generateDungeon(width, height) {
@@ -1192,19 +1415,14 @@
                 dungeon[lastRoom.y][lastRoom.x] = '>';
             }
             
-            // Spawn monsters
+            // Spawn monsters using the new system
             Game.monsters = [];
-            const monsterTypes = ['goblin', 'rat', 'kobold', 'orc', 'skeleton'];
-            const numMonsters = 3 + Math.floor(Math.random() * 5);
+            const monsterBudget = 3 + Math.floor(Math.random() * 5) + Math.floor(Game.currentLevel / 3);
             
-            for (let i = 0; i < numMonsters && i < rooms.length - 1; i++) {
-                const room = rooms[1 + i]; // Skip first room (player spawn)
-                const type = monsterTypes[Math.floor(Math.random() * monsterTypes.length)];
-                const x = room.x - 2 + Math.floor(Math.random() * 5);
-                const y = room.y - 2 + Math.floor(Math.random() * 5);
-                
-                if (dungeon[y][x] === '.') {
-                    Game.monsters.push(new Monster(type, x, y));
+            for (let i = 0; i < monsterBudget; i++) {
+                const spawnedMonsters = Game.spawnMonster(Game.currentLevel, 1, 'dungeon');
+                if (spawnedMonsters) {
+                    Game.monsters.push(...spawnedMonsters);
                 }
             }
             
@@ -1540,14 +1758,64 @@
         };
 
         Game.dropCorpse = function(monster) {
+            // Drop corpse based on monster data
             Game.items.push({
                 x: monster.x,
                 y: monster.y,
                 type: 'corpse',
                 name: `${monster.name} corpse`,
                 symbol: '%',
-                weight: 10
+                weight: monster.weight || 10,
+                nutrition: Math.floor((monster.weight || 10) / 10),
+                conferred: monster.conferred || []
             });
+            
+            // Drop additional loot based on carries flags
+            if (monster.carries) {
+                if (monster.carries.gold && Math.random() < 0.5) {
+                    Game.items.push({
+                        x: monster.x,
+                        y: monster.y,
+                        type: 'gold',
+                        name: `${Game.Dice.roll('2d10')} gold pieces`,
+                        symbol: '$',
+                        weight: 0
+                    });
+                }
+                
+                if (monster.carries.weapon && Math.random() < 0.3) {
+                    Game.items.push({
+                        x: monster.x,
+                        y: monster.y,
+                        type: 'weapon',
+                        name: 'crude dagger',
+                        symbol: ')',
+                        weight: 3
+                    });
+                }
+                
+                if (monster.carries.jewels && Math.random() < 0.1) {
+                    Game.items.push({
+                        x: monster.x,
+                        y: monster.y,
+                        type: 'gem',
+                        name: 'worthless glass',
+                        symbol: '*',
+                        weight: 1
+                    });
+                }
+            }
+            
+            // Additional loot based on loot_system
+            if (monster.loot_system === 'random_basic' && Math.random() < 0.2) {
+                const basicLoot = [
+                    { type: 'food', name: 'food ration', symbol: '%', weight: 2 },
+                    { type: 'potion', name: 'murky potion', symbol: '!', weight: 1 },
+                    { type: 'scroll', name: 'scroll', symbol: '?', weight: 1 }
+                ];
+                const loot = basicLoot[Math.floor(Math.random() * basicLoot.length)];
+                Game.items.push({ ...loot, x: monster.x, y: monster.y });
+            }
         };
 
         Game.pickupItem = function() {
@@ -1621,7 +1889,7 @@
             startBtn.addEventListener('click', Game.startGame);
         };
 
-        Game.startGame = function() {
+        Game.startGame = async function() {
             const nameInput = document.getElementById('player-name-input');
             const playerName = nameInput.value.trim() || 'Hero';
             
@@ -1631,6 +1899,9 @@
             
             // Get display element
             Game.display = document.getElementById('game-display');
+            
+            // Load monster data
+            await Game.loadMonsterData();
             
             // Create player
             Game.player = new Player(playerName);
