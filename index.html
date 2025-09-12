@@ -3,226 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Philosopher's Quest - Educational Roguelike</title>
-    <link rel="stylesheet" href="css/main.css">
+    <title>Philosopher's Quest - Knowledge is Power</title>
     <style>
-        /* Basic styles if main.css is missing */
-        body {
+        /* ===== RESET & BASE STYLES ===== */
+        * {
             margin: 0;
             padding: 0;
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            overflow: hidden;
+            box-sizing: border-box;
         }
-        
-        .screen {
-            display: none;
-            width: 100vw;
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            overflow: hidden;
             height: 100vh;
         }
-        
-        .screen.active {
+
+        /* ===== MAIN LAYOUT ===== */
+        #game-container {
             display: flex;
+            height: 100vh;
+            width: 100vw;
         }
-        
-        /* Intro Screen */
-        #intro-screen {
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #1a1a2e, #0f0f0f);
-        }
-        
-        .intro-container {
-            text-align: center;
-            max-width: 600px;
-            padding: 2rem;
-        }
-        
-        .game-title {
-            font-size: 3rem;
-            color: #ffd700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            margin-bottom: 0.5rem;
-        }
-        
-        .game-subtitle {
-            font-size: 1.5rem;
-            color: #00ff00;
-            margin-bottom: 2rem;
-        }
-        
-        .intro-text {
-            color: #ffffff;
-            line-height: 1.6;
-            margin-bottom: 2rem;
-        }
-        
-        .character-creation {
-            background: rgba(0,0,0,0.5);
-            padding: 2rem;
-            border-radius: 10px;
-            border: 2px solid #00ff00;
-        }
-        
-        #player-name {
-            padding: 10px;
-            font-size: 1.2rem;
-            background: #000;
-            color: #0f0;
-            border: 1px solid #0f0;
-            margin: 10px;
-        }
-        
-        .btn-primary {
-            padding: 12px 24px;
-            font-size: 1.2rem;
-            background: #00ff00;
-            color: #000;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        
-        .btn-primary:hover {
-            background: #00cc00;
-        }
-        
-        /* Game Screen */
-        #game-screen {
+
+        #main-area {
+            flex: 1;
+            display: flex;
             flex-direction: column;
         }
-        
-        .game-layout {
-            display: flex;
-            flex: 1;
-            min-height: 0;
-        }
-        
-        .game-viewport {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #000;
-            padding: 10px;
-        }
-        
-        #game-canvas {
-            background: #000;
-            border: 2px solid #333;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-        }
-        
-        /* Sidebar */
-        .sidebar {
+
+        #sidebar {
             width: 300px;
             background: #111;
             border-left: 2px solid #333;
             padding: 10px;
             overflow-y: auto;
-            color: #0f0;
         }
-        
-        .sidebar h3 {
-            color: #ffd700;
-            margin: 10px 0 5px 0;
-            font-size: 1.1rem;
-            border-bottom: 1px solid #333;
-        }
-        
-        /* Stats Panel */
-        .stat-row {
-            display: flex;
-            align-items: center;
-            margin: 5px 0;
-        }
-        
-        .stat-row span:first-child {
-            width: 30px;
-        }
-        
-        .bar-container {
+
+        /* ===== GAME DISPLAY ===== */
+        #game-display {
             flex: 1;
-            height: 20px;
-            background: #222;
-            border: 1px solid #444;
-            position: relative;
-            margin: 0 5px;
-        }
-        
-        .bar {
-            height: 100%;
-            transition: width 0.3s;
-        }
-        
-        .bar.hp { background: #ff0000; }
-        .bar.sp { background: #ffff00; }
-        .bar.mp { background: #0066ff; }
-        
-        #hp-text, #sp-text, #mp-text {
-            position: absolute;
-            right: 5px;
-            top: 2px;
-            color: #fff;
-            font-size: 12px;
-        }
-        
-        .stat-info {
-            margin-top: 10px;
+            background: #000;
+            color: #0f0;
+            font-family: 'Consolas', 'Monaco', monospace;
             font-size: 14px;
+            padding: 10px;
+            overflow: hidden;
+            white-space: pre;
+            line-height: 1.2;
         }
-        
-        .stat-info div {
-            margin: 3px 0;
-        }
-        
-        /* Equipment & Inventory */
-        #equipment-list, #inventory-list {
-            font-size: 13px;
-            color: #aaa;
-        }
-        
-        #equipment-list div, #inventory-list div {
-            margin: 3px 0;
-        }
-        
-        /* Message Log */
-        .message-log {
+
+        /* ===== MESSAGE LOG ===== */
+        #message-log {
             height: 150px;
-            background: #111;
+            background: #0a0a0a;
             border-top: 2px solid #333;
             padding: 5px;
             overflow-y: auto;
+            font-size: 12px;
         }
-        
-        #message-log, #game-messages {
-            font-size: 13px;
-            line-height: 1.4;
+
+        .message {
+            padding: 2px 0;
         }
-        
-        /* Controls Help */
-        .controls-help {
+        .message.info { color: #8888ff; }
+        .message.success { color: #00ff00; }
+        .message.warning { color: #ffff00; }
+        .message.danger { color: #ff4444; }
+        .message.action { color: #ff88ff; }
+        .message.loot { color: #ffaa00; }
+
+        /* ===== STATS DISPLAY ===== */
+        .stat-group {
+            margin-bottom: 15px;
+            border: 1px solid #333;
+            padding: 5px;
+            background: #0a0a0a;
+        }
+
+        .stat-group h3 {
+            color: #ffff00;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .stat-bar {
+            height: 20px;
             background: #222;
-            padding: 5px;
-            text-align: center;
-            font-size: 12px;
-            color: #888;
-            border-top: 1px solid #444;
+            border: 1px solid #444;
+            margin: 2px 0;
+            position: relative;
         }
-        
-        /* Status Effects */
-        #status-effects {
-            padding: 5px;
-            font-size: 12px;
-            color: #ff0;
-            text-align: center;
-            min-height: 20px;
+
+        .stat-bar-fill {
+            height: 100%;
+            transition: width 0.3s;
         }
-        
-        /* Modals */
+
+        .stat-bar-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        .hp-bar { background: linear-gradient(90deg, #ff0000, #ff4444); }
+        .sp-bar { background: linear-gradient(90deg, #00ff00, #44ff44); }
+        .mp-bar { background: linear-gradient(90deg, #0088ff, #44aaff); }
+
+        /* ===== INVENTORY ===== */
+        .inventory-item {
+            padding: 2px;
+            font-size: 12px;
+        }
+        .inventory-item.equipped { color: #00ff00; }
+        .inventory-item.blessed { color: #00ffff; }
+        .inventory-item.cursed { color: #ff0000; }
+        .inventory-item.unidentified { color: #888888; }
+
+        /* ===== QUIZ MODAL ===== */
         .modal {
             display: none;
             position: fixed;
@@ -230,343 +133,1457 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.9);
             z-index: 1000;
-        }
-        
-        .modal.active {
-            display: flex;
             justify-content: center;
             align-items: center;
         }
-        
+
+        .modal.active {
+            display: flex;
+        }
+
         .modal-content {
-            background: #111;
-            border: 2px solid #0f0;
+            background: #1a1a1a;
+            border: 2px solid #444;
             padding: 20px;
-            min-width: 400px;
-            max-width: 80%;
-            max-height: 80%;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
             overflow-y: auto;
         }
-        
-        /* Quiz Modal */
+
         .quiz-header {
-            display: flex;
-            justify-content: space-between;
+            text-align: center;
             margin-bottom: 20px;
         }
-        
-        .quiz-timer {
+
+        .quiz-title {
+            color: #ffff00;
             font-size: 24px;
-            color: #ff0;
+            margin-bottom: 10px;
         }
-        
+
+        .quiz-timer {
+            font-size: 32px;
+            color: #00ff00;
+            margin: 10px 0;
+        }
+
+        .quiz-timer.warning { color: #ffff00; }
+        .quiz-timer.danger { color: #ff0000; }
+
         .quiz-question {
             font-size: 18px;
             margin: 20px 0;
-            color: #fff;
+            padding: 15px;
+            background: #222;
+            border: 1px solid #444;
         }
-        
-        .quiz-feedback {
-            margin-top: 20px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        
-        .quiz-feedback.correct { color: #0f0; }
-        .quiz-feedback.wrong { color: #f00; }
-        
-        /* Game Stats Display (fallback) */
-        #game-stats, #stats-display {
+
+        .quiz-input {
+            width: 100%;
             padding: 10px;
+            font-size: 16px;
             background: #111;
+            color: #fff;
+            border: 1px solid #444;
+            margin: 10px 0;
+        }
+
+        .quiz-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #004400;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .quiz-button:hover {
+            background: #006600;
+        }
+
+        .quiz-feedback {
+            text-align: center;
+            font-size: 20px;
+            margin: 20px 0;
+            padding: 10px;
+        }
+
+        .quiz-feedback.correct {
+            color: #00ff00;
+            border: 2px solid #00ff00;
+        }
+
+        .quiz-feedback.wrong {
+            color: #ff0000;
+            border: 2px solid #ff0000;
+        }
+
+        .quiz-progress {
+            text-align: center;
+            margin: 10px 0;
+            color: #888;
+        }
+
+        /* ===== CONTROLS HELP ===== */
+        .controls {
+            margin-top: 10px;
+            padding: 10px;
+            background: #0a0a0a;
             border: 1px solid #333;
-            margin: 10px;
+            font-size: 11px;
+        }
+
+        .controls h4 {
+            color: #ffff00;
+            margin-bottom: 5px;
+        }
+
+        .control-line {
+            color: #888;
+            margin: 2px 0;
+        }
+
+        .control-line .key {
+            color: #00ff00;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <!-- Intro Screen -->
-    <div id="intro-screen" class="screen active">
-        <div class="intro-container">
-            <h1 class="game-title">🏛️ Philosopher's Quest 🏛️</h1>
-            <h2 class="game-subtitle">An Educational Roguelike Adventure</h2>
-            <div class="intro-text">
-                <p>Welcome, young scholar! In this mystical dungeon, knowledge is your greatest weapon.</p>
-                <p>Every action requires learning - from wielding swords with mathematics to identifying treasures through philosophy.</p>
-                <p>Your quest: Descend to level 100, retrieve the Philosopher's Stone, and return!</p>
-            </div>
-            <div class="character-creation">
-                <label for="player-name">Enter your name, scholar:</label>
-                <input type="text" id="player-name" maxlength="20" placeholder="Your name..." value="Scholar">
-                <button id="start-button" class="btn-primary">Begin Your Quest!</button>
-            </div>
+    <div id="game-container">
+        <div id="main-area">
+            <div id="game-display"></div>
+            <div id="message-log"></div>
         </div>
-    </div>
-
-    <!-- Main Game Screen -->
-    <div id="game-screen" class="screen">
-        <div class="game-layout">
-            <!-- Main Game Canvas -->
-            <div class="game-viewport">
-                <canvas id="game-canvas"></canvas>
-                <!-- Fallback game display if canvas fails -->
-                <div id="game-display" style="display:none;"></div>
+        <div id="sidebar">
+            <!-- Player Stats -->
+            <div class="stat-group">
+                <h3>VITALS</h3>
+                <div class="stat-bar">
+                    <div class="stat-bar-fill hp-bar" id="hp-bar"></div>
+                    <div class="stat-bar-text" id="hp-text">0/0</div>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-bar-fill sp-bar" id="sp-bar"></div>
+                    <div class="stat-bar-text" id="sp-text">0/0</div>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-bar-fill mp-bar" id="mp-bar"></div>
+                    <div class="stat-bar-text" id="mp-text">0/0</div>
+                </div>
             </div>
             
-            <!-- Right Sidebar -->
-            <div class="sidebar">
-                <!-- Player Stats -->
-                <div class="stats-panel">
-                    <h3>Stats</h3>
-                    <div class="stat-bars">
-                        <div class="stat-row">
-                            <span>HP:</span>
-                            <div class="bar-container">
-                                <div id="hp-bar" class="bar hp" style="width: 100%"></div>
-                                <span id="hp-text">15/15</span>
-                            </div>
-                        </div>
-                        <div class="stat-row">
-                            <span>SP:</span>
-                            <div class="bar-container">
-                                <div id="sp-bar" class="bar sp" style="width: 100%"></div>
-                                <span id="sp-text">100/100</span>
-                            </div>
-                        </div>
-                        <div class="stat-row">
-                            <span>MP:</span>
-                            <div class="bar-container">
-                                <div id="mp-bar" class="bar mp" style="width: 100%"></div>
-                                <span id="mp-text">10/10</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stat-info">
-                        <div>Level: <span id="dungeon-level">1</span></div>
-                        <div>Turn: <span id="turn-counter">0</span></div>
-                        <div>WIS: <span id="wisdom">10</span></div>
-                        <div>AC: <span id="armor-class">10</span></div>
-                    </div>
-                    
-                    <!-- Fallback stats display -->
-                    <div id="stats-display" style="display:none;"></div>
-                </div>
-                
-                <!-- Status Effects -->
-                <div id="status-effects"></div>
-                
-                <!-- Equipment Display -->
-                <div class="equipment-panel">
-                    <h3>Equipment</h3>
-                    <div id="equipment-list">
-                        <div>Weapon: <span id="equipped-weapon">None</span></div>
-                        <div>Armor: <span id="equipped-armor">None</span></div>
-                        <div>Ring: <span id="equipped-ring">None</span></div>
-                    </div>
-                </div>
-                
-                <!-- Inventory -->
-                <div class="inventory-panel">
-                    <h3>Inventory (<span id="carry-weight">0/100</span>)</h3>
-                    <div id="inventory-list">
-                        <div class="empty">Empty</div>
-                    </div>
-                </div>
+            <!-- Attributes -->
+            <div class="stat-group">
+                <h3>ATTRIBUTES</h3>
+                <div>STR: <span id="str">10</span> | CON: <span id="con">10</span></div>
+                <div>DEX: <span id="dex">10</span> | INT: <span id="int">10</span></div>
+                <div>WIS: <span id="wis">10</span> | PER: <span id="per">10</span></div>
             </div>
-        </div>
-        
-        <!-- Message Log -->
-        <div class="message-log">
-            <div id="message-log"></div>
-            <!-- Fallback message area -->
-            <div id="game-messages" style="display:none;"></div>
-        </div>
-        
-        <!-- Controls Help -->
-        <div class="controls-help">
-            <span>Move: Arrow/HJKL</span> | 
-            <span>Pickup: g or ,</span> | 
-            <span>Inventory: i</span> | 
-            <span>Equipment: e</span> | 
-            <span>Wait: . or Space</span> | 
-            <span>Stairs: < or ></span> | 
-            <span>Help: ?</span>
+            
+            <!-- Status -->
+            <div class="stat-group">
+                <h3>STATUS</h3>
+                <div>AC: <span id="ac">10</span> | Level: <span id="dungeon-level">1</span></div>
+                <div>Sight: <span id="sight">3</span> | Timer: <span id="timer">10</span>s</div>
+                <div id="hunger-status"></div>
+                <div id="burden-status"></div>
+                <div id="status-effects"></div>
+            </div>
+
+            <!-- Equipment -->
+            <div class="stat-group">
+                <h3>EQUIPMENT</h3>
+                <div id="equipment-list"></div>
+            </div>
+
+            <!-- Inventory -->
+            <div class="stat-group">
+                <h3>INVENTORY (<span id="weight">0/50</span>)</h3>
+                <div id="inventory-list"></div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <h4>CONTROLS</h4>
+                <div class="control-line"><span class="key">↑↓←→/HJKL</span> Move</div>
+                <div class="control-line"><span class="key">,/g</span> Get item</div>
+                <div class="control-line"><span class="key">i</span> Inventory</div>
+                <div class="control-line"><span class="key">e</span> Equipment</div>
+                <div class="control-line"><span class="key">E</span> Eat food</div>
+                <div class="control-line"><span class="key">c</span> Cook</div>
+                <div class="control-line"><span class="key">I</span> Identify</div>
+                <div class="control-line"><span class="key">./Space</span> Wait</div>
+                <div class="control-line"><span class="key">?</span> Help</div>
+            </div>
         </div>
     </div>
 
     <!-- Quiz Modal -->
     <div id="quiz-modal" class="modal">
-        <div class="modal-content quiz-content">
-            <h2 id="quiz-title">Knowledge Challenge!</h2>
-            <div class="quiz-header">
-                <div id="quiz-subject" class="quiz-subject">Mathematics</div>
-                <div id="quiz-timer" class="quiz-timer">30</div>
-            </div>
-            <div id="quiz-question" class="quiz-question">Question will appear here...</div>
-            <div id="quiz-input-area">
-                <input type="text" id="quiz-answer" placeholder="Your answer..." />
-                <button id="quiz-submit">Submit</button>
-            </div>
-            <div id="quiz-feedback" class="quiz-feedback"></div>
-        </div>
-    </div>
-
-    <!-- Inventory Modal -->
-    <div id="inventory-modal" class="modal">
         <div class="modal-content">
-            <h2>Inventory</h2>
-            <div id="inventory-modal-content">
-                <div class="empty">Your inventory is empty.</div>
+            <div class="quiz-header">
+                <div class="quiz-title" id="quiz-title">Knowledge Challenge</div>
+                <div id="quiz-subject">Mathematics</div>
+                <div class="quiz-timer" id="quiz-timer">30</div>
+                <div class="quiz-progress" id="quiz-progress">Question 1 | Score: 0</div>
             </div>
-            <button class="btn-secondary close-modal">Close (ESC)</button>
+            <div class="quiz-question" id="quiz-question">Question will appear here</div>
+            <div id="quiz-input-area">
+                <input type="text" class="quiz-input" id="quiz-answer" placeholder="Type your answer...">
+                <button class="quiz-button" id="quiz-submit">Submit</button>
+            </div>
+            <div class="quiz-feedback" id="quiz-feedback" style="display: none;"></div>
         </div>
     </div>
 
-    <!-- Load all JavaScript modules -->
-    <script type="module">
-        // Import configuration first
-        import { CONFIG, EVENTS } from './js/config.js';
+    <script>
+        // ===== PHILOSOPHER'S QUEST - COMPLETE SINGLE FILE IMPLEMENTATION =====
         
-        // Fix any remaining undefined events
-        if (!EVENTS.COOKING_START) EVENTS.COOKING_START = 'cooking_start';
-        if (!EVENTS.HARVEST_START) EVENTS.HARVEST_START = 'harvest_start';
-        if (!EVENTS.HARVEST_COMPLETE) EVENTS.HARVEST_COMPLETE = 'harvest_complete';
-        if (!EVENTS.QUIZ_ANSWER_SUBMITTED) EVENTS.QUIZ_ANSWER_SUBMITTED = 'quiz_answer_submitted';
-        if (!EVENTS.UI_MODAL_CLOSE) EVENTS.UI_MODAL_CLOSE = 'ui_modal_close';
-        if (!EVENTS.UI_CLICK) EVENTS.UI_CLICK = 'ui_click';
-        if (!EVENTS.MONSTER_MOVE) EVENTS.MONSTER_MOVE = 'monster_move';
-        if (!EVENTS.ITEM_PICKUP) EVENTS.ITEM_PICKUP = 'item_pickup';
-        if (!EVENTS.ITEM_DROP) EVENTS.ITEM_DROP = 'item_drop';
-        if (!EVENTS.GAME_STATE_UPDATE) EVENTS.GAME_STATE_UPDATE = 'game_state_update';
-        
-        console.log('✅ Event patches applied');
-        
-        // Import core modules
-        import { EventBus } from './js/core/event-bus.js';
-        import { QuestionLoader } from './js/core/question-loader.js';
-        import { itemLoader } from './js/core/item-loader.js';
-        import { monsterLoader } from './js/core/monster-loader.js';
-        import { Game } from './js/core/game.js';
-        
-        // Import systems
-        import { QuizEngine } from './js/systems/quiz-engine.js';
-        import { CookingSystem } from './js/systems/cooking.js';
-        import { HarvestingSystem } from './js/systems/harvesting.js';
-        
-        // Import UI
-        import { Renderer } from './js/ui/renderer.js';
-        import { MessageLog } from './js/ui/message-log.js';
-        import { UIManager } from './js/ui/ui-manager.js';
-        import { InputHandler } from './js/ui/input-handler.js';
-        
-        // Make game globally accessible for debugging
-        window.PhilosophersQuest = {
-            CONFIG,
-            EVENTS,
-            EventBus,
-            QuestionLoader,
-            itemLoader,
-            monsterLoader,
-            Game: null, // Will be initialized on start
-            QuizEngine,
-            Renderer,
-            MessageLog,
-            UIManager,
-            InputHandler,
-            CookingSystem,
-            HarvestingSystem
+        // Global game object
+        const Game = {
+            // Core state
+            player: null,
+            dungeon: null,
+            monsters: [],
+            items: [],
+            currentLevel: 1,
+            turn: 0,
+            
+            // Display
+            display: null,
+            messageLog: [],
+            maxMessages: 100,
+            
+            // Quiz state
+            activeQuiz: null,
+            quizTimer: null,
+            quizTimeRemaining: 0,
+            
+            // Game data (will be loaded from JSON files)
+            questionBanks: {},
+            itemDatabase: {},
+            monsterDatabase: {},
+            
+            // Configuration
+            config: {
+                mapWidth: 80,
+                mapHeight: 25,
+                viewWidth: 80,
+                viewHeight: 25,
+                baseHP: 20,
+                baseSP: 100,
+                baseMP: 10,
+                startingWisdom: 10,
+                quizModes: {
+                    THRESHOLD: 'threshold',
+                    CHAIN: 'chain',
+                    ESCALATOR_THRESHOLD: 'escalator_threshold',
+                    ESCALATOR_CHAIN: 'escalator_chain'
+                }
+            }
         };
-        
-        // Debug helper
-        window.debugGame = function() {
-            if (window.PhilosophersQuest && window.PhilosophersQuest.Game) {
-                const game = window.PhilosophersQuest.Game;
-                console.log('Game State:', {
-                    player: game.player,
-                    level: game.currentLevel,
-                    turn: game.turnNumber,
-                    running: game.running,
-                    gameOver: game.gameOver
+
+        // ===== PLAYER CLASS =====
+        class Player {
+            constructor(name = "Hero") {
+                this.name = name;
+                
+                // Stats
+                this.strength = 10;
+                this.constitution = 10;
+                this.dexterity = 10;
+                this.intelligence = 10;
+                this.wisdom = Game.config.startingWisdom;
+                this.perception = 10;
+                
+                // Derived stats
+                this.maxHp = Game.config.baseHP + Math.floor((this.constitution - 10) / 2);
+                this.hp = this.maxHp;
+                this.maxSp = Game.config.baseSP + (this.constitution - 10) * 2;
+                this.sp = this.maxSp;
+                this.maxMp = Game.config.baseMP + Math.floor((this.intelligence - 10) / 2);
+                this.mp = this.maxMp;
+                
+                // Position
+                this.x = 0;
+                this.y = 0;
+                
+                // Equipment
+                this.equipped = {
+                    weapon: null,
+                    armor: {
+                        head: null,
+                        body: null,
+                        hands: null,
+                        legs: null
+                    },
+                    accessories: {
+                        ring1: null,
+                        ring2: null,
+                        amulet: null
+                    }
+                };
+                
+                // Inventory
+                this.inventory = [];
+                this.maxCarry = 50 + this.strength * 2;
+                this.currentWeight = 0;
+                
+                // Status
+                this.isStarving = false;
+                this.isBurdened = false;
+                this.effects = [];
+            }
+            
+            getAC() {
+                let ac = 10 + Math.floor((this.dexterity - 10) / 2);
+                // Add armor bonuses
+                Object.values(this.equipped.armor).forEach(armor => {
+                    if (armor) ac += armor.acBonus || 0;
+                });
+                return ac;
+            }
+            
+            getQuizTimer() {
+                return Math.max(10, this.wisdom);
+            }
+            
+            takeDamage(amount) {
+                this.hp -= amount;
+                if (this.hp <= 0) {
+                    this.hp = 0;
+                    Game.gameOver("You have died!");
+                }
+            }
+            
+            spendSP(amount = 1) {
+                this.sp -= amount;
+                if (this.sp <= 0) {
+                    this.sp = 0;
+                    this.isStarving = true;
+                    // Start taking HP damage when starving
+                    if (this.isStarving) {
+                        this.takeDamage(1);
+                        Game.addMessage("You're starving! You take damage!", 'danger');
+                    }
+                } else {
+                    this.isStarving = false;
+                }
+            }
+            
+            restoreSP(amount) {
+                this.sp = Math.min(this.maxSp, this.sp + amount);
+                if (this.sp > 0) this.isStarving = false;
+            }
+            
+            addToInventory(item) {
+                if (this.currentWeight + (item.weight || 0) > this.maxCarry) {
+                    Game.addMessage("You can't carry that much weight!", 'warning');
+                    return false;
+                }
+                this.inventory.push(item);
+                this.currentWeight += item.weight || 0;
+                return true;
+            }
+            
+            removeFromInventory(item) {
+                const index = this.inventory.indexOf(item);
+                if (index > -1) {
+                    this.inventory.splice(index, 1);
+                    this.currentWeight -= item.weight || 0;
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        // ===== MONSTER CLASS =====
+        class Monster {
+            constructor(data, x, y) {
+                Object.assign(this, data);
+                this.x = x;
+                this.y = y;
+                this.hp = this.maxHp || 10;
+                this.dead = false;
+            }
+            
+            takeDamage(amount) {
+                this.hp -= amount;
+                if (this.hp <= 0) {
+                    this.hp = 0;
+                    this.dead = true;
+                }
+            }
+            
+            move() {
+                if (this.dead) return;
+                
+                // Simple AI: move toward player
+                const dx = Game.player.x - this.x;
+                const dy = Game.player.y - this.y;
+                
+                let moveX = 0, moveY = 0;
+                
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    moveX = dx > 0 ? 1 : -1;
+                } else if (dy !== 0) {
+                    moveY = dy > 0 ? 1 : -1;
+                }
+                
+                const newX = this.x + moveX;
+                const newY = this.y + moveY;
+                
+                // Check if can move there
+                if (Game.canMoveTo(newX, newY) && !Game.getMonsterAt(newX, newY)) {
+                    // Check if attacking player
+                    if (newX === Game.player.x && newY === Game.player.y) {
+                        Game.monsterAttack(this);
+                    } else {
+                        this.x = newX;
+                        this.y = newY;
+                    }
+                }
+            }
+        }
+
+        // ===== DUNGEON GENERATION =====
+        function generateDungeon(width, height) {
+            const dungeon = [];
+            
+            // Initialize with walls
+            for (let y = 0; y < height; y++) {
+                dungeon[y] = [];
+                for (let x = 0; x < width; x++) {
+                    dungeon[y][x] = '#';
+                }
+            }
+            
+            // Generate rooms
+            const rooms = [];
+            const numRooms = 5 + Math.floor(Math.random() * 5);
+            
+            for (let i = 0; i < numRooms; i++) {
+                const roomWidth = 5 + Math.floor(Math.random() * 10);
+                const roomHeight = 5 + Math.floor(Math.random() * 6);
+                const roomX = 1 + Math.floor(Math.random() * (width - roomWidth - 2));
+                const roomY = 1 + Math.floor(Math.random() * (height - roomHeight - 2));
+                
+                // Carve room
+                for (let y = roomY; y < roomY + roomHeight; y++) {
+                    for (let x = roomX; x < roomX + roomWidth; x++) {
+                        dungeon[y][x] = '.';
+                    }
+                }
+                
+                rooms.push({
+                    x: roomX + Math.floor(roomWidth / 2),
+                    y: roomY + Math.floor(roomHeight / 2),
+                    width: roomWidth,
+                    height: roomHeight
                 });
             }
+            
+            // Connect rooms with corridors
+            for (let i = 0; i < rooms.length - 1; i++) {
+                const room1 = rooms[i];
+                const room2 = rooms[i + 1];
+                
+                // Horizontal corridor
+                const startX = Math.min(room1.x, room2.x);
+                const endX = Math.max(room1.x, room2.x);
+                for (let x = startX; x <= endX; x++) {
+                    dungeon[room1.y][x] = '.';
+                }
+                
+                // Vertical corridor
+                const startY = Math.min(room1.y, room2.y);
+                const endY = Math.max(room1.y, room2.y);
+                for (let y = startY; y <= endY; y++) {
+                    dungeon[y][room2.x] = '.';
+                }
+            }
+            
+            // Place player in first room
+            if (rooms.length > 0) {
+                Game.player.x = rooms[0].x;
+                Game.player.y = rooms[0].y;
+            }
+            
+            // Place stairs in last room
+            if (rooms.length > 1) {
+                const lastRoom = rooms[rooms.length - 1];
+                dungeon[lastRoom.y][lastRoom.x] = '>';
+            }
+            
+            // Spawn monsters using loaded data if available
+            Game.monsters = [];
+            const numMonsters = 3 + Math.floor(Math.random() * 5);
+            for (let i = 0; i < numMonsters; i++) {
+                const room = rooms[1 + Math.floor(Math.random() * (rooms.length - 1))];
+                const x = room.x - 2 + Math.floor(Math.random() * 5);
+                const y = room.y - 2 + Math.floor(Math.random() * 5);
+                
+                if (dungeon[y][x] === '.' && !(x === Game.player.x && y === Game.player.y)) {
+                    let monsterData;
+                    
+                    // Use loaded monster data if available
+                    if (Game.monsterDatabase && Game.monsterDatabase.length > 0) {
+                        const template = Game.monsterDatabase[Math.floor(Math.random() * Game.monsterDatabase.length)];
+                        monsterData = { ...template };
+                    } else {
+                        // Fallback monsters
+                        const monsterType = ['goblin', 'orc', 'skeleton'][Math.floor(Math.random() * 3)];
+                        monsterData = {
+                            name: monsterType,
+                            symbol: monsterType[0].toUpperCase(),
+                            maxHp: 5 + Math.floor(Math.random() * 10),
+                            damage: 1 + Math.floor(Math.random() * 3),
+                            type: monsterType
+                        };
+                    }
+                    
+                    Game.monsters.push(new Monster(monsterData, x, y));
+                }
+            }
+            
+            // Spawn items using loaded data if available
+            Game.items = [];
+            const numItems = 2 + Math.floor(Math.random() * 4);
+            for (let i = 0; i < numItems; i++) {
+                const room = rooms[Math.floor(Math.random() * rooms.length)];
+                const x = room.x - 2 + Math.floor(Math.random() * 5);
+                const y = room.y - 2 + Math.floor(Math.random() * 5);
+                
+                if (dungeon[y][x] === '.') {
+                    let item;
+                    
+                    // Try to use loaded item data
+                    if (Game.itemDatabase && Object.keys(Game.itemDatabase).length > 0) {
+                        const types = Object.keys(Game.itemDatabase);
+                        const type = types[Math.floor(Math.random() * types.length)];
+                        const items = Game.itemDatabase[type];
+                        
+                        if (items && items.length > 0) {
+                            item = { ...items[Math.floor(Math.random() * items.length)] };
+                            item.x = x;
+                            item.y = y;
+                            item.symbol = type === 'food' ? '%' : type === 'weapons' ? ')' : '!';
+                        }
+                    }
+                    
+                    // Fallback if no loaded data
+                    if (!item) {
+                        const itemTypes = ['food', 'weapon', 'armor', 'potion'];
+                        const itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+                        
+                        item = {
+                            x: x,
+                            y: y,
+                            type: itemType,
+                            name: `${itemType}`,
+                            symbol: '!',
+                            weight: 1 + Math.floor(Math.random() * 5),
+                            identified: false
+                        };
+                    }
+                    
+                    Game.items.push(item);
+                }
+            }
+            
+            return dungeon;
+        }
+
+        // ===== RENDERING =====
+        function render() {
+            if (!Game.display || !Game.dungeon || !Game.player) return;
+            
+            let display = '';
+            
+            // Render dungeon
+            for (let y = 0; y < Game.config.viewHeight; y++) {
+                for (let x = 0; x < Game.config.viewWidth; x++) {
+                    // Check for player
+                    if (x === Game.player.x && y === Game.player.y) {
+                        display += '@';
+                        continue;
+                    }
+                    
+                    // Check for monsters
+                    let hasMonster = false;
+                    for (const monster of Game.monsters) {
+                        if (!monster.dead && monster.x === x && monster.y === y) {
+                            display += monster.symbol;
+                            hasMonster = true;
+                            break;
+                        }
+                    }
+                    if (hasMonster) continue;
+                    
+                    // Check for items
+                    let hasItem = false;
+                    for (const item of Game.items) {
+                        if (item.x === x && item.y === y) {
+                            display += item.symbol;
+                            hasItem = true;
+                            break;
+                        }
+                    }
+                    if (hasItem) continue;
+                    
+                    // Render terrain
+                    if (y < Game.dungeon.length && x < Game.dungeon[y].length) {
+                        display += Game.dungeon[y][x];
+                    } else {
+                        display += ' ';
+                    }
+                }
+                display += '\n';
+            }
+            
+            Game.display.textContent = display;
+            
+            // Always update UI when rendering
+            if (typeof updateUI === 'function') {
+                updateUI();
+            }
+        }
+
+        // ===== UI UPDATES =====
+        function updateUI() {
+            const player = Game.player;
+            if (!player) return;
+            
+            // Update vital bars
+            const hpBar = document.getElementById('hp-bar');
+            const hpText = document.getElementById('hp-text');
+            if (hpBar && hpText) {
+                const hpPercent = (player.hp / player.maxHp) * 100;
+                hpBar.style.width = hpPercent + '%';
+                hpText.textContent = `HP: ${player.hp}/${player.maxHp}`;
+            }
+            
+            const spBar = document.getElementById('sp-bar');
+            const spText = document.getElementById('sp-text');
+            if (spBar && spText) {
+                const spPercent = (player.sp / player.maxSp) * 100;
+                spBar.style.width = spPercent + '%';
+                spText.textContent = `SP: ${player.sp}/${player.maxSp}`;
+                
+                // Color code SP bar based on hunger
+                if (player.sp <= 0) {
+                    spBar.style.background = 'linear-gradient(90deg, #440000, #880000)'; // Dark red - starving
+                } else if (player.sp <= player.maxSp * 0.1) {
+                    spBar.style.background = 'linear-gradient(90deg, #880000, #ff0000)'; // Red - fainting
+                } else if (player.sp <= player.maxSp * 0.2) {
+                    spBar.style.background = 'linear-gradient(90deg, #ff4400, #ff8800)'; // Orange - weak
+                } else if (player.sp <= player.maxSp * 0.3) {
+                    spBar.style.background = 'linear-gradient(90deg, #ffaa00, #ffdd00)'; // Yellow - hungry
+                } else if (player.sp >= player.maxSp * 1.2) {
+                    spBar.style.background = 'linear-gradient(90deg, #00aa00, #00ff00)'; // Bright green - satiated
+                } else {
+                    spBar.style.background = 'linear-gradient(90deg, #008800, #00ff00)'; // Normal green
+                }
+            }
+            
+            const mpBar = document.getElementById('mp-bar');
+            const mpText = document.getElementById('mp-text');
+            if (mpBar && mpText) {
+                const mpPercent = (player.mp / player.maxMp) * 100;
+                mpBar.style.width = mpPercent + '%';
+                mpText.textContent = `MP: ${player.mp}/${player.maxMp}`;
+            }
+            
+            // Update attributes - with null checks
+            const strEl = document.getElementById('str');
+            if (strEl) strEl.textContent = player.strength;
+            
+            const conEl = document.getElementById('con');
+            if (conEl) conEl.textContent = player.constitution;
+            
+            const dexEl = document.getElementById('dex');
+            if (dexEl) dexEl.textContent = player.dexterity;
+            
+            const intEl = document.getElementById('int');
+            if (intEl) intEl.textContent = player.intelligence;
+            
+            const wisEl = document.getElementById('wis');
+            if (wisEl) wisEl.textContent = player.wisdom;
+            
+            const perEl = document.getElementById('per');
+            if (perEl) perEl.textContent = player.perception;
+            
+            // Update derived stats - with null checks
+            const acEl = document.getElementById('ac');
+            if (acEl) acEl.textContent = player.getAC();
+            
+            const sightEl = document.getElementById('sight');
+            if (sightEl) sightEl.textContent = player.sightRadius;
+            
+            const timerEl = document.getElementById('timer');
+            if (timerEl) timerEl.textContent = player.getQuizTimer();
+            
+            const dungeonEl = document.getElementById('dungeon-level');
+            if (dungeonEl) dungeonEl.textContent = Game.currentLevel;
+            
+            // Update hunger status
+            const hungerEl = document.getElementById('hunger-status');
+            if (hungerEl) {
+                const hungerStatus = player.getHungerStatus();
+                if (hungerStatus) {
+                    hungerEl.innerHTML = `<span style="color: ${
+                        hungerStatus === 'Starving' ? '#ff0000' :
+                        hungerStatus === 'Fainting' ? '#ff4400' :
+                        hungerStatus === 'Weak' ? '#ff8800' :
+                        hungerStatus === 'Hungry' ? '#ffaa00' :
+                        hungerStatus === 'Satiated' ? '#00ff00' :
+                        '#00aa00'
+                    }">${hungerStatus}</span>`;
+                } else {
+                    hungerEl.innerHTML = '';
+                }
+            }
+            
+            // Update burden status
+            const burdenEl = document.getElementById('burden-status');
+            if (burdenEl) {
+                const burdenStatus = player.getBurdenStatus();
+                if (burdenStatus) {
+                    burdenEl.innerHTML = `<span style="color: ${
+                        burdenStatus === 'Overloaded' ? '#ff0000' :
+                        burdenStatus === 'Overtaxed' ? '#ff4400' :
+                        burdenStatus === 'Strained' ? '#ff8800' :
+                        burdenStatus === 'Stressed' ? '#ffaa00' :
+                        burdenStatus === 'Burdened' ? '#ffff00' :
+                        '#ffffff'
+                    }">${burdenStatus}</span>`;
+                } else {
+                    burdenEl.innerHTML = '';
+                }
+            }
+            
+            // Update status effects
+            const statusEl = document.getElementById('status-effects');
+            if (statusEl) {
+                const activeEffects = [];
+                
+                // Check all status flags
+                if (player.statusFlags.isConfused) activeEffects.push('Confused');
+                if (player.statusFlags.isBlind) activeEffects.push('Blind');
+                if (player.statusFlags.isStunned) activeEffects.push('Stunned');
+                if (player.statusFlags.isHallucinating) activeEffects.push('Hallucinating');
+                if (player.statusFlags.isParalyzed) activeEffects.push('Paralyzed');
+                if (player.statusFlags.isSick) activeEffects.push('Sick');
+                if (player.statusFlags.isPoisoned) activeEffects.push('Poisoned');
+                if (player.statusFlags.isStoned) activeEffects.push('Stoning');
+                if (player.statusFlags.isSlimed) activeEffects.push('Slimed');
+                if (player.statusFlags.isLevitating) activeEffects.push('Levitating');
+                if (player.statusFlags.isFlying) activeEffects.push('Flying');
+                if (player.statusFlags.isInvisible) activeEffects.push('Invisible');
+                
+                if (activeEffects.length > 0) {
+                    statusEl.innerHTML = activeEffects.map(e => 
+                        `<span style="color: #ff88ff">${e}</span>`
+                    ).join(' ');
+                } else {
+                    statusEl.innerHTML = '';
+                }
+            }
+            
+            // Update equipment display
+            const equipList = document.getElementById('equipment-list');
+            if (equipList) {
+                let equipHtml = '';
+                
+                // Weapon
+                if (player.equipped.weapon) {
+                    const w = player.equipped.weapon;
+                    equipHtml += `<div class="inventory-item equipped">a) ${w.name}${w.enchantment ? ` +${w.enchantment}` : ''}</div>`;
+                } else {
+                    equipHtml += `<div class="inventory-item">a) Fists</div>`;
+                }
+                
+                // Armor pieces
+                const armorSlots = {
+                    'head': 'b) Head',
+                    'body': 'c) Body',
+                    'hands': 'd) Hands',
+                    'legs': 'e) Legs',
+                    'cloak': 'f) Cloak',
+                    'shirt': 'g) Shirt'
+                };
+                
+                Object.entries(armorSlots).forEach(([slot, label]) => {
+                    const item = player.equipped.armor[slot];
+                    if (item) {
+                        equipHtml += `<div class="inventory-item equipped">${label}: ${item.name}${item.enchantment ? ` +${item.enchantment}` : ''}</div>`;
+                    }
+                });
+                
+                // Accessories
+                if (player.equipped.accessories.leftRing) {
+                    const r = player.equipped.accessories.leftRing;
+                    equipHtml += `<div class="inventory-item equipped">h) L.Ring: ${r.name}</div>`;
+                }
+                if (player.equipped.accessories.rightRing) {
+                    const r = player.equipped.accessories.rightRing;
+                    equipHtml += `<div class="inventory-item equipped">i) R.Ring: ${r.name}</div>`;
+                }
+                if (player.equipped.accessories.amulet) {
+                    const a = player.equipped.accessories.amulet;
+                    equipHtml += `<div class="inventory-item equipped">j) Amulet: ${a.name}</div>`;
+                }
+                
+                equipList.innerHTML = equipHtml || '<div class="inventory-item">Nothing equipped</div>';
+            }
+            
+            // Update inventory with NetHack-style letters
+            const invList = document.getElementById('inventory-list');
+            if (invList) {
+                let invHtml = '';
+                
+                player.inventory.forEach((item) => {
+                    // Build item display string
+                    let itemStr = `${item.letter}) ${item.name}`;
+                    
+                    // Add quantity for stackables
+                    if (item.quantity && item.quantity > 1) {
+                        itemStr = `${item.letter}) ${item.quantity} ${item.name}`;
+                    }
+                    
+                    // Add blessed/cursed status if identified
+                    if (item.identified) {
+                        if (item.blessed) itemStr += ' (blessed)';
+                        else if (item.cursed) itemStr += ' (cursed)';
+                        
+                        // Add enchantment
+                        if (item.enchantment) {
+                            const sign = item.enchantment >= 0 ? '+' : '';
+                            itemStr += ` ${sign}${item.enchantment}`;
+                        }
+                    } else {
+                        itemStr += ' (?)';
+                    }
+                    
+                    // Add equipped marker
+                    if (item.equipped) itemStr += ' [wielded]';
+                    
+                    // Color based on BUC status
+                    let className = 'inventory-item';
+                    if (item.identified) {
+                        if (item.blessed) className += ' blessed';
+                        else if (item.cursed) className += ' cursed';
+                    } else {
+                        className += ' unidentified';
+                    }
+                    
+                    invHtml += `<div class="${className}">${itemStr}</div>`;
+                });
+                
+                invList.innerHTML = invHtml || '<div class="inventory-item">Empty</div>';
+            }
+            
+            // Update weight display with burden indicator
+            const weightEl = document.getElementById('weight');
+            if (weightEl) {
+                const weightPercent = (player.currentWeight / player.maxCarry) * 100;
+                let weightColor = '#ffffff';
+                
+                if (weightPercent > 300) weightColor = '#ff0000';      // Overloaded
+                else if (weightPercent > 200) weightColor = '#ff4400';  // Overtaxed
+                else if (weightPercent > 150) weightColor = '#ff8800';  // Strained
+                else if (weightPercent > 100) weightColor = '#ffaa00';  // Stressed
+                else if (weightPercent > 75) weightColor = '#ffff00';   // Burdened
+                else if (weightPercent > 50) weightColor = '#aaffaa';   // Normal
+                else weightColor = '#ffffff';                           // Unencumbered
+                
+                weightEl.style.color = weightColor;
+                weightEl.textContent = `${player.currentWeight}/${player.maxCarry}`;
+            }
+        }
+
+        // ===== MESSAGE SYSTEM =====
+        Game.addMessage = function(text, type = 'info') {
+            const messageLog = document.getElementById('message-log');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            
+            messageLog.appendChild(message);
+            
+            // Auto-scroll to bottom
+            messageLog.scrollTop = messageLog.scrollHeight;
+            
+            // Limit messages
+            while (messageLog.children.length > Game.maxMessages) {
+                messageLog.removeChild(messageLog.firstChild);
+            }
+        };
+
+        // ===== QUIZ SYSTEM =====
+        Game.startQuiz = function(params) {
+            if (Game.activeQuiz) {
+                Game.addMessage("Quiz already in progress!", 'warning');
+                return;
+            }
+            
+            Game.activeQuiz = {
+                mode: params.mode,
+                subject: params.subject,
+                tier: params.tier || 1,
+                maxQuestions: params.maxQuestions || 10,
+                threshold: params.threshold,
+                callback: params.callback,
+                reason: params.reason,
+                
+                currentQuestion: 0,
+                correctAnswers: 0,
+                questions: [],
+                startTime: Date.now()
+            };
+            
+            // Get questions for this quiz
+            const questions = Game.getQuestions(params.subject, params.tier, params.maxQuestions);
+            if (!questions || questions.length === 0) {
+                Game.addMessage("No questions available for " + params.subject, 'warning');
+                Game.endQuiz(false);
+                return;
+            }
+            
+            Game.activeQuiz.questions = questions;
+            Game.showNextQuestion();
         };
         
-        // Initialize on DOM ready
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🏛️ Philosopher\'s Quest - Initializing...');
+        Game.showNextQuestion = function() {
+            const quiz = Game.activeQuiz;
+            if (!quiz) return;
             
-            // Pre-load all data
-            console.log('📚 Loading question banks...');
-            const questionLoader = new QuestionLoader();
-            await questionLoader.loadAllQuestions();
+            // Check if quiz should end
+            if (quiz.mode === Game.config.quizModes.THRESHOLD && quiz.correctAnswers >= quiz.threshold) {
+                Game.endQuiz(true);
+                return;
+            }
             
-            // Setup intro screen
-            const startButton = document.getElementById('start-button');
-            const playerNameInput = document.getElementById('player-name');
+            if (quiz.currentQuestion >= quiz.questions.length) {
+                Game.endQuiz(true);
+                return;
+            }
             
-            // Focus on name input
-            playerNameInput.focus();
+            const question = quiz.questions[quiz.currentQuestion];
+            const modal = document.getElementById('quiz-modal');
             
-            startButton.addEventListener('click', startGame);
-            playerNameInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') startGame();
+            // Update modal content
+            document.getElementById('quiz-title').textContent = quiz.reason || 'Knowledge Challenge';
+            document.getElementById('quiz-subject').textContent = `${quiz.subject} - Tier ${quiz.tier}`;
+            document.getElementById('quiz-progress').textContent = 
+                `Question ${quiz.currentQuestion + 1}/${quiz.questions.length} | Score: ${quiz.correctAnswers}`;
+            document.getElementById('quiz-question').textContent = question.question;
+            
+            // Clear previous feedback
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.style.display = 'none';
+            feedback.className = 'quiz-feedback';
+            
+            // Setup input
+            const inputArea = document.getElementById('quiz-input-area');
+            inputArea.style.display = 'block';
+            const input = document.getElementById('quiz-answer');
+            input.value = '';
+            input.disabled = false;
+            input.focus();
+            
+            // Start timer
+            Game.quizTimeRemaining = Game.player.getQuizTimer();
+            Game.updateQuizTimer();
+            
+            if (Game.quizTimer) clearInterval(Game.quizTimer);
+            Game.quizTimer = setInterval(() => {
+                Game.quizTimeRemaining--;
+                Game.updateQuizTimer();
+                
+                if (Game.quizTimeRemaining <= 0) {
+                    Game.submitQuizAnswer(null, true);
+                }
+            }, 1000);
+            
+            // Show modal
+            modal.classList.add('active');
+        };
+        
+        Game.updateQuizTimer = function() {
+            const timerEl = document.getElementById('quiz-timer');
+            timerEl.textContent = Game.quizTimeRemaining;
+            
+            if (Game.quizTimeRemaining <= 5) {
+                timerEl.className = 'quiz-timer danger';
+            } else if (Game.quizTimeRemaining <= 10) {
+                timerEl.className = 'quiz-timer warning';
+            } else {
+                timerEl.className = 'quiz-timer';
+            }
+        };
+        
+        Game.submitQuizAnswer = function(answer, timeout = false) {
+            const quiz = Game.activeQuiz;
+            if (!quiz) return;
+            
+            clearInterval(Game.quizTimer);
+            
+            const question = quiz.questions[quiz.currentQuestion];
+            const correctAnswer = question.answer || question.correct;
+            
+            let isCorrect = false;
+            if (!timeout && answer) {
+                const normalizedAnswer = answer.toString().toLowerCase().trim();
+                const normalizedCorrect = correctAnswer.toString().toLowerCase().trim();
+                isCorrect = normalizedAnswer === normalizedCorrect;
+            }
+            
+            // Show feedback IN THE MODAL
+            const feedback = document.getElementById('quiz-feedback');
+            const inputArea = document.getElementById('quiz-input-area');
+            
+            if (timeout) {
+                feedback.textContent = `Time's up! The answer was: ${correctAnswer}`;
+                feedback.className = 'quiz-feedback wrong';
+            } else if (isCorrect) {
+                feedback.textContent = 'Correct!';
+                feedback.className = 'quiz-feedback correct';
+                quiz.correctAnswers++;
+            } else {
+                feedback.textContent = `Wrong! The answer was: ${correctAnswer}`;
+                feedback.className = 'quiz-feedback wrong';
+            }
+            
+            feedback.style.display = 'block';
+            inputArea.style.display = 'none';
+            
+            // Continue or end quiz after delay
+            setTimeout(() => {
+                quiz.currentQuestion++;
+                
+                // For chain mode, end on first wrong answer
+                if (quiz.mode === Game.config.quizModes.CHAIN && !isCorrect) {
+                    Game.endQuiz(false);
+                } else if (quiz.currentQuestion < quiz.questions.length) {
+                    Game.showNextQuestion();
+                } else {
+                    Game.endQuiz(true);
+                }
+            }, isCorrect ? 1000 : 2000); // Shorter delay for correct, longer for wrong
+        };
+        
+        Game.endQuiz = function(success) {
+            clearInterval(Game.quizTimer);
+            
+            const quiz = Game.activeQuiz;
+            if (!quiz) return;
+            
+            // Hide modal
+            document.getElementById('quiz-modal').classList.remove('active');
+            
+            // Calculate result
+            const result = {
+                success: success,
+                score: quiz.correctAnswers,
+                total: quiz.currentQuestion,
+                mode: quiz.mode,
+                subject: quiz.subject
+            };
+            
+            // Call callback
+            if (quiz.callback) {
+                quiz.callback(result);
+            }
+            
+            Game.activeQuiz = null;
+        };
+        
+        Game.getQuestions = function(subject, tier, count) {
+            // For now, return dummy questions
+            // In production, these would come from loaded JSON files
+            const questions = [];
+            
+            if (subject === 'math') {
+                const operations = [
+                    { q: "What is 7 + 5?", a: "12" },
+                    { q: "What is 9 × 3?", a: "27" },
+                    { q: "What is 15 - 8?", a: "7" },
+                    { q: "What is 24 ÷ 4?", a: "6" },
+                    { q: "What is 6 × 7?", a: "42" },
+                    { q: "What is 18 + 14?", a: "32" },
+                    { q: "What is 45 ÷ 5?", a: "9" },
+                    { q: "What is 8 × 8?", a: "64" },
+                    { q: "What is 100 - 37?", a: "63" },
+                    { q: "What is 11 × 11?", a: "121" }
+                ];
+                
+                for (let i = 0; i < Math.min(count, operations.length); i++) {
+                    questions.push({
+                        question: operations[i].q,
+                        answer: operations[i].a,
+                        type: 'input'
+                    });
+                }
+            } else if (subject === 'cooking') {
+                questions.push(
+                    { question: "What temperature kills most bacteria in meat?", answer: "165", type: 'input' },
+                    { question: "How many teaspoons in a tablespoon?", answer: "3", type: 'input' },
+                    { question: "What does 'sauté' mean?", answer: "fry", type: 'input' }
+                );
+            }
+            
+            return questions;
+        };
+
+        // ===== COMBAT SYSTEM =====
+        Game.playerAttack = function(monster) {
+            Game.addMessage(`You attack the ${monster.name}!`, 'action');
+            
+            Game.startQuiz({
+                mode: Game.config.quizModes.CHAIN,
+                subject: 'math',
+                tier: 1,
+                maxQuestions: 10,
+                reason: 'Combat Attack',
+                callback: (result) => {
+                    if (result.score === 0) {
+                        Game.addMessage(`You miss the ${monster.name}!`, 'warning');
+                    } else {
+                        const damage = 2 * result.score; // 2 damage per correct answer
+                        monster.takeDamage(damage);
+                        Game.addMessage(`You hit the ${monster.name} for ${damage} damage!`, 'success');
+                        
+                        if (monster.dead) {
+                            Game.addMessage(`The ${monster.name} dies!`, 'success');
+                            Game.dropCorpse(monster);
+                        }
+                    }
+                    
+                    // Process turn after combat
+                    Game.processTurn();
+                }
+            });
+        };
+        
+        Game.monsterAttack = function(monster) {
+            const damage = monster.damage || 1;
+            Game.player.takeDamage(damage);
+            Game.addMessage(`The ${monster.name} hits you for ${damage} damage!`, 'danger');
+        };
+        
+        Game.dropCorpse = function(monster) {
+            Game.items.push({
+                x: monster.x,
+                y: monster.y,
+                type: 'corpse',
+                name: `${monster.name} corpse`,
+                symbol: '%',
+                weight: 10,
+                monsterType: monster.type
+            });
+            Game.addMessage(`The ${monster.name} drops a corpse.`, 'loot');
+        };
+
+        // ===== ITEM INTERACTIONS =====
+        Game.pickupItem = function() {
+            const player = Game.player;
+            const itemsHere = Game.items.filter(i => i.x === player.x && i.y === player.y);
+            
+            if (itemsHere.length === 0) {
+                Game.addMessage("There's nothing here to pick up.", 'info');
+                return;
+            }
+            
+            const item = itemsHere[0];
+            if (player.addToInventory(item)) {
+                Game.items = Game.items.filter(i => i !== item);
+                Game.addMessage(`You pick up the ${item.name}.`, 'action');
+            }
+        };
+        
+        Game.eatFood = function() {
+            const player = Game.player;
+            const food = player.inventory.find(i => i.type === 'food' || i.type === 'corpse');
+            
+            if (!food) {
+                Game.addMessage("You have no food to eat.", 'warning');
+                return;
+            }
+            
+            player.removeFromInventory(food);
+            const spRestore = 20 + Math.floor(Math.random() * 20);
+            player.restoreSP(spRestore);
+            Game.addMessage(`You eat the ${food.name} and restore ${spRestore} SP.`, 'success');
+        };
+        
+        Game.cookFood = function() {
+            const player = Game.player;
+            const cookable = player.inventory.find(i => i.type === 'food' || i.type === 'corpse');
+            
+            if (!cookable) {
+                Game.addMessage("You have nothing to cook.", 'warning');
+                return;
+            }
+            
+            Game.addMessage(`You attempt to cook the ${cookable.name}...`, 'action');
+            
+            Game.startQuiz({
+                mode: Game.config.quizModes.ESCALATOR_CHAIN,
+                subject: 'cooking',
+                tier: 1,
+                maxQuestions: 5,
+                reason: 'Cooking',
+                callback: (result) => {
+                    if (result.score === 0) {
+                        Game.addMessage("You burn the food! It's ruined.", 'danger');
+                        player.removeFromInventory(cookable);
+                    } else {
+                        const quality = ['poorly cooked', 'decently cooked', 'well cooked', 
+                                       'expertly cooked', 'masterfully cooked'][Math.min(result.score - 1, 4)];
+                        const cookedFood = {
+                            type: 'food',
+                            name: `${quality} ${cookable.name}`,
+                            weight: cookable.weight,
+                            spRestore: 30 + (result.score * 10),
+                            statBonus: result.score >= 3 ? { stat: 'constitution', value: 1 } : null
+                        };
+                        
+                        player.removeFromInventory(cookable);
+                        player.addToInventory(cookedFood);
+                        
+                        Game.addMessage(`You create a ${cookedFood.name}!`, 'success');
+                        if (cookedFood.statBonus) {
+                            Game.addMessage("This meal is so good it will permanently increase your stats when eaten!", 'success');
+                        }
+                    }
+                }
+            });
+        };
+        
+        Game.identifyItem = function() {
+            const player = Game.player;
+            const unidentified = player.inventory.filter(i => !i.identified);
+            
+            if (unidentified.length === 0) {
+                Game.addMessage("You have nothing to identify.", 'info');
+                return;
+            }
+            
+            const item = unidentified[0];
+            Game.addMessage(`You examine the ${item.name}...`, 'action');
+            
+            Game.startQuiz({
+                mode: Game.config.quizModes.THRESHOLD,
+                subject: 'philosophy',
+                tier: 1,
+                threshold: 3,
+                maxQuestions: 5,
+                reason: 'Identification',
+                callback: (result) => {
+                    if (result.success) {
+                        item.identified = true;
+                        item.trueName = item.name + ' of power';
+                        Game.addMessage(`You identify the item as a ${item.trueName}!`, 'success');
+                    } else {
+                        Game.addMessage("You fail to identify the item.", 'warning');
+                    }
+                }
+            });
+        };
+
+        // ===== MOVEMENT & INPUT =====
+        Game.movePlayer = function(dx, dy) {
+            const player = Game.player;
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+            
+            // Check for monster
+            const monster = Game.getMonsterAt(newX, newY);
+            if (monster && !monster.dead) {
+                Game.playerAttack(monster);
+                return;
+            }
+            
+            // Check if can move
+            if (!Game.canMoveTo(newX, newY)) {
+                Game.addMessage("You can't move there!", 'warning');
+                return;
+            }
+            
+            // Move player
+            player.x = newX;
+            player.y = newY;
+            player.spendSP(1);
+            
+            // Check for stairs
+            if (Game.dungeon[newY][newX] === '>') {
+                Game.addMessage("You see stairs leading down. Press > to descend.", 'info');
+            }
+            
+            // Process turn
+            Game.processTurn();
+        };
+        
+        Game.canMoveTo = function(x, y) {
+            if (y < 0 || y >= Game.dungeon.length) return false;
+            if (x < 0 || x >= Game.dungeon[y].length) return false;
+            return Game.dungeon[y][x] !== '#';
+        };
+        
+        Game.getMonsterAt = function(x, y) {
+            return Game.monsters.find(m => !m.dead && m.x === x && m.y === y);
+        };
+        
+        Game.processTurn = function() {
+            // Move monsters
+            Game.monsters.forEach(m => m.move());
+            
+            // Increment turn
+            Game.turn++;
+            
+            // Update display
+            render();
+        };
+        
+        Game.handleKeyPress = function(e) {
+            // Don't handle input during quiz
+            if (Game.activeQuiz) {
+                if (e.key === 'Enter') {
+                    const input = document.getElementById('quiz-answer');
+                    if (input && !input.disabled) {
+                        Game.submitQuizAnswer(input.value);
+                    }
+                }
+                return;
+            }
+            
+            // Movement
+            switch(e.key) {
+                case 'ArrowUp':
+                case 'k':
+                    Game.movePlayer(0, -1);
+                    break;
+                case 'ArrowDown':
+                case 'j':
+                    Game.movePlayer(0, 1);
+                    break;
+                case 'ArrowLeft':
+                case 'h':
+                    Game.movePlayer(-1, 0);
+                    break;
+                case 'ArrowRight':
+                case 'l':
+                    Game.movePlayer(1, 0);
+                    break;
+                case 'y':
+                    Game.movePlayer(-1, -1);
+                    break;
+                case 'u':
+                    Game.movePlayer(1, -1);
+                    break;
+                case 'b':
+                    Game.movePlayer(-1, 1);
+                    break;
+                case 'n':
+                    Game.movePlayer(1, 1);
+                    break;
+                    
+                // Actions
+                case ',':
+                case 'g':
+                    Game.pickupItem();
+                    Game.processTurn();
+                    break;
+                case 'E':
+                    Game.eatFood();
+                    Game.processTurn();
+                    break;
+                case 'c':
+                    Game.cookFood();
+                    break;
+                case 'I':
+                    Game.identifyItem();
+                    break;
+                case '.':
+                case ' ':
+                    Game.addMessage("You wait.", 'info');
+                    Game.player.spendSP(1);
+                    Game.processTurn();
+                    break;
+                case '>':
+                    if (Game.dungeon[Game.player.y][Game.player.x] === '>') {
+                        Game.nextLevel();
+                    }
+                    break;
+                case '?':
+                    Game.showHelp();
+                    break;
+            }
+            
+            e.preventDefault();
+        };
+        
+        Game.nextLevel = function() {
+            Game.currentLevel++;
+            Game.addMessage(`You descend to level ${Game.currentLevel}...`, 'action');
+            Game.dungeon = generateDungeon(Game.config.mapWidth, Game.config.mapHeight);
+            render();
+        };
+        
+        Game.showHelp = function() {
+            Game.addMessage("=== CONTROLS ===", 'info');
+            Game.addMessage("Movement: Arrow keys, HJKLYUBN", 'info');
+            Game.addMessage("Get item: , or g", 'info');
+            Game.addMessage("Eat: E | Cook: c | Identify: I", 'info');
+            Game.addMessage("Wait: . or Space", 'info');
+            Game.addMessage("Descend stairs: >", 'info');
+        };
+        
+        Game.gameOver = function(message) {
+            Game.addMessage("=== GAME OVER ===", 'danger');
+            Game.addMessage(message, 'danger');
+            document.removeEventListener('keydown', Game.handleKeyPress);
+        };
+
+        // ===== INITIALIZATION =====
+        Game.init = function() {
+            // Get display element
+            Game.display = document.getElementById('game-display');
+            
+            // Create player
+            Game.player = new Player("Hero");
+            
+            // Generate first dungeon
+            Game.dungeon = generateDungeon(Game.config.mapWidth, Game.config.mapHeight);
+            
+            // Setup input handling
+            document.addEventListener('keydown', Game.handleKeyPress);
+            
+            // Setup quiz submit button
+            document.getElementById('quiz-submit').addEventListener('click', () => {
+                const input = document.getElementById('quiz-answer');
+                if (input && !input.disabled) {
+                    Game.submitQuizAnswer(input.value);
+                }
             });
             
-            async function startGame() {
-                const playerName = playerNameInput.value.trim() || 'Scholar';
-                
-                // Hide intro, show game
-                document.getElementById('intro-screen').classList.remove('active');
-                document.getElementById('game-screen').classList.add('active');
-                
-                // Initialize game
-                console.log(`⚔️ Starting game for ${playerName}...`);
-                
-                try {
-                    // Create and initialize game
-                    window.PhilosophersQuest.Game = new Game(playerName);
-                    window.game = window.PhilosophersQuest.Game; // Alias for easier debugging
-                    
-                    await window.PhilosophersQuest.Game.initialize();
-                    
-                    console.log('✅ Game started successfully!');
-                    console.log('Type debugGame() in console to see game state');
-                    
-                } catch (error) {
-                    console.error('Failed to start game:', error);
-                    alert('Failed to start game. Please check the console for errors.');
-                }
-            }
+            // Initial messages
+            Game.addMessage("=== PHILOSOPHER'S QUEST ===", 'success');
+            Game.addMessage("Knowledge is power. Every action requires learning.", 'info');
+            Game.addMessage("Press ? for help.", 'info');
             
-            // Add keyboard shortcut to start game quickly (for testing)
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && document.getElementById('intro-screen').classList.contains('active')) {
-                    startGame();
-                }
-            });
-            
-            console.log('✅ Ready to play!');
-        });
-        
-        // Global error handler
-        window.addEventListener('error', (e) => {
-            console.error('Game Error:', e.error);
-            // Don't crash the game on non-critical errors
-            if (e.error && e.error.message && e.error.message.includes('undefined')) {
-                console.warn('Suppressing undefined error to keep game running');
-                e.preventDefault();
-            }
-        });
-        
-        // Prevent accidental page leave
-        window.addEventListener('beforeunload', (e) => {
-            if (window.PhilosophersQuest && window.PhilosophersQuest.Game && window.PhilosophersQuest.Game.running) {
-                e.preventDefault();
-                e.returnValue = 'Are you sure you want to leave? Your game progress will be lost!';
-            }
-        });
+            // Initial render
+            render();
+        };
+
+        // Start game when page loads
+        window.addEventListener('load', Game.init);
     </script>
 </body>
 </html>
