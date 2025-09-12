@@ -1,15 +1,15 @@
 /**
  * game.js - Main game orchestrator (NetHack-inspired architecture)
  * Turn-based, no animation loops, direct state management
- * FIXED VERSION - Correct quiz parameters and proper error handling
+ * FINAL CORRECTED VERSION - All cross-system issues resolved
  */
 
 import { CONFIG } from '../config.js';
 import { EventBus, EVENTS } from './event-bus.js';
-import { QuestionLoader } from './question-loader.js';
+import questionLoader from './question-loader.js';
 import { Player } from '../entities/player.js';
 import { DungeonGenerator } from '../world/dungeon-generator.js';
-import { QuizEngine } from '../systems/quiz-engine.js';
+import { quizEngine } from '../systems/quiz-engine.js';
 import { Renderer } from '../ui/renderer.js';
 import { MessageLog } from '../ui/message-log.js';
 import { UIManager } from '../ui/ui-manager.js';
@@ -52,7 +52,7 @@ export class Game {
         this.gameOver = false;
         this.victory = false;
         
-        // Missing CONFIG defaults
+        // Ensure CONFIG defaults exist
         CONFIG.TURN_REGEN_RATE = CONFIG.TURN_REGEN_RATE || 50;
         CONFIG.SAVE_KEY = CONFIG.SAVE_KEY || 'philosophers_quest_save';
         CONFIG.SP_DRAIN_PER_TURN = CONFIG.SP_DRAIN_PER_TURN || 1;
@@ -65,12 +65,15 @@ export class Game {
         console.log('🎮 Initializing game systems...');
         
         try {
+            // Load questions first
+            await questionLoader.loadAllQuestions();
+            
             // Create player first
             this.player = new Player(this.playerName);
             console.log('✅ Player created');
             
-            // Initialize systems
-            this.quizEngine = new QuizEngine();
+            // Use singleton quiz engine
+            this.quizEngine = quizEngine;
             console.log('✅ Quiz engine initialized');
             
             // Initialize UI components
@@ -86,10 +89,10 @@ export class Game {
             // Setup event listeners
             this.setupEventListeners();
             
-            // Initial messages
-            this.messageLog.add(`Welcome to Philosopher's Quest!`, 'success');
-            this.messageLog.add(`Welcome ${this.playerName}! Your quest for the Philosopher's Stone begins...`, 'success');
-            this.messageLog.add('Use arrow keys or HJKL to move. Press ? for help.', 'info');
+            // Initial messages with consistent format
+            this.addMessage('Welcome to Philosopher\'s Quest!', 'success');
+            this.addMessage(`Welcome ${this.playerName}! Your quest for the Philosopher's Stone begins...`, 'success');
+            this.addMessage('Use arrow keys or HJKL to move. Press ? for help.', 'info');
             
             console.log('✅ Game initialized successfully!');
             
@@ -102,9 +105,24 @@ export class Game {
         } catch (error) {
             console.error('❌ Failed to initialize game:', error);
             if (this.messageLog) {
-                this.messageLog.add('Failed to initialize game: ' + error.message, 'danger');
+                this.addMessage('Failed to initialize game: ' + error.message, 'danger');
             }
         }
+    }
+    
+    /**
+     * Add message with consistent format
+     */
+    addMessage(text, type = 'info') {
+        if (this.messageLog) {
+            this.messageLog.add(text, type);
+        }
+        // Emit UI message event with consistent structure
+        EventBus.emit(EVENTS.UI_MESSAGE, {
+            text: text,
+            type: type,
+            timestamp: Date.now()
+        });
     }
     
     /**
@@ -204,21 +222,22 @@ export class Game {
         this.turnNumber++;
         
         // Drain SP (hunger system)
-        this.player.sp -= CONFIG.SP_DRAIN_PER_TURN;
+        this.player.sp = Math.max(0, this.player.sp - CONFIG.SP_DRAIN_PER_TURN);
         
         // Handle starvation
         if (this.player.sp <= 0) {
-            this.player.sp = 0;
             this.player.hp -= 1;
             
             if (this.turnNumber % 5 === 0) {
-                this.messageLog.add('You are starving! Find food quickly!', 'danger');
+                this.addMessage('You are starving! Find food quickly!', 'danger');
             }
         }
         
         // Regeneration
         if (this.player.sp > 0 && this.turnNumber % CONFIG.TURN_REGEN_RATE === 0) {
-            this.player.regenerate();
+            if (this.player.regenerate) {
+                this.player.regenerate();
+            }
         }
         
         // Update player (effects, cooldowns)
@@ -243,7 +262,10 @@ export class Game {
      * Process monster AI turns
      */
     processMonsterTurns() {
-        for (const monster of this.level.monsters) {
+        // Create a copy to avoid modification during iteration
+        const monstersToProcess = [...this.level.monsters];
+        
+        for (const monster of monstersToProcess) {
             if (monster.hp <= 0) continue;
             
             // Basic monster AI - move toward player if close
@@ -316,6 +338,9 @@ export class Game {
         if (this.uiManager) {
             this.uiManager.update();
         }
+        
+        // Emit display update event
+        EventBus.emit(EVENTS.UI_RENDER, gameState);
     }
     
     /**
@@ -332,7 +357,7 @@ export class Game {
         const tile = this.dungeon.getTile ? this.dungeon.getTile(newX, newY) : null;
         
         if (!tile || tile.type === 'wall') {
-            this.messageLog.add('You bump into a wall!', 'warning');
+            this.addMessage('You bump into a wall!', 'warning');
             return;
         }
         
@@ -348,14 +373,21 @@ export class Game {
         this.player.x = newX;
         this.player.y = newY;
         
+        // Emit movement event
+        EventBus.emit(EVENTS.PLAYER_MOVED, {
+            x: newX,
+            y: newY,
+            direction: direction
+        });
+        
         // Check for items
         this.checkForItems(newX, newY);
         
         // Check for stairs
         if (tile.type === 'stairs_down' && this.level.depth < 100) {
-            this.messageLog.add('You see stairs leading down. Press > to descend.', 'info');
+            this.addMessage('You see stairs leading down. Press > to descend.', 'info');
         } else if (tile.type === 'stairs_up' && this.level.depth > 1) {
-            this.messageLog.add('You see stairs leading up. Press < to ascend.', 'info');
+            this.addMessage('You see stairs leading up. Press < to ascend.', 'info');
         }
         
         // Process turn after movement
@@ -367,7 +399,7 @@ export class Game {
      */
     handleWait() {
         if (this.gameOver || this.paused) return;
-        this.messageLog.add('You wait...', 'info');
+        this.addMessage('You wait...', 'info');
         this.processTurn();
     }
     
@@ -375,7 +407,7 @@ export class Game {
      * Handle attack on monster
      */
     handleAttack(monster) {
-        this.messageLog.add(`You attack the ${monster.name}!`, 'combat');
+        this.addMessage(`You attack the ${monster.name}!`, 'combat');
         
         // Start math quiz for damage with correct parameters
         this.startQuiz('math', monster.tier || 1, {
@@ -391,9 +423,9 @@ export class Game {
         const itemsHere = this.level.items.filter(item => item.x === x && item.y === y);
         if (itemsHere.length > 0) {
             if (itemsHere.length === 1) {
-                this.messageLog.add(`You see ${itemsHere[0].name || itemsHere[0].type} here.`, 'info');
+                this.addMessage(`You see ${itemsHere[0].name || itemsHere[0].type} here.`, 'info');
             } else {
-                this.messageLog.add(`You see ${itemsHere.length} items here.`, 'info');
+                this.addMessage(`You see ${itemsHere.length} items here.`, 'info');
             }
         }
     }
@@ -423,7 +455,7 @@ export class Game {
     }
     
     /**
-     * Handle pickup action
+     * Handle pickup action - FIXED to avoid array modification issues
      */
     handlePickup() {
         if (this.gameOver || this.paused) return;
@@ -433,25 +465,35 @@ export class Game {
         );
         
         if (itemsHere.length === 0) {
-            this.messageLog.add('Nothing to pick up here.', 'info');
+            this.addMessage('Nothing to pick up here.', 'info');
             return;
         }
         
-        // Pick up items
+        // Initialize inventory if needed
+        if (!this.player.inventory) {
+            this.player.inventory = [];
+        }
+        
+        // Pick up all items (NetHack style - pick up everything at once)
         itemsHere.forEach(item => {
-            if (!this.player.inventory) {
-                this.player.inventory = [];
-            }
-            
             this.player.inventory.push(item);
+            this.addMessage(`Picked up ${item.name || item.type}.`, 'success');
             
-            // Remove from ground
-            const index = this.level.items.indexOf(item);
-            if (index > -1) {
-                this.level.items.splice(index, 1);
-            }
-            
-            this.messageLog.add(`Picked up ${item.name || item.type}.`, 'success');
+            // Emit pickup event
+            EventBus.emit(EVENTS.ITEM_PICKED_UP, {
+                item: item,
+                player: this.player
+            });
+        });
+        
+        // Remove all picked items from ground (do this after iteration)
+        this.level.items = this.level.items.filter(item => 
+            !(item.x === this.player.x && item.y === this.player.y)
+        );
+        
+        // Update inventory display
+        EventBus.emit(EVENTS.INVENTORY_UPDATED, {
+            inventory: this.player.inventory
         });
         
         this.processTurn();
@@ -469,17 +511,17 @@ export class Game {
         if (!tile) return;
         
         if (direction === 'down' && tile.type === 'stairs_down') {
-            this.messageLog.add('You descend deeper into the dungeon...', 'info');
+            this.addMessage('You descend deeper into the dungeon...', 'info');
             this.generateLevel(this.level.depth + 1);
             this.processTurn();
         } else if (direction === 'up' && tile.type === 'stairs_up') {
             if (this.level.depth > 1) {
-                this.messageLog.add('You ascend to the previous level...', 'info');
+                this.addMessage('You ascend to the previous level...', 'info');
                 this.generateLevel(this.level.depth - 1);
                 this.processTurn();
             }
         } else {
-            this.messageLog.add('There are no stairs here.', 'warning');
+            this.addMessage('There are no stairs here.', 'warning');
         }
     }
     
@@ -509,48 +551,56 @@ export class Game {
         this.paused = false;
         
         if (result.success) {
-            this.messageLog.add(`Quiz completed! Score: ${result.score}`, 'success');
+            this.addMessage(`Quiz completed! Score: ${result.score}`, 'success');
             
             if (context && context.action === 'attack' && context.target) {
                 const damage = result.score * 2;
-                context.target.hp -= damage;
-                this.messageLog.add(`You deal ${damage} damage!`, 'combat');
+                context.target.hp = Math.max(0, context.target.hp - damage);
+                this.addMessage(`You deal ${damage} damage!`, 'combat');
                 
                 if (context.target.hp <= 0) {
                     this.handleMonsterDeath(context.target);
                 }
             }
         } else {
-            this.messageLog.add('Quiz failed. Try studying more!', 'warning');
+            this.addMessage('Quiz failed. Try studying more!', 'warning');
         }
         
         this.updateDisplay();
     }
     
     /**
-     * Handle monster death
+     * Handle monster death - FIXED to properly remove monsters
      */
     handleMonsterDeath(monster) {
-        this.messageLog.add(`You have defeated the ${monster.name}!`, 'success');
+        this.addMessage(`You have defeated the ${monster.name}!`, 'success');
         
-        // Remove from monsters array
+        // Remove from monsters array safely
         const index = this.level.monsters.indexOf(monster);
         if (index > -1) {
             this.level.monsters.splice(index, 1);
         }
         
         // Drop corpse
-        if (monster.corpseType) {
+        if (monster.corpseType || monster.name) {
             this.level.items.push({
                 x: monster.x,
                 y: monster.y,
                 type: 'corpse',
                 name: `${monster.name} corpse`,
-                corpseType: monster.corpseType
+                corpseType: monster.corpseType || monster.name.toLowerCase()
             });
         }
         
-        EventBus.emit(EVENTS.MONSTER_KILLED, { monster });
+        // Emit proper events
+        EventBus.emit(EVENTS.MONSTER_KILLED, { 
+            monster: monster,
+            level: this.level.depth
+        });
+        
+        EventBus.emit(EVENTS.MONSTER_DEATH, { 
+            monster: monster 
+        });
     }
     
     /**
@@ -560,9 +610,13 @@ export class Game {
         if (this.player.hp <= 0) {
             this.gameOver = true;
             this.victory = false;
-            EventBus.emit(EVENTS.GAME_OVER);
-            this.messageLog.add('You have died. Game Over.', 'danger');
-            this.messageLog.add(`You survived ${this.turnNumber} turns and reached level ${this.level.depth}.`, 'info');
+            EventBus.emit(EVENTS.GAME_OVER, {
+                reason: 'death',
+                turns: this.turnNumber,
+                level: this.level.depth
+            });
+            this.addMessage('You have died. Game Over.', 'danger');
+            this.addMessage(`You survived ${this.turnNumber} turns and reached level ${this.level.depth}.`, 'info');
             return;
         }
         
@@ -575,9 +629,12 @@ export class Game {
             if (hasStone) {
                 this.gameOver = true;
                 this.victory = true;
-                EventBus.emit(EVENTS.VICTORY || EVENTS.GAME_WIN);
-                this.messageLog.add('🎉 Victory! You have found the Philosopher\'s Stone!', 'success');
-                this.messageLog.add(`You completed the quest in ${this.turnNumber} turns!`, 'success');
+                EventBus.emit(EVENTS.VICTORY, {
+                    turns: this.turnNumber,
+                    level: this.level.depth
+                });
+                this.addMessage('🎉 Victory! You have found the Philosopher\'s Stone!', 'success');
+                this.addMessage(`You completed the quest in ${this.turnNumber} turns!`, 'success');
             }
         }
     }
@@ -631,6 +688,20 @@ export class Game {
     }
     
     /**
+     * Toggle pause
+     */
+    togglePause() {
+        this.paused = !this.paused;
+        if (this.paused) {
+            EventBus.emit(EVENTS.GAME_PAUSE);
+            this.addMessage('Game paused', 'info');
+        } else {
+            EventBus.emit(EVENTS.GAME_RESUME);
+            this.addMessage('Game resumed', 'info');
+        }
+    }
+    
+    /**
      * Save game
      */
     save() {
@@ -639,13 +710,19 @@ export class Game {
             playerName: this.playerName,
             turnNumber: this.turnNumber,
             level: this.level.depth,
-            player: this.player.serialize ? this.player.serialize() : null,
+            player: this.player.serialize ? this.player.serialize() : {
+                x: this.player.x,
+                y: this.player.y,
+                hp: this.player.hp,
+                sp: this.player.sp,
+                inventory: this.player.inventory || []
+            },
             timestamp: Date.now()
         };
         
         localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify(saveData));
-        EventBus.emit(EVENTS.SAVE_GAME);
-        this.messageLog.add('Game saved!', 'success');
+        EventBus.emit(EVENTS.SAVE_GAME, saveData);
+        this.addMessage('Game saved!', 'success');
         return true;
     }
     
@@ -656,25 +733,28 @@ export class Game {
         try {
             const saveData = JSON.parse(localStorage.getItem(CONFIG.SAVE_KEY));
             if (!saveData) {
-                this.messageLog.add('No save game found.', 'warning');
+                this.addMessage('No save game found.', 'warning');
                 return false;
             }
             
             this.playerName = saveData.playerName;
             this.turnNumber = saveData.turnNumber;
             
-            if (this.player.deserialize) {
+            if (this.player.deserialize && saveData.player) {
                 this.player.deserialize(saveData.player);
+            } else if (saveData.player) {
+                // Fallback deserialization
+                Object.assign(this.player, saveData.player);
             }
             
             this.generateLevel(saveData.level || 1);
             
-            EventBus.emit(EVENTS.LOAD_GAME);
-            this.messageLog.add('Game loaded!', 'success');
+            EventBus.emit(EVENTS.LOAD_GAME, saveData);
+            this.addMessage('Game loaded!', 'success');
             return true;
         } catch (error) {
             console.error('Failed to load game:', error);
-            this.messageLog.add('Failed to load save game.', 'danger');
+            this.addMessage('Failed to load save game.', 'danger');
             return false;
         }
     }
@@ -685,8 +765,12 @@ export class Game {
     destroy() {
         this.running = false;
         
-        if (this.renderer) {
+        if (this.renderer && this.renderer.destroy) {
             this.renderer.destroy();
+        }
+        
+        if (this.inputHandler && this.inputHandler.destroy) {
+            this.inputHandler.destroy();
         }
         
         EventBus.removeAllListeners();

@@ -1,21 +1,24 @@
 /**
  * quiz-engine.js - Educational quiz system
  * Handles all four quiz modes: threshold, chain, escalator_threshold, escalator_chain
- * FIXED VERSION - Correct imports and parameter handling
+ * FINAL CORRECTED VERSION - All cross-system integration issues resolved
  */
 
 import { CONFIG, EVENTS, QUIZ_SUBJECTS } from '../config.js';
 import { EventBus } from '../core/event-bus.js';
-import { QuestionLoader } from '../core/question-loader.js';
+import questionLoader from '../core/question-loader.js';
 
 export class QuizEngine {
     constructor() {
         this.currentQuiz = null;
         this.timer = null;
         this.timeRemaining = 0;
+        this.isActive = false;
         
         // Setup event listeners
         this.setupEventListeners();
+        
+        console.log('🎓 Quiz engine initialized');
     }
     
     /**
@@ -30,11 +33,26 @@ export class QuizEngine {
      * @param {string} params.reason - Why quiz is happening (for messages)
      */
     startQuiz(params) {
+        // Don't start if already active
+        if (this.isActive) {
+            console.warn('Quiz already active, ignoring new quiz request');
+            return;
+        }
+        
         // Validate parameters
         if (!this.validateParams(params)) {
             console.error('Invalid quiz parameters:', params);
             if (params.callback) {
-                params.callback({ success: false, score: 0, mode: params.mode });
+                params.callback({ success: false, score: 0, mode: params.mode, error: 'Invalid parameters' });
+            }
+            return;
+        }
+        
+        // Ensure questions are loaded
+        if (!questionLoader.isLoaded()) {
+            console.error('Questions not loaded yet');
+            if (params.callback) {
+                params.callback({ success: false, score: 0, mode: params.mode, error: 'Questions not loaded' });
             }
             return;
         }
@@ -57,6 +75,15 @@ export class QuizEngine {
             questionHistory: []
         };
         
+        this.isActive = true;
+        
+        // Emit quiz start event
+        EventBus.emit(EVENTS.QUIZ_START, {
+            subject: params.subject,
+            mode: params.mode,
+            reason: params.reason
+        });
+        
         // Show quiz start message
         const subjectName = params.subject.charAt(0).toUpperCase() + params.subject.slice(1);
         EventBus.emit(EVENTS.UI_MESSAGE, {
@@ -73,7 +100,10 @@ export class QuizEngine {
      */
     showNextQuestion() {
         const quiz = this.currentQuiz;
-        if (!quiz) return;
+        if (!quiz) {
+            console.error('No active quiz');
+            return;
+        }
         
         // Check if quiz should end (reached goal)
         if (this.shouldEndQuiz()) {
@@ -81,29 +111,49 @@ export class QuizEngine {
             return;
         }
         
-        // Get next question
-        const question = QuestionLoader.getRandomQuestion(quiz.subject, quiz.currentTier);
+        // Get next question using singleton instance
+        const question = questionLoader.getRandomQuestion(quiz.subject, quiz.currentTier);
         if (!question) {
             console.error(`No questions available for ${quiz.subject} tier ${quiz.currentTier}`);
-            this.endQuiz(false);
-            return;
+            
+            // Try fallback to tier 1
+            if (quiz.currentTier > 1) {
+                const fallbackQuestion = questionLoader.getRandomQuestion(quiz.subject, 1);
+                if (fallbackQuestion) {
+                    quiz.currentQuestion = fallbackQuestion;
+                    quiz.currentTier = 1; // Reset to tier 1
+                    quiz.totalAsked++;
+                } else {
+                    this.endQuiz(false);
+                    return;
+                }
+            } else {
+                this.endQuiz(false);
+                return;
+            }
+        } else {
+            quiz.currentQuestion = question;
+            quiz.totalAsked++;
         }
         
-        quiz.currentQuestion = question;
-        quiz.totalAsked++;
-        
-        // Calculate timer (wisdom only, no modifications in quiz engine)
-        const player = window.PhilosophersQuest?.Game?.player;
+        // Calculate timer based on player wisdom
+        const player = window.PhilosophersQuest?.Game?.player || 
+                     (typeof global !== 'undefined' ? global.game?.player : null);
         const wisdom = player?.wisdom || CONFIG.STARTING_WISDOM;
-        this.timeRemaining = wisdom;
+        this.timeRemaining = Math.max(10, wisdom); // Minimum 10 seconds
         
         // Show quiz modal
         EventBus.emit(EVENTS.UI_OPEN_QUIZ, {
             subject: quiz.subject,
             difficulty: quiz.currentTier,
-            question: question,
+            question: quiz.currentQuestion,
             timeLimit: this.timeRemaining,
-            reason: quiz.reason
+            reason: quiz.reason,
+            progress: {
+                correct: quiz.correctCount,
+                total: quiz.totalAsked,
+                goal: quiz.threshold || quiz.maxChain
+            }
         });
         
         // Start timer
@@ -135,23 +185,37 @@ export class QuizEngine {
      */
     handleAnswer(answer) {
         const quiz = this.currentQuiz;
-        if (!quiz || !quiz.currentQuestion) return;
+        if (!quiz || !quiz.currentQuestion) {
+            console.warn('No active quiz or question');
+            return;
+        }
         
         // Stop timer
         this.stopTimer();
         
-        // Check answer (exact match, case and punctuation sensitive)
-        const correct = answer === quiz.currentQuestion.answer;
+        // Normalize answer for comparison
+        const normalizedAnswer = this.normalizeAnswer(answer);
+        const normalizedCorrect = this.normalizeAnswer(quiz.currentQuestion.answer || quiz.currentQuestion.correct);
+        
+        // Check answer
+        const correct = normalizedAnswer === normalizedCorrect || 
+                       this.checkMultipleChoiceAnswer(quiz.currentQuestion, answer);
         
         if (correct) {
             quiz.correctCount++;
             quiz.questionHistory.push({ 
                 question: quiz.currentQuestion, 
                 correct: true,
-                tier: quiz.currentTier
+                tier: quiz.currentTier,
+                userAnswer: answer
             });
             
-            EventBus.emit(EVENTS.QUIZ_CORRECT);
+            EventBus.emit(EVENTS.QUIZ_CORRECT, {
+                question: quiz.currentQuestion,
+                answer: answer,
+                score: quiz.correctCount
+            });
+            
             EventBus.emit(EVENTS.UI_MESSAGE, {
                 text: 'Correct!',
                 type: 'success'
@@ -171,21 +235,28 @@ export class QuizEngine {
                 } else {
                     this.showNextQuestion();
                 }
-            }, 500); // Brief pause after correct answer
+            }, 1000); // Brief pause after correct answer
             
         } else {
             // Wrong answer - quiz ends immediately
             quiz.questionHistory.push({ 
                 question: quiz.currentQuestion, 
                 correct: false,
-                tier: quiz.currentTier
+                tier: quiz.currentTier,
+                userAnswer: answer,
+                correctAnswer: quiz.currentQuestion.answer || quiz.currentQuestion.correct
             });
             
+            const correctAnswer = this.getCorrectAnswerText(quiz.currentQuestion);
+            
             EventBus.emit(EVENTS.QUIZ_WRONG, { 
-                correctAnswer: quiz.currentQuestion.answer 
+                question: quiz.currentQuestion,
+                userAnswer: answer,
+                correctAnswer: correctAnswer
             });
+            
             EventBus.emit(EVENTS.UI_MESSAGE, {
-                text: `Wrong! The answer was: ${quiz.currentQuestion.answer}`,
+                text: `Wrong! The answer was: ${correctAnswer}`,
                 type: 'warning'
             });
             
@@ -197,13 +268,50 @@ export class QuizEngine {
     }
     
     /**
+     * Normalize answer for comparison
+     */
+    normalizeAnswer(answer) {
+        if (typeof answer === 'string') {
+            return answer.toLowerCase().trim().replace(/[.,!?;]/g, '');
+        }
+        return String(answer).toLowerCase();
+    }
+    
+    /**
+     * Check multiple choice answer
+     */
+    checkMultipleChoiceAnswer(question, answer) {
+        if (question.type === 'multiple_choice' && question.answers) {
+            const answerIndex = parseInt(answer);
+            if (!isNaN(answerIndex)) {
+                return answerIndex === question.correct;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Get correct answer text for display
+     */
+    getCorrectAnswerText(question) {
+        if (question.type === 'multiple_choice' && question.answers) {
+            return question.answers[question.correct] || question.correct;
+        }
+        return question.answer || question.correct || 'Unknown';
+    }
+    
+    /**
      * Handle timer timeout
      */
     handleTimeout() {
         const quiz = this.currentQuiz;
         if (!quiz) return;
         
-        EventBus.emit(EVENTS.QUIZ_TIMEOUT);
+        EventBus.emit(EVENTS.QUIZ_TIMEOUT, {
+            question: quiz.currentQuestion,
+            timeRemaining: 0
+        });
+        
         EventBus.emit(EVENTS.UI_MESSAGE, {
             text: "Time's up!",
             type: 'danger'
@@ -214,12 +322,16 @@ export class QuizEngine {
             question: quiz.currentQuestion, 
             correct: false,
             timeout: true,
-            tier: quiz.currentTier
+            tier: quiz.currentTier,
+            correctAnswer: quiz.currentQuestion.answer || quiz.currentQuestion.correct
         });
         
         // Show correct answer
+        const correctAnswer = this.getCorrectAnswerText(quiz.currentQuestion);
         EventBus.emit(EVENTS.QUIZ_WRONG, { 
-            correctAnswer: quiz.currentQuestion.answer 
+            question: quiz.currentQuestion,
+            timeout: true,
+            correctAnswer: correctAnswer
         });
         
         setTimeout(() => {
@@ -240,31 +352,52 @@ export class QuizEngine {
         // Build result object
         const result = {
             mode: quiz.mode,
+            subject: quiz.subject,
             score: quiz.correctCount,
             totalAsked: quiz.totalAsked,
-            history: quiz.questionHistory
+            history: quiz.questionHistory,
+            reachedGoal: reachedGoal
         };
         
-        // Add success flag for threshold modes
+        // Add success flag based on mode
         if (quiz.mode === 'threshold' || quiz.mode === 'escalator_threshold') {
             result.success = quiz.correctCount >= quiz.threshold;
+        } else if (quiz.mode === 'chain' || quiz.mode === 'escalator_chain') {
+            result.success = quiz.correctCount >= quiz.maxChain;
         } else {
-            // For chain modes, score of 0 means failure
             result.success = quiz.correctCount > 0;
         }
         
         // Clear quiz state
         this.currentQuiz = null;
+        this.isActive = false;
         
         // Close modal
-        EventBus.emit(EVENTS.UI_CLOSE_QUIZ);
+        EventBus.emit(EVENTS.UI_CLOSE_QUIZ, result);
         
         // Emit completion event
         EventBus.emit(EVENTS.QUIZ_COMPLETE, result);
         
         // Call the callback
         if (quiz.callback) {
-            quiz.callback(result);
+            try {
+                quiz.callback(result);
+            } catch (error) {
+                console.error('Error in quiz callback:', error);
+            }
+        }
+        
+        // Show final message
+        if (result.success) {
+            EventBus.emit(EVENTS.UI_MESSAGE, {
+                text: `Quiz completed successfully! Score: ${result.score}/${result.totalAsked}`,
+                type: 'success'
+            });
+        } else {
+            EventBus.emit(EVENTS.UI_MESSAGE, {
+                text: `Quiz failed. Final score: ${result.score}/${result.totalAsked}`,
+                type: 'warning'
+            });
         }
     }
     
@@ -278,6 +411,12 @@ export class QuizEngine {
         // Start countdown
         this.timer = setInterval(() => {
             this.timeRemaining--;
+            
+            // Emit timer update
+            EventBus.emit(EVENTS.QUIZ_QUESTION, {
+                timeRemaining: this.timeRemaining,
+                totalTime: this.currentQuiz ? this.currentQuiz.totalTime : 30
+            });
             
             if (this.timeRemaining <= 0) {
                 this.handleTimeout();
@@ -296,6 +435,36 @@ export class QuizEngine {
     }
     
     /**
+     * Cancel current quiz
+     */
+    cancelQuiz() {
+        if (!this.currentQuiz) return;
+        
+        this.stopTimer();
+        
+        const result = {
+            mode: this.currentQuiz.mode,
+            subject: this.currentQuiz.subject,
+            score: this.currentQuiz.correctCount,
+            totalAsked: this.currentQuiz.totalAsked,
+            history: this.currentQuiz.questionHistory,
+            success: false,
+            cancelled: true
+        };
+        
+        this.currentQuiz = null;
+        this.isActive = false;
+        
+        EventBus.emit(EVENTS.UI_CLOSE_QUIZ, result);
+        EventBus.emit(EVENTS.QUIZ_COMPLETE, result);
+        
+        EventBus.emit(EVENTS.UI_MESSAGE, {
+            text: 'Quiz cancelled',
+            type: 'info'
+        });
+    }
+    
+    /**
      * Validate quiz parameters
      */
     validateParams(params) {
@@ -308,17 +477,17 @@ export class QuizEngine {
         }
         
         if (!validModes.includes(params.mode)) {
-            console.error(`Invalid mode: ${params.mode}`);
+            console.error(`Invalid mode: ${params.mode}. Valid modes: ${validModes.join(', ')}`);
             return false;
         }
         
         if (!validSubjects.includes(params.subject)) {
-            console.error(`Invalid subject: ${params.subject}`);
+            console.error(`Invalid subject: ${params.subject}. Valid subjects: ${validSubjects.join(', ')}`);
             return false;
         }
         
         if (params.startingTier < 1 || params.startingTier > 5) {
-            console.error(`Invalid starting tier: ${params.startingTier}`);
+            console.error(`Invalid starting tier: ${params.startingTier}. Must be 1-5`);
             return false;
         }
         
@@ -328,13 +497,13 @@ export class QuizEngine {
         }
         
         // Check mode-specific requirements
-        if ((params.mode === 'threshold' || params.mode === 'escalator_threshold') && !params.threshold) {
-            console.error('Threshold modes require threshold parameter');
+        if ((params.mode === 'threshold' || params.mode === 'escalator_threshold') && (!params.threshold || params.threshold < 1)) {
+            console.error('Threshold modes require threshold parameter >= 1');
             return false;
         }
         
-        if ((params.mode === 'chain' || params.mode === 'escalator_chain') && !params.maxChain) {
-            console.error('Chain modes require maxChain parameter');
+        if ((params.mode === 'chain' || params.mode === 'escalator_chain') && (!params.maxChain || params.maxChain < 1)) {
+            console.error('Chain modes require maxChain parameter >= 1');
             return false;
         }
         
@@ -365,12 +534,20 @@ export class QuizEngine {
     setupEventListeners() {
         // Listen for quiz start requests
         EventBus.on(EVENTS.QUIZ_START, (params) => {
-            this.startQuiz(params);
+            if (params && typeof params === 'object' && params.mode) {
+                this.startQuiz(params);
+            }
         });
         
         // Listen for answer submissions
-        EventBus.on(EVENTS.QUIZ_ANSWER, (answer) => {
+        EventBus.on(EVENTS.QUIZ_ANSWER, (data) => {
+            const answer = typeof data === 'string' ? data : data.answer;
             this.handleAnswer(answer);
+        });
+        
+        // Listen for quiz cancellation
+        EventBus.on(EVENTS.QUIZ_TIMEOUT, () => {
+            // Timeout is handled internally
         });
     }
     
@@ -378,7 +555,7 @@ export class QuizEngine {
      * Check if quiz is active
      */
     isQuizActive() {
-        return this.currentQuiz !== null;
+        return this.isActive;
     }
     
     /**
@@ -392,10 +569,26 @@ export class QuizEngine {
             subject: this.currentQuiz.subject,
             tier: this.currentQuiz.currentTier,
             progress: this.currentQuiz.correctCount,
-            goal: this.currentQuiz.threshold || this.currentQuiz.maxChain
+            goal: this.currentQuiz.threshold || this.currentQuiz.maxChain,
+            timeRemaining: this.timeRemaining,
+            totalAsked: this.currentQuiz.totalAsked,
+            active: this.isActive
+        };
+    }
+    
+    /**
+     * Get quiz statistics
+     */
+    getStats() {
+        return {
+            active: this.isActive,
+            currentQuiz: this.getCurrentQuizInfo(),
+            questionsLoaded: questionLoader.isLoaded(),
+            availableSubjects: questionLoader.getSubjects()
         };
     }
 }
 
 // Export singleton instance
 export const quizEngine = new QuizEngine();
+export default quizEngine;
