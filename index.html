@@ -657,6 +657,26 @@
             border: 2px solid var(--health-red);
             text-shadow: 0 0 10px currentColor;
         }
+
+         /* Help Modal Styles */
+        .help-command {
+            padding: 4px 0;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .help-command .key {
+            display: inline-block;
+            min-width: 100px;
+            color: var(--knowledge-blue);
+            font-weight: 600;
+            background: var(--bg-dark);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -761,6 +781,52 @@
                 <button class="quiz-button" id="quiz-submit">Submit Answer</button>
             </div>
             <div class="quiz-feedback" id="quiz-feedback" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="quiz-header">
+                <div class="quiz-title">COMMAND REFERENCE</div>
+                <div style="color: var(--text-secondary); font-size: 14px;">Press ESC or ? to close</div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h3 style="color: var(--gold-bright); margin-bottom: 10px;">Movement</h3>
+                    <div class="help-command"><span class="key">Arrows/Numpad</span> Move/Attack</div>
+                    <div class="help-command"><span class="key">5 / . / Space</span> Wait</div>
+                    
+                    <h3 style="color: var(--gold-bright); margin: 15px 0 10px;">Dungeon</h3>
+                    <div class="help-command"><span class="key">&gt;</span> Descend stairs</div>
+                    <div class="help-command"><span class="key">&lt;</span> Ascend stairs <span style="color: var(--text-dim);">(not yet)</span></div>
+                    
+                    <h3 style="color: var(--gold-bright); margin: 15px 0 10px;">Items</h3>
+                    <div class="help-command"><span class="key">, / g</span> Get item</div>
+                    <div class="help-command"><span class="key">d</span> Drop item <span style="color: var(--text-dim);">(not yet)</span></div>
+                    <div class="help-command"><span class="key">i</span> Inventory <span style="color: var(--text-dim);">(not yet)</span></div>
+                    <div class="help-command"><span class="key">e</span> Equip item <span style="color: var(--text-dim);">(not yet)</span></div>
+                </div>
+                
+                <div>
+                    <h3 style="color: var(--gold-bright); margin-bottom: 10px;">Food System</h3>
+                    <div class="help-command"><span class="key">h</span> Harvest corpse <span style="color: var(--text-dim);">(not yet)</span></div>
+                    <div class="help-command"><span class="key">c</span> Cook ingredients <span style="color: var(--text-dim);">(not yet)</span></div>
+                    
+                    <h3 style="color: var(--gold-bright); margin: 15px 0 10px;">Magic</h3>
+                    <div class="help-command"><span class="key">r</span> Read scroll/book <span style="color: var(--text-dim);">(not yet)</span></div>
+                    <div class="help-command"><span class="key">q</span> Quaff potion <span style="color: var(--text-dim);">(not yet)</span></div>
+                    <div class="help-command"><span class="key">z</span> Zap wand <span style="color: var(--text-dim);">(not yet)</span></div>
+                    <div class="help-command"><span class="key">C</span> Cast spell <span style="color: var(--text-dim);">(not yet)</span></div>
+                    
+                    <h3 style="color: var(--gold-bright); margin: 15px 0 10px;">Special</h3>
+                    <div class="help-command"><span class="key">I</span> Identify <span style="color: var(--text-dim);">(not yet)</span></div>
+                    <div class="help-command"><span class="key">p</span> Pray <span style="color: var(--text-dim);">(not yet)</span></div>
+                    <div class="help-command"><span class="key">l</span> Lockpick <span style="color: var(--text-dim);">(not yet)</span></div>
+                    <div class="help-command"><span class="key">f</span> Fire ranged <span style="color: var(--text-dim);">(not yet)</span></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1005,7 +1071,7 @@
                 // Show quiz modal
                 this.showQuizModal(question);
                 },
-                
+
             // Display the quiz modal
             showQuizModal: function(question) {
                 const modal = document.getElementById('quiz-modal');
@@ -1185,6 +1251,7 @@
             },
             
             handleTimeout: function() {
+                this.stopTimer();
                 const quiz = this.currentQuiz;
                 if (!quiz) return;
                 
@@ -2781,41 +2848,17 @@
         };
 
         Game.showHelp = function() {
-            Game.addMessage("=== CONTROLS ===", 'info');
-            Game.addMessage("== Movement ==", 'info');
-            Game.addMessage("Arrow keys or Numpad - Move/Attack", 'info');
-            Game.addMessage("5/./Space - Wait", 'info');
+            const modal = document.getElementById('help-modal');
+            modal.classList.add('active');
             
-            Game.addMessage("== Dungeon ==", 'info');
-            Game.addMessage("> - Descend stairs", 'info');
-            Game.addMessage("< - Ascend stairs (not yet)", 'info');
-            
-            Game.addMessage("== Items ==", 'info');
-            Game.addMessage(",/g - Get item", 'info');
-            Game.addMessage("d - Drop item (not yet)", 'info');
-            Game.addMessage("i - Inventory (not yet)", 'info');
-            Game.addMessage("e - Equip item (not yet)", 'info');
-            
-            Game.addMessage("== Combat ==", 'info');
-            Game.addMessage("Move into enemy - Melee attack", 'info');
-            Game.addMessage("f - Fire ranged weapon (not yet)", 'info');
-            
-            Game.addMessage("== Food System ==", 'info');
-            Game.addMessage("h - Harvest corpse (not yet)", 'info');
-            Game.addMessage("c - Cook ingredients (not yet)", 'info');
-            
-            Game.addMessage("== Magic ==", 'info');
-            Game.addMessage("r - Read scroll/book (not yet)", 'info');
-            Game.addMessage("q - Quaff potion (not yet)", 'info');
-            Game.addMessage("z - Zap wand (not yet)", 'info');
-            Game.addMessage("C - Cast spell (not yet)", 'info');
-            
-            Game.addMessage("== Special ==", 'info');
-            Game.addMessage("I - Identify (not yet)", 'info');
-            Game.addMessage("p - Pray (not yet)", 'info');
-            Game.addMessage("l - Lockpick (not yet)", 'info');
-            
-            Game.addMessage("? - This help", 'info');
+            // Allow closing with ESC or ?
+            const closeHelp = (e) => {
+                if (e.key === 'Escape' || e.key === '?') {
+                    modal.classList.remove('active');
+                    document.removeEventListener('keydown', closeHelp);
+                }
+            };
+            document.addEventListener('keydown', closeHelp);
         };
 
         Game.gameOver = function(message) {
