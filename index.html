@@ -1264,16 +1264,6 @@
                     
                     inputArea.appendChild(buttonContainer);
                     
-                    // Add submit button
-                    const submitBtn = document.createElement('button');
-                    submitBtn.className = 'quiz-button';
-                    submitBtn.id = 'quiz-submit';
-                    submitBtn.textContent = 'Submit Answer';
-                    submitBtn.style.marginTop = '20px';
-                    submitBtn.disabled = true;
-                    submitBtn.onclick = () => this.submitMultipleChoice();
-                    inputArea.appendChild(submitBtn);
-                    
                     // Store selected answer
                     this.selectedChoice = null;
                     
@@ -1331,8 +1321,8 @@
                     }
                 });
                 
-                // Enable submit button
-                document.getElementById('quiz-submit').disabled = false;
+                // Auto-submit after a brief delay for visual feedback
+                setTimeout(() => this.submitMultipleChoice(), 200);
             },
             
             // Submit multiple choice answer
@@ -1358,7 +1348,8 @@
                     quiz.questionHistory.push({question: quiz.currentQuestion, correct: true});
                     
                     Game.addMessage('Correct!', 'success');
-                    document.getElementById('quiz-answer').value = '';
+                    const answerInput = document.getElementById('quiz-answer');
+                    if (answerInput) answerInput.value = '';
                     
                     // Check if we should continue or end
                     if (quiz.mode === 'threshold' || quiz.mode === 'escalator_threshold') {
