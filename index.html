@@ -2213,7 +2213,7 @@
         // ===== INPUT HANDLING =====
         Game.handleKeyPress = function(e) {
             // Don't handle input during quiz
-            if (Game.activeQuiz) return;
+            if (Game.QuizEngine.isActive || document.getElementById('quiz-modal').classList.contains('active')) return;
             
             let dx = 0, dy = 0;
             
