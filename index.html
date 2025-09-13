@@ -186,7 +186,7 @@
 
         /* Message Log */
         #message-log {
-            height: 180px;
+            height: 250px;  /* Increased from 180px */
             background: var(--bg-dark);
             border-top: 2px solid var(--border-color);
             padding: 12px;
@@ -740,13 +740,7 @@
                 <!-- Controls -->
                 <div class="controls">
                     <h4>CONTROLS</h4>
-                    <div class="control-line"><span class="key">↑↓←→/HJKL</span> Move</div>
-                    <div class="control-line"><span class="key">,/g</span> Get item</div>
-                    <div class="control-line"><span class="key">E</span> Eat food</div>
-                    <div class="control-line"><span class="key">c</span> Cook</div>
-                    <div class="control-line"><span class="key">I</span> Identify</div>
-                    <div class="control-line"><span class="key">./Space</span> Wait</div>
-                    <div class="control-line"><span class="key">?</span> Help</div>
+                    <div class="control-line">Press <span class="key">?</span> for commands</div>
                 </div>
             </div>
         </div>
@@ -1002,14 +996,14 @@
                 quiz.totalAsked++;
                 
                 // Calculate timer based on wisdom
-                this.timeRemaining = Math.max(10, Game.player.getQuizTimer());
-                
+                // Only set timer and start it on the FIRST question
+                if (quiz.correctCount === 0 && quiz.totalAsked === 1) {
+                    this.timeRemaining = Game.player.getQuizTimer();
+                    this.startTimer();
+                }
+
                 // Show quiz modal
                 this.showQuizModal(question);
-                
-                // Start timer
-                this.startTimer();
-            },
             
             // Display the quiz modal
             showQuizModal: function(question) {
@@ -1303,9 +1297,8 @@
             }
             
             getQuizTimer() {
-                return Math.max(10, this.wisdom);
-            }
-            
+                return this.wisdom;
+            }            
             getHungerStatus() {
                 const percent = this.sp / this.maxSp;
                 if (this.sp <= 0) return "Starving";
@@ -2225,40 +2218,98 @@
             
             // Movement keys
             switch(e.key) {
-                case 'ArrowUp':
-                case 'k': dy = -1; break;
-                case 'ArrowDown':
-                case 'j': dy = 1; break;
-                case 'ArrowLeft':
-                case 'h': dx = -1; break;
-                case 'ArrowRight':
-                case 'l': dx = 1; break;
-                case 'y': dx = -1; dy = -1; break;
-                case 'u': dx = 1; dy = -1; break;
-                case 'b': dx = -1; dy = 1; break;
-                case 'n': dx = 1; dy = 1; break;
+                // Arrow key movement
+                case 'ArrowUp': dy = -1; break;
+                case 'ArrowDown': dy = 1; break;
+                case 'ArrowLeft': dx = -1; break;
+                case 'ArrowRight': dx = 1; break;
                 
-                // Actions
-                case ',':
-                case 'g':
-                    Game.pickupItem();
-                    Game.processTurn();
-                    return;
-                case 'E':
-                    Game.eatFood();
-                    Game.processTurn();
-                    return;
+                // Numpad diagonal movement
+                case '7': dx = -1; dy = -1; break;  // NW
+                case '8': dy = -1; break;           // N
+                case '9': dx = 1; dy = -1; break;   // NE
+                case '4': dx = -1; break;           // W
+                case '6': dx = 1; break;            // E
+                case '1': dx = -1; dy = 1; break;   // SW
+                case '2': dy = 1; break;            // S
+                case '3': dx = 1; dy = 1; break;    // SE
+                
+                // Wait
+                case '5':
                 case '.':
                 case ' ':
                     Game.addMessage("You wait.", 'info');
                     Game.player.spendSP(1);
                     Game.processTurn();
                     return;
+                
+                // Item management
+                case ',':
+                case 'g':
+                    Game.pickupItem();
+                    Game.processTurn();
+                    return;
+                case 'd':
+                    Game.addMessage("There is no drop command, only Zuul.", 'warning');
+                    return;
+                case 'i':
+                    Game.addMessage("There is no inventory command, only Zuul.", 'warning');
+                    return;
+                
+                // Equipment & Combat
+                case 'e':
+                    Game.addMessage("There is no equip command, only Zuul.", 'warning');
+                    return;
+                case 'f':
+                    Game.addMessage("There is no fire command, only Zuul.", 'warning');
+                    return;
+                
+                // Food system
+                case 'h':
+                    Game.addMessage("There is no harvest command, only Zuul.", 'warning');
+                    return;
+                case 'c':
+                    Game.addMessage("There is no cook command, only Zuul.", 'warning');
+                    return;
+                
+                // Magic items
+                case 'r':
+                    Game.addMessage("There is no read command, only Zuul.", 'warning');
+                    return;
+                case 'q':
+                    Game.addMessage("There is no quaff command, only Zuul.", 'warning');
+                    return;
+                case 'z':
+                    Game.addMessage("There is no zap command, only Zuul.", 'warning');
+                    return;
+                case 'C':
+                    Game.addMessage("There is no cast command, only Zuul.", 'warning');
+                    return;
+                
+                // Special actions
+                case 'I':
+                    Game.addMessage("There is no identify command, only Zuul.", 'warning');
+                    return;
+                case 'p':
+                    Game.addMessage("There is no pray command, only Zuul.", 'warning');
+                    return;
+                case 'l':
+                    Game.addMessage("There is no lockpick command, only Zuul.", 'warning');
+                    return;
+                
+                // Stairs
                 case '>':
                     if (Game.dungeon[Game.player.y][Game.player.x] === '>') {
                         Game.nextLevel();
+                    } else {
+                        Game.addMessage("There are no stairs here.", 'warning');
                     }
                     return;
+                case '<':
+                    Game.addMessage("There is no ascend command, only Zuul.", 'warning');
+                    return;
+                
+                // Help
                 case '?':
                     Game.showHelp();
                     return;
@@ -2293,6 +2344,16 @@
             player.x = newX;
             player.y = newY;
             player.spendSP(1);
+            
+            // Check for items at new position
+            const itemsHere = Game.items.filter(i => i.x === player.x && i.y === player.y);
+            if (itemsHere.length > 0) {
+                if (itemsHere.length === 1) {
+                    Game.addMessage(`You see a ${itemsHere[0].name} here.`, 'info');
+                } else {
+                    Game.addMessage(`You see several items here.`, 'info');
+                }
+            }
             
             // Check for stairs
             if (Game.dungeon[newY][newX] === '>') {
@@ -2711,21 +2772,6 @@
             }
         };
 
-        Game.eatFood = function() {
-            const player = Game.player;
-            const food = player.inventory.find(i => i.type === 'food' || i.type === 'corpse');
-            
-            if (!food) {
-                Game.addMessage("You have no food to eat.", 'warning');
-                return;
-            }
-            
-            player.removeFromInventory(food);
-            const spRestore = 20 + Math.floor(Math.random() * 20);
-            player.restoreSP(spRestore);
-            Game.addMessage(`You eat the ${food.name} and restore ${spRestore} SP.`, 'success');
-        };
-
         Game.nextLevel = function() {
             Game.currentLevel++;
             Game.addMessage(`You descend to level ${Game.currentLevel}...`, 'action');
@@ -2735,10 +2781,40 @@
 
         Game.showHelp = function() {
             Game.addMessage("=== CONTROLS ===", 'info');
-            Game.addMessage("Movement: Arrow keys or HJKLYUBN", 'info');
-            Game.addMessage("Get item: , or g", 'info');
-            Game.addMessage("Eat: E | Wait: . or Space", 'info');
-            Game.addMessage("Descend stairs: >", 'info');
+            Game.addMessage("== Movement ==", 'info');
+            Game.addMessage("Arrow keys or Numpad - Move/Attack", 'info');
+            Game.addMessage("5/./Space - Wait", 'info');
+            
+            Game.addMessage("== Dungeon ==", 'info');
+            Game.addMessage("> - Descend stairs", 'info');
+            Game.addMessage("< - Ascend stairs (not yet)", 'info');
+            
+            Game.addMessage("== Items ==", 'info');
+            Game.addMessage(",/g - Get item", 'info');
+            Game.addMessage("d - Drop item (not yet)", 'info');
+            Game.addMessage("i - Inventory (not yet)", 'info');
+            Game.addMessage("e - Equip item (not yet)", 'info');
+            
+            Game.addMessage("== Combat ==", 'info');
+            Game.addMessage("Move into enemy - Melee attack", 'info');
+            Game.addMessage("f - Fire ranged weapon (not yet)", 'info');
+            
+            Game.addMessage("== Food System ==", 'info');
+            Game.addMessage("h - Harvest corpse (not yet)", 'info');
+            Game.addMessage("c - Cook ingredients (not yet)", 'info');
+            
+            Game.addMessage("== Magic ==", 'info');
+            Game.addMessage("r - Read scroll/book (not yet)", 'info');
+            Game.addMessage("q - Quaff potion (not yet)", 'info');
+            Game.addMessage("z - Zap wand (not yet)", 'info');
+            Game.addMessage("C - Cast spell (not yet)", 'info');
+            
+            Game.addMessage("== Special ==", 'info');
+            Game.addMessage("I - Identify (not yet)", 'info');
+            Game.addMessage("p - Pray (not yet)", 'info');
+            Game.addMessage("l - Lockpick (not yet)", 'info');
+            
+            Game.addMessage("? - This help", 'info');
         };
 
         Game.gameOver = function(message) {
@@ -2782,7 +2858,7 @@
             
             // Load item data
             await Game.loadItemData();
-            
+
             // LOAD QUESTIONS:
             await Game.QuizEngine.loadAllQuestions();
 
