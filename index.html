@@ -2564,7 +2564,7 @@
                 
                 // Food system
                 case 'h':
-                    Game.addMessage("There is no harvest command, only Zuul.", 'warning');
+                    Game.playerHarvest();
                     return;
                 case 'c':
                     Game.addMessage("There is no cook command, only Zuul.", 'warning');
@@ -3404,6 +3404,9 @@
             
             // Load item data
             await Game.loadItemData();
+
+            // Load corpse data
+            await Game.loadCorpseData();
 
             // LOAD QUESTIONS:
             await Game.QuizEngine.loadAllQuestions();
