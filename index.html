@@ -1119,22 +1119,18 @@
                 if (!this.questions[subject][tierKey]) {
                     // Fallback to tier 1
                     if (this.questions[subject]["1"]) {
-                        const questions = this.questions[subject]["1"].questions;
+                        // Handle both array format and object format
+                        const tierData = this.questions[subject]["1"];
+                        const questions = Array.isArray(tierData) ? tierData : tierData.questions;
                         return questions[Math.floor(Math.random() * questions.length)];
                     }
                     return null;
                 }
                 
-                const questions = this.questions[subject][tierKey].questions;
+                // Handle both array format and object format
+                const tierData = this.questions[subject][tierKey];
+                const questions = Array.isArray(tierData) ? tierData : tierData.questions;
                 return questions[Math.floor(Math.random() * questions.length)];
-            },
-            
-            // Start a quiz with specified parameters
-            startQuiz: function(params) {
-                if (this.isActive) {
-                    console.warn('Quiz already active');
-                    return;
-                }
                 
                 // Initialize quiz state
                 this.currentQuiz = {
