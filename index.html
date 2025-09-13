@@ -1004,7 +1004,8 @@
 
                 // Show quiz modal
                 this.showQuizModal(question);
-            
+                },
+                
             // Display the quiz modal
             showQuizModal: function(question) {
                 const modal = document.getElementById('quiz-modal');
@@ -2354,7 +2355,7 @@
                     Game.addMessage(`You see several items here.`, 'info');
                 }
             }
-            
+
             // Check for stairs
             if (Game.dungeon[newY][newX] === '>') {
                 Game.addMessage("You see stairs leading down. Press > to descend.", 'info');
