@@ -1131,6 +1131,7 @@
                 const tierData = this.questions[subject][tierKey];
                 const questions = Array.isArray(tierData) ? tierData : tierData.questions;
                 return questions[Math.floor(Math.random() * questions.length)];
+            },
                 
                 // Initialize quiz state
                 this.currentQuiz = {
