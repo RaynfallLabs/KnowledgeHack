@@ -1055,65 +1055,56 @@
                 const quiz = this.currentQuiz;
                 if (!quiz || !quiz.currentQuestion) return;
                 
-                // Stop timer
-                this.stopTimer();
-                
-                // Normalize answers for comparison
+                // Normalize answers
                 const normalizedAnswer = answer.toLowerCase().trim().replace(/[.,!?;]/g, '');
                 const normalizedCorrect = (quiz.currentQuestion.answer || '').toLowerCase().trim().replace(/[.,!?;]/g, '');
                 
-                // Check answer
                 const correct = normalizedAnswer === normalizedCorrect;
                 
                 if (correct) {
                     quiz.correctCount++;
                     quiz.questionHistory.push({question: quiz.currentQuestion, correct: true});
                     
-                    // Show feedback
-                    const feedback = document.getElementById('quiz-feedback');
-                    feedback.textContent = 'Correct!';
-                    feedback.className = 'quiz-feedback correct';
-                    feedback.style.display = 'block';
-                    
                     Game.addMessage('Correct!', 'success');
+                    document.getElementById('quiz-answer').value = '';
                     
-                    // Handle tier escalation for escalator modes
-                    if (quiz.mode === 'escalator_threshold' || quiz.mode === 'escalator_chain') {
-                        if (quiz.currentTier < 5) quiz.currentTier++;
-                    }
-                    
-                    // Continue or end
-                    setTimeout(() => {
-                        if (this.shouldEndQuiz()) {
-                            this.endQuiz(true);
+                    // Check if we should continue or end
+                    if (quiz.mode === 'threshold' || quiz.mode === 'escalator_threshold') {
+                        // Threshold: check if we've reached the required number
+                        if (quiz.correctCount >= quiz.threshold) {
+                            this.endQuiz(true);  // Success!
                         } else {
+                            // Need more correct answers
+                            if (quiz.mode === 'escalator_threshold' && quiz.currentTier < 5) {
+                                quiz.currentTier++;
+                            }
                             this.showNextQuestion();
                         }
-                    }, 1000);
+                    } else if (quiz.mode === 'chain' || quiz.mode === 'escalator_chain') {
+                        // Chain: check if we've hit max chain
+                        if (quiz.maxChain && quiz.correctCount >= quiz.maxChain) {
+                            this.endQuiz(true);  // Max chain reached
+                        } else {
+                            // Continue chain
+                            if (quiz.mode === 'escalator_chain' && quiz.currentTier < 5) {
+                                quiz.currentTier++;
+                            }
+                            this.showNextQuestion();
+                        }
+                    }
                     
                 } else {
-                    // Wrong answer
+                    // Wrong answer - quiz ALWAYS ends
                     quiz.questionHistory.push({
                         question: quiz.currentQuestion, 
                         correct: false,
                         userAnswer: answer
                     });
                     
-                    // Show feedback with correct answer
-                    const feedback = document.getElementById('quiz-feedback');
-                    feedback.textContent = `Wrong! The answer was: ${quiz.currentQuestion.answer}`;
-                    feedback.className = 'quiz-feedback wrong';
-                    feedback.style.display = 'block';
-                    
                     Game.addMessage(`Wrong! The answer was: ${quiz.currentQuestion.answer}`, 'warning');
                     
-                    // For chain modes, end immediately on wrong answer
-                    if (quiz.mode === 'chain' || quiz.mode === 'escalator_chain') {
-                        setTimeout(() => this.endQuiz(false), 2000);
-                    } else {
-                        // For threshold modes, continue
-                        setTimeout(() => this.showNextQuestion(), 2000);
-                    }
+                    // End quiz with current score
+                    this.endQuiz(false);
                 }
             },
             
@@ -1136,9 +1127,12 @@
                 
                 // Determine success based on mode
                 if (quiz.mode === 'threshold' || quiz.mode === 'escalator_threshold') {
+                    // Threshold modes: binary success only if reached threshold
                     result.success = quiz.correctCount >= quiz.threshold;
                 } else if (quiz.mode === 'chain' || quiz.mode === 'escalator_chain') {
-                    result.success = reachedGoal && quiz.correctCount > 0;
+                    // Chain modes: always "succeed" with the score you got
+                    // Score 0 = complete failure, 1+ = incremental success
+                    result.success = true;  // The callback will handle score-based outcomes
                 }
                 
                 // Clear quiz state
@@ -1148,18 +1142,22 @@
                 // Hide modal
                 document.getElementById('quiz-modal').classList.remove('active');
                 
-                // Call callback
+                // Call callback with result
                 if (quiz.callback) {
                     quiz.callback(result);
                 }
                 
                 // Show final message
-                if (result.success) {
-                    Game.addMessage(`Quiz completed! Score: ${result.score}/${result.totalAsked}`, 'success');
+                if (quiz.mode === 'chain' || quiz.mode === 'escalator_chain') {
+                    Game.addMessage(`Quiz ended. Chain length: ${result.score}`, 'info');
                 } else {
-                    Game.addMessage(`Quiz failed. Score: ${result.score}/${result.totalAsked}`, 'warning');
+                    if (result.success) {
+                        Game.addMessage(`Quiz passed! Got ${result.score} correct.`, 'success');
+                    } else {
+                        Game.addMessage(`Quiz failed. Got ${result.score} correct, needed ${quiz.threshold}.`, 'warning');
+                    }
                 }
-            },
+            }
             
             // Timer functions
             startTimer: function() {
