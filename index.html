@@ -1493,6 +1493,262 @@
             }
         };
 
+        // ===== ITEM SYSTEM =====
+        // Item data storage - organized by class
+        Game.itemData = {
+            weapons: [],
+            armor: [],
+            accessories: [],
+            ingredients: [],
+            corpses: [],
+            potions: [],
+            scrolls: [],
+            books: [],
+            wands: [],
+            tools: [],
+            gems: [],
+            currency: [],
+            artifacts: []
+        };
+
+        // Load all item data files
+        Game.loadItemData = async function() {
+            const itemClasses = [
+                'weapons', 'armor', 'accessories', 'ingredients', 'corpses',
+                'potions', 'scrolls', 'books', 'wands', 'tools', 
+                'gems', 'currency', 'artifacts'
+            ];
+            
+            console.log('Loading item data files...');
+            
+            for (const itemClass of itemClasses) {
+                try {
+                    const response = await fetch(`data/objects/${itemClass}.json`);
+                    if (!response.ok) {
+                        console.warn(`✗ ${itemClass}.json not found, using defaults`);
+                        Game.itemData[itemClass] = Game.getDefaultItems(itemClass);
+                    } else {
+                        const data = await response.json();
+                        Game.itemData[itemClass] = data.items || data[itemClass] || [];
+                        console.log(`✓ Loaded ${Game.itemData[itemClass].length} ${itemClass}`);
+                    }
+                } catch (error) {
+                    console.error(`Failed to load ${itemClass}.json:`, error);
+                    Game.itemData[itemClass] = Game.getDefaultItems(itemClass);
+                }
+            }
+            
+            console.log('Item loading complete!');
+        };
+
+        // Default items if files don't exist
+        Game.getDefaultItems = function(itemClass) {
+            const defaults = {
+                weapons: [
+                    {
+                        id: "rusty_dagger",
+                        name: "rusty dagger",
+                        symbol: ")",
+                        prob: 50,
+                        weight: 2,
+                        cost: 5,
+                        min_depth: 1,
+                        max_depth: 20,
+                        rarity: "common",
+                        quiz_tier: 1,
+                        base_damage: 2,
+                        chain_multipliers: [1, 1, 2, 2, 4],
+                        max_chain_length: 5,
+                        damage_types: ["pierce"]
+                    }
+                ],
+                armor: [
+                    {
+                        id: "leather_cap",
+                        name: "leather cap",
+                        symbol: "[",
+                        prob: 40,
+                        weight: 2,
+                        cost: 8,
+                        min_depth: 1,
+                        max_depth: 30,
+                        rarity: "common",
+                        slot: "head",
+                        ac_bonus: 1,
+                        equip_threshold: 2
+                    }
+                ],
+                ingredients: [
+                    {
+                        id: "food_ration",
+                        name: "food ration",
+                        symbol: "%",
+                        prob: 80,
+                        weight: 1,
+                        cost: 2,
+                        min_depth: 1,
+                        max_depth: 100,
+                        rarity: "common",
+                        sp_restore: 30,
+                        ingredient_type: "basic"
+                    }
+                ],
+                corpses: [],
+                potions: [
+                    {
+                        id: "healing_potion",
+                        name: "potion of healing",
+                        symbol: "!",
+                        prob: 30,
+                        weight: 1,
+                        cost: 20,
+                        min_depth: 1,
+                        max_depth: 100,
+                        rarity: "common",
+                        effect_type: "heal",
+                        potency: "2d4+2",
+                        quaff_threshold: 2
+                    }
+                ],
+                scrolls: [
+                    {
+                        id: "identify_scroll",
+                        name: "scroll of identify",
+                        symbol: "?",
+                        prob: 40,
+                        weight: 1,
+                        cost: 15,
+                        min_depth: 1,
+                        max_depth: 100,
+                        rarity: "common",
+                        effect_type: "identify",
+                        read_threshold: 3
+                    }
+                ],
+                currency: [
+                    {
+                        id: "gold_piece",
+                        name: "gold piece",
+                        symbol: "$",
+                        weight: 0,
+                        value: 1
+                    }
+                ]
+            };
+            
+            return defaults[itemClass] || [];
+        };
+
+        // Get items by class
+        Game.getItemsByClass = function(itemClass) {
+            return Game.itemData[itemClass] || [];
+        };
+
+        // Item spawning functions
+        Game.spawnFloorItems = function(rooms, depth) {
+            const items = [];
+            const floorClasses = ['weapons', 'armor', 'ingredients', 'potions', 'scrolls', 'gems', 'currency'];
+            
+            rooms.forEach(room => {
+                if (Math.random() < 0.33) {
+                    const itemClass = floorClasses[Math.floor(Math.random() * floorClasses.length)];
+                    const classItems = Game.getItemsByClass(itemClass);
+                    
+                    const eligible = classItems.filter(item => 
+                        item.min_depth <= depth && 
+                        item.max_depth >= depth &&
+                        item.rarity === "common"
+                    );
+                    
+                    if (eligible.length === 0) return;
+                    
+                    const totalProb = eligible.reduce((sum, item) => sum + (item.prob || 10), 0);
+                    let pick = Math.random() * totalProb;
+                    let selected = null;
+                    
+                    for (const item of eligible) {
+                        pick -= (item.prob || 10);
+                        if (pick <= 0) {
+                            selected = item;
+                            break;
+                        }
+                    }
+                    
+                    if (selected) {
+                        const x = room.x - 2 + Math.floor(Math.random() * 5);
+                        const y = room.y - 2 + Math.floor(Math.random() * 5);
+                        
+                        items.push({
+                            ...selected,
+                            x: x,
+                            y: y,
+                            itemClass: itemClass,
+                            identified: false,
+                            blessed: Math.random() < 0.1,
+                            cursed: Math.random() < (selected.curse_chance || 0.1),
+                            enchantment: selected.can_enchant ? Math.floor(Math.random() * 3) - 1 : 0
+                        });
+                    }
+                }
+            });
+            
+            return items;
+        };
+
+        Game.dropMonsterLoot = function(monster) {
+            const items = [];
+            
+            // Always drop corpse
+            items.push({
+                id: `${monster.id}_corpse`,
+                name: `${monster.name} corpse`,
+                itemClass: 'corpses',
+                symbol: '%',
+                weight: monster.weight || 10,
+                x: monster.x,
+                y: monster.y,
+                harvest_tier: Math.ceil(monster.mlevel / 2),
+                conferred: monster.conferred || []
+            });
+            
+            // Check carries flags for additional loot
+            if (monster.carries) {
+                if (monster.carries.gold && Math.random() < 0.5) {
+                    const goldAmount = Game.Dice.roll(`${monster.mlevel + 1}d10`);
+                    items.push({
+                        id: 'gold_pieces',
+                        name: `${goldAmount} gold pieces`,
+                        itemClass: 'currency',
+                        symbol: '$',
+                        weight: 0,
+                        value: goldAmount,
+                        x: monster.x,
+                        y: monster.y
+                    });
+                }
+                
+                if (monster.carries.weapon && Math.random() < 0.3) {
+                    const weapons = Game.getItemsByClass('weapons').filter(item => 
+                        item.min_depth <= monster.mlevel &&
+                        item.rarity === "common"
+                    );
+                    
+                    if (weapons.length > 0) {
+                        const weapon = weapons[Math.floor(Math.random() * weapons.length)];
+                        items.push({
+                            ...weapon,
+                            itemClass: 'weapons',
+                            x: monster.x,
+                            y: monster.y,
+                            identified: false,
+                            cursed: Math.random() < 0.2
+                        });
+                    }
+                }
+            }
+            
+            return items;
+        };
         // ===== MONSTER CLASS =====
         class Monster {
             constructor(monsterDef, x, y) {
@@ -1773,31 +2029,8 @@
                 dungeon[lastRoom.y][lastRoom.x] = '>';
             }
             
-            // Spawn items
-            Game.items = [];
-            const itemTypes = [
-                { type: 'food', name: 'ration', symbol: '%', weight: 1 },
-                { type: 'weapon', name: 'dagger', symbol: ')', weight: 3 },
-                { type: 'armor', name: 'leather armor', symbol: '[', weight: 8 },
-                { type: 'potion', name: 'healing potion', symbol: '!', weight: 1 }
-            ];
-            
-            const numItems = 2 + Math.floor(Math.random() * 4);
-            for (let i = 0; i < numItems; i++) {
-                const room = rooms[Math.floor(Math.random() * rooms.length)];
-                const x = room.x - 2 + Math.floor(Math.random() * 5);
-                const y = room.y - 2 + Math.floor(Math.random() * 5);
-                
-                if (dungeon[y][x] === '.') {
-                    const template = itemTypes[Math.floor(Math.random() * itemTypes.length)];
-                    Game.items.push({
-                        ...template,
-                        x: x,
-                        y: y,
-                        identified: false
-                    });
-                }
-            }
+            // Spawn items using new system
+            Game.items = Game.spawnFloorItems(rooms, Game.currentLevel);
             
             return dungeon;
         }
@@ -2091,17 +2324,29 @@
         };
 
         Game.playerAttack = function(monster) {
-            // Start math quiz for combat
+            const weapon = Game.player.equipped.weapon || {
+                // Default unarmed stats
+                quiz_tier: 1,
+                max_chain_length: 5,
+                base_damage: 1,
+                chain_multipliers: [1, 1.5, 2, 2.5, 3]
+            };
+            
             Game.QuizEngine.startQuiz({
                 mode: 'chain',
                 subject: 'math',
-                startingTier: 1,  // TODO: Base on weapon tier
-                maxChain: 10,     // Max damage multiplier
+                startingTier: weapon.quiz_tier || 1,
+                maxChain: weapon.max_chain_length || 5,
                 reason: `Attacking ${monster.name}`,
                 target: monster,
                 callback: function(result) {
-                    if (result.success && result.score > 0) {
-                        const damage = result.score * 2;  // 2 damage per correct answer
+                    if (result.score > 0) {
+                        // Use chain_multipliers if available, otherwise basic calculation
+                        const multiplier = weapon.chain_multipliers ? 
+                            (weapon.chain_multipliers[result.score - 1] || weapon.chain_multipliers[weapon.chain_multipliers.length - 1]) : 
+                            result.score;
+                        const damage = Math.floor(weapon.base_damage * multiplier);
+                        
                         monster.takeDamage(damage);
                         Game.addMessage(`You hit the ${monster.name} for ${damage} damage!`, 'success');
                         
@@ -2117,65 +2362,337 @@
             });
         };
 
-        Game.dropCorpse = function(monster) {
-            // Drop corpse based on monster data
-            Game.items.push({
-                x: monster.x,
-                y: monster.y,
-                type: 'corpse',
-                name: `${monster.name} corpse`,
-                symbol: '%',
-                weight: monster.weight || 10,
-                nutrition: Math.floor((monster.weight || 10) / 10),
-                conferred: monster.conferred || []
+        // FIRE - Ranged attack
+        Game.playerFire = function() {
+            // TODO: Implement targeting system
+            Game.addMessage("Ranged weapons not yet implemented!", 'warning');
+            return;
+            
+            /* Future implementation:
+            const weapon = Game.player.equipped.weapon;
+            if (!weapon || weapon.type !== 'ranged') {
+                Game.addMessage("You need a ranged weapon equipped!", 'warning');
+                return;
+            }
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'chain',
+                subject: 'math',  // or 'physics' for advanced weapons
+                startingTier: weapon.quiz_tier || 1,
+                maxChain: weapon.max_chain_length || 5,
+                reason: 'Firing ' + weapon.name,
+                callback: function(result) {
+                    // Handle ranged damage
+                }
             });
-            
-            // Drop additional loot based on carries flags
-            if (monster.carries) {
-                if (monster.carries.gold && Math.random() < 0.5) {
-                    Game.items.push({
-                        x: monster.x,
-                        y: monster.y,
-                        type: 'gold',
-                        name: `${Game.Dice.roll('2d10')} gold pieces`,
-                        symbol: '$',
-                        weight: 0
-                    });
-                }
-                
-                if (monster.carries.weapon && Math.random() < 0.3) {
-                    Game.items.push({
-                        x: monster.x,
-                        y: monster.y,
-                        type: 'weapon',
-                        name: 'crude dagger',
-                        symbol: ')',
-                        weight: 3
-                    });
-                }
-                
-                if (monster.carries.jewels && Math.random() < 0.1) {
-                    Game.items.push({
-                        x: monster.x,
-                        y: monster.y,
-                        type: 'gem',
-                        name: 'worthless glass',
-                        symbol: '*',
-                        weight: 1
-                    });
-                }
+            */
+        };
+
+        // EQUIP - Put on armor or accessories
+        Game.playerEquip = function(item) {
+            if (!item) {
+                Game.addMessage("What do you want to equip?", 'info');
+                return;
             }
             
-            // Additional loot based on loot_system
-            if (monster.loot_system === 'random_basic' && Math.random() < 0.2) {
-                const basicLoot = [
-                    { type: 'food', name: 'food ration', symbol: '%', weight: 2 },
-                    { type: 'potion', name: 'murky potion', symbol: '!', weight: 1 },
-                    { type: 'scroll', name: 'scroll', symbol: '?', weight: 1 }
-                ];
-                const loot = basicLoot[Math.floor(Math.random() * basicLoot.length)];
-                Game.items.push({ ...loot, x: monster.x, y: monster.y });
+            // Determine quiz subject based on item type
+            let subject = 'geography';  // default for armor
+            if (item.class === 'ring' || item.class === 'amulet') {
+                subject = 'history';  // accessories use history
             }
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'threshold',
+                subject: subject,
+                startingTier: item.quiz_tier || 1,
+                threshold: item.equip_threshold || 3,
+                reason: `Equipping ${item.name}`,
+                target: item,
+                callback: function(result) {
+                    if (result.success) {
+                        // TODO: Actually equip the item
+                        Game.addMessage(`You equip the ${item.name}.`, 'success');
+                    } else {
+                        Game.addMessage(`You fail to equip the ${item.name}.`, 'warning');
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        // HARVEST - Convert corpse to raw food
+        Game.playerHarvest = function(corpse) {
+            if (!corpse || corpse.type !== 'corpse') {
+                Game.addMessage("That's not a corpse!", 'warning');
+                return;
+            }
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'threshold',
+                subject: 'animal',
+                startingTier: corpse.harvest_tier || 1,
+                threshold: corpse.harvest_threshold || Game.Dice.roll('2d4'),  // 2-8 random
+                reason: `Harvesting ${corpse.name}`,
+                target: corpse,
+                callback: function(result) {
+                    if (result.success) {
+                        // TODO: Generate raw food items
+                        Game.addMessage(`You successfully harvest the ${corpse.name}.`, 'success');
+                    } else {
+                        Game.addMessage(`You fail to harvest anything useful.`, 'warning');
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        // COOK - Create meals from ingredients
+        Game.playerCook = function(ingredients) {
+            if (!ingredients || ingredients.length === 0) {
+                Game.addMessage("You need ingredients to cook!", 'warning');
+                return;
+            }
+            
+            // TODO: Determine tier based on ingredients
+            const cookingTier = 1;
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'escalator_chain',
+                subject: 'cooking',
+                startingTier: cookingTier,
+                maxChain: 5,  // 5 quality levels
+                reason: 'Cooking a meal',
+                target: ingredients,
+                callback: function(result) {
+                    const quality = result.score;
+                    if (quality === 0) {
+                        Game.addMessage("You ruin the food!", 'danger');
+                    } else {
+                        // TODO: Create food with stats based on quality
+                        const qualityNames = ['', 'crude', 'decent', 'fine', 'excellent', 'masterwork'];
+                        Game.addMessage(`You create a ${qualityNames[quality]} meal!`, 'success');
+                        // Auto-consume and apply stats
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        // CAST - Cast spell from memory
+        Game.playerCast = function(spell) {
+            if (!spell) {
+                Game.addMessage("You don't know any spells!", 'warning');
+                return;
+            }
+            
+            Game.QuizEngine.startQuiz({
+                mode: spell.quiz_mode || 'chain',
+                subject: 'science',
+                startingTier: spell.tier || 1,
+                threshold: spell.threshold,
+                maxChain: spell.max_chain,
+                reason: `Casting ${spell.name}`,
+                target: spell,
+                callback: function(result) {
+                    if (result.success || result.score > 0) {
+                        // TODO: Apply spell effects
+                        Game.addMessage(`You cast ${spell.name}!`, 'success');
+                    } else {
+                        Game.addMessage("The spell fizzles!", 'warning');
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        // READ - Read scroll or book
+        Game.playerRead = function(item) {
+            if (!item || (item.type !== 'scroll' && item.type !== 'book')) {
+                Game.addMessage("That's not readable!", 'warning');
+                return;
+            }
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'threshold',
+                subject: 'grammar',
+                startingTier: item.quiz_tier || 1,
+                threshold: item.read_threshold || 3,
+                reason: `Reading ${item.name}`,
+                target: item,
+                callback: function(result) {
+                    if (result.success) {
+                        // TODO: Trigger scroll effect or learn spell
+                        Game.addMessage(`You successfully read the ${item.name}!`, 'success');
+                    } else {
+                        Game.addMessage("You can't comprehend the text!", 'warning');
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        // ZAP - Use wand or staff
+        Game.playerZap = function(item) {
+            if (!item || (item.type !== 'wand' && item.type !== 'staff')) {
+                Game.addMessage("That's not a wand or staff!", 'warning');
+                return;
+            }
+            
+            if ((item.charges || 0) <= 0) {
+                Game.addMessage("It has no charges left!", 'warning');
+                return;
+            }
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'threshold',
+                subject: 'science',  // or 'math' for some wands
+                startingTier: item.quiz_tier || 1,
+                threshold: item.zap_threshold || 2,
+                reason: `Zapping ${item.name}`,
+                target: item,
+                callback: function(result) {
+                    if (result.success) {
+                        // TODO: Apply wand effect
+                        item.charges--;
+                        Game.addMessage(`You zap the ${item.name}! (${item.charges} charges left)`, 'success');
+                    } else {
+                        Game.addMessage("Nothing happens!", 'warning');
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        // IDENTIFY - Reveal item properties (requires Philosopher's Amulet)
+        Game.playerIdentify = function(item) {
+            const hasAmulet = Game.player.equipped.accessories?.amulet?.id === 'philosophers_amulet';
+            if (!hasAmulet) {
+                Game.addMessage("You need the Philosopher's Amulet to identify items!", 'warning');
+                return;
+            }
+            
+            if (!item || item.identified) {
+                Game.addMessage("That doesn't need identification!", 'info');
+                return;
+            }
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'threshold',
+                subject: 'philosophy',
+                startingTier: item.quiz_tier || 1,
+                threshold: item.identify_threshold || Game.Dice.roll('1d3+2'),  // 3-5
+                reason: `Identifying ${item.name}`,
+                target: item,
+                callback: function(result) {
+                    if (result.success) {
+                        item.identified = true;
+                        // TODO: Reveal BUC status, enchantments, etc.
+                        Game.addMessage(`You identify the ${item.name}!`, 'success');
+                    } else {
+                        Game.addMessage("The item's nature remains mysterious.", 'warning');
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        // QUAFF - Drink potion
+        Game.playerQuaff = function(potion) {
+            if (!potion || potion.type !== 'potion') {
+                Game.addMessage("That's not a potion!", 'warning');
+                return;
+            }
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'threshold',
+                subject: 'chemistry',  // Note: Need to add chemistry questions
+                startingTier: potion.quiz_tier || 1,
+                threshold: potion.quaff_threshold || 2,
+                reason: `Drinking ${potion.name}`,
+                target: potion,
+                callback: function(result) {
+                    if (result.success) {
+                        // TODO: Apply potion effects
+                        Game.addMessage(`You drink the ${potion.name}!`, 'success');
+                        Game.player.removeFromInventory(potion);
+                    } else {
+                        Game.addMessage("You fail to drink it properly and it spills!", 'warning');
+                        Game.player.removeFromInventory(potion);
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        // LOCKPICK - Open containers or doors
+        Game.playerLockpick = function(target) {
+            if (!target || (!target.locked && target.type !== 'door')) {
+                Game.addMessage("That's not locked!", 'info');
+                return;
+            }
+            
+            const threshold = target.lock_difficulty || Game.Dice.roll('2d4');  // 2-8
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'threshold',
+                subject: 'economics',
+                startingTier: target.lock_tier || 1,
+                threshold: threshold,
+                reason: `Picking lock`,
+                target: target,
+                callback: function(result) {
+                    if (result.success) {
+                        target.locked = false;
+                        Game.addMessage("You pick the lock successfully!", 'success');
+                        
+                        // Check for traps (50% chance on containers)
+                        if (target.type === 'container' && Math.random() < 0.5) {
+                            Game.addMessage("It was trapped! You take damage!", 'danger');
+                            Game.player.takeDamage(Game.Dice.roll('2d6'));
+                        }
+                    } else {
+                        Game.addMessage("You fail to pick the lock.", 'warning');
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        // PRAY - Divine intervention
+        Game.playerPray = function() {
+            // TODO: Check if at altar or if enough time has passed
+            
+            Game.QuizEngine.startQuiz({
+                mode: 'threshold',
+                subject: 'theology',  // Note: Need to add theology questions
+                startingTier: 1,
+                threshold: 3,
+                reason: 'Praying for divine aid',
+                callback: function(result) {
+                    if (result.success) {
+                        // TODO: Random beneficial effect
+                        Game.addMessage("You feel the presence of the divine!", 'success');
+                    } else {
+                        Game.addMessage("Your prayers go unanswered.", 'warning');
+                    }
+                    Game.processTurn();
+                }
+            });
+        };
+
+        Game.dropCorpse = function(monster) {
+            const loot = Game.dropMonsterLoot(monster);
+            Game.items.push(...loot);
+            
+            loot.forEach(item => {
+                if (item.itemClass === 'corpses') {
+                    Game.addMessage(`The ${monster.name} leaves a corpse.`, 'info');
+                } else if (item.itemClass === 'currency') {
+                    Game.addMessage(`You see ${item.name} here!`, 'loot');
+                } else {
+                    Game.addMessage(`You see a ${item.name} here!`, 'loot');
+                }
+            });
         };
 
         Game.pickupItem = function() {
@@ -2262,6 +2779,9 @@
             
             // Load monster data
             await Game.loadMonsterData();
+            
+            // Load item data
+            await Game.loadItemData();
             
             // LOAD QUESTIONS:
             await Game.QuizEngine.loadAllQuestions();
