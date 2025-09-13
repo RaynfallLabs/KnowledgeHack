@@ -623,6 +623,59 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(52, 152, 219, 0.3);
         }
 
+        /* Multiple Choice Buttons */
+        .quiz-choice-button {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            font-size: 16px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-family: 'Fira Code', monospace;
+        }
+        
+        .quiz-choice-button:hover {
+            background: var(--bg-raised);
+            border-color: var(--knowledge-blue);
+            transform: translateX(5px);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.2);
+        }
+        
+        .quiz-choice-button.selected {
+            background: linear-gradient(135deg, var(--bg-raised), var(--bg-dark));
+            border-color: var(--gold-bright);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+        
+        .choice-letter {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: var(--wisdom-purple);
+            color: var(--text-primary);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: 600;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+        
+        .quiz-choice-button.selected .choice-letter {
+            background: var(--gold-bright);
+            color: var(--bg-dark);
+        }
+        
+        .choice-text {
+            flex: 1;
+            font-size: 15px;
+        }
+
         .quiz-feedback {
             text-align: center;
             font-size: 20px;
@@ -1153,29 +1206,114 @@
                 document.getElementById('quiz-progress').textContent = 
                     `Question ${quiz.totalAsked} | Score: ${quiz.correctCount}`;
                 
-                // Clear previous answer
-                document.getElementById('quiz-answer').value = '';
+                // Clear previous answer area
+                const inputArea = document.getElementById('quiz-input-area');
+                inputArea.innerHTML = '';
+                
+                // Check question type
+                if (question.type === 'multiple' && question.options) {
+                    // Multiple choice question
+                    // Shuffle options
+                    const shuffled = [...question.options].sort(() => Math.random() - 0.5);
+                    
+                    // Create button container
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;';
+                    
+                    // Create buttons for each option
+                    shuffled.forEach((option, index) => {
+                        const button = document.createElement('button');
+                        button.className = 'quiz-choice-button';
+                        button.innerHTML = `
+                            <span class="choice-letter">${String.fromCharCode(65 + index)}</span>
+                            <span class="choice-text">${option}</span>
+                        `;
+                        button.dataset.answer = option;
+                        button.onclick = () => this.selectChoice(option);
+                        
+                        // Add keyboard shortcut
+                        button.dataset.key = String.fromCharCode(65 + index);
+                        
+                        buttonContainer.appendChild(button);
+                    });
+                    
+                    inputArea.appendChild(buttonContainer);
+                    
+                    // Add submit button
+                    const submitBtn = document.createElement('button');
+                    submitBtn.className = 'quiz-button';
+                    submitBtn.id = 'quiz-submit';
+                    submitBtn.textContent = 'Submit Answer';
+                    submitBtn.style.marginTop = '20px';
+                    submitBtn.disabled = true;
+                    submitBtn.onclick = () => this.submitMultipleChoice();
+                    inputArea.appendChild(submitBtn);
+                    
+                    // Store selected answer
+                    this.selectedChoice = null;
+                    
+                } else {
+                    // Input question (default)
+                    inputArea.innerHTML = `
+                        <input type="text" class="quiz-input" id="quiz-answer" 
+                               placeholder="Type your answer..." autocomplete="off">
+                        <button class="quiz-button" id="quiz-submit">Submit Answer</button>
+                    `;
+                    
+                    // Re-attach event listener for input
+                    setTimeout(() => {
+                        const input = document.getElementById('quiz-answer');
+                        if (input) {
+                            input.focus();
+                            input.addEventListener('keydown', (e) => {
+                                if (e.key === 'Enter') {
+                                    const answer = e.target.value;
+                                    if (answer && Game.QuizEngine.isActive) {
+                                        Game.QuizEngine.handleAnswer(answer);
+                                    }
+                                }
+                            });
+                        }
+                        
+                        const submitBtn = document.getElementById('quiz-submit');
+                        if (submitBtn) {
+                            submitBtn.onclick = () => {
+                                const answer = document.getElementById('quiz-answer').value;
+                                if (answer && Game.QuizEngine.isActive) {
+                                    Game.QuizEngine.handleAnswer(answer);
+                                }
+                            };
+                        }
+                    }, 100);
+                }
+                
+                // Clear feedback
                 document.getElementById('quiz-feedback').style.display = 'none';
                 
                 // Show modal
                 modal.classList.add('active');
-                document.getElementById('quiz-answer').focus();
             },
             
-            // Check if quiz should end
-            shouldEndQuiz: function() {
-                const quiz = this.currentQuiz;
+            // Select a multiple choice option
+            selectChoice: function(answer) {
+                this.selectedChoice = answer;
                 
-                switch (quiz.mode) {
-                    case 'threshold':
-                    case 'escalator_threshold':
-                        return quiz.correctCount >= quiz.threshold;
-                    case 'chain':
-                    case 'escalator_chain':
-                        // Chain ends on first wrong answer, checked elsewhere
-                        return quiz.correctCount >= quiz.maxChain;
-                    default:
-                        return false;
+                // Update button styles
+                document.querySelectorAll('.quiz-choice-button').forEach(btn => {
+                    btn.classList.remove('selected');
+                    if (btn.dataset.answer === answer) {
+                        btn.classList.add('selected');
+                    }
+                });
+                
+                // Enable submit button
+                document.getElementById('quiz-submit').disabled = false;
+            },
+            
+            // Submit multiple choice answer
+            submitMultipleChoice: function() {
+                if (this.selectedChoice && this.isActive) {
+                    this.handleAnswer(this.selectedChoice);
                 }
             },
             
@@ -2439,7 +2577,12 @@
                 case 'l':
                     Game.addMessage("There is no lockpick command, only Zuul.", 'warning');
                     return;
-                
+
+                // Help
+                case '?':
+                    Game.showHelp();
+                    return;
+
                 // Stairs
                 case '>':
                     if (Game.dungeon[Game.player.y][Game.player.x] === '>') {
@@ -2535,7 +2678,7 @@
                 // Default unarmed stats
                 quiz_tier: 1,
                 max_chain_length: 5,
-                base_damage: 1,
+                base_damage: 1000,
                 chain_multipliers: [1, 1.5, 2, 2.5, 3]
             };
             
@@ -2627,30 +2770,133 @@
             });
         };
 
-        // HARVEST - Convert corpse to raw food
-        Game.playerHarvest = function(corpse) {
-            if (!corpse || corpse.type !== 'corpse') {
-                Game.addMessage("That's not a corpse!", 'warning');
+        // ===== HARVEST SYSTEM =====
+        Game.corpseData = {};
+        
+        // Load corpse data
+        Game.loadCorpseData = async function() {
+            try {
+                const response = await fetch('data/objects/corpses.json');
+                if (!response.ok) {
+                    console.warn('corpses.json not found, using defaults');
+                    Game.corpseData = Game.getDefaultCorpses();
+                } else {
+                    const data = await response.json();
+                    // Index by ID for quick lookup
+                    Game.corpseData = {};
+                    (data.corpses || data.items || []).forEach(corpse => {
+                        Game.corpseData[corpse.id] = corpse;
+                    });
+                    console.log(`Loaded ${Object.keys(Game.corpseData).length} corpse types`);
+                }
+            } catch (error) {
+                console.error('Failed to load corpses.json:', error);
+                Game.corpseData = Game.getDefaultCorpses();
+            }
+        };
+        
+        // Default corpses if file missing
+        Game.getDefaultCorpses = function() {
+            return {
+                "giant_rat_corpse": {
+                    id: "giant_rat_corpse",
+                    name: "giant rat corpse",
+                    weight: 5,
+                    harvest_tier: 1,
+                    harvest_threshold: 2,
+                    harvest_food: "rat_meat",
+                    food_name: "stringy rat meat"
+                },
+                "goblin_corpse": {
+                    id: "goblin_corpse",
+                    name: "goblin corpse",
+                    weight: 40,
+                    harvest_tier: 1,
+                    harvest_threshold: 3,
+                    harvest_food: "goblin_jerky",
+                    food_name: "tough goblin jerky"
+                }
+            };
+        };
+        
+        // Main harvest function - only works on ground
+        Game.playerHarvest = function() {
+            // Check for corpses at player location
+            const corpsesHere = Game.items.filter(item => 
+                item.x === Game.player.x && 
+                item.y === Game.player.y && 
+                item.itemClass === 'corpses'
+            );
+            
+            if (corpsesHere.length === 0) {
+                Game.addMessage("There are no corpses here to harvest!", 'warning');
+                Game.addMessage("Drop a corpse here first if you want to harvest it.", 'info');
                 return;
             }
             
+            // Harvest first corpse at location
+            const corpse = corpsesHere[0];
+            const corpseData = Game.corpseData[corpse.id];
+            
+            if (!corpseData) {
+                Game.addMessage(`You don't know how to harvest ${corpse.name}!`, 'warning');
+                return;
+            }
+            
+            // Store harvest state
+            Game.harvestingCorpse = corpse;
+            
+            // Start animal quiz
             Game.QuizEngine.startQuiz({
                 mode: 'threshold',
                 subject: 'animal',
-                startingTier: corpse.harvest_tier || 1,
-                threshold: corpse.harvest_threshold || Game.Dice.roll('2d4'),  // 2-8 random
+                startingTier: corpseData.harvest_tier || 1,
+                threshold: corpseData.harvest_threshold || 3,
                 reason: `Harvesting ${corpse.name}`,
                 target: corpse,
                 callback: function(result) {
-                    if (result.success) {
-                        // TODO: Generate raw food items
-                        Game.addMessage(`You successfully harvest the ${corpse.name}.`, 'success');
-                    } else {
-                        Game.addMessage(`You fail to harvest anything useful.`, 'warning');
-                    }
-                    Game.processTurn();
+                    Game.handleHarvestResult(result);
                 }
             });
+        };
+        
+        // Handle harvest quiz result
+        Game.handleHarvestResult = function(result) {
+            const corpse = Game.harvestingCorpse;
+            const corpseData = Game.corpseData[corpse.id];
+            
+            // Remove corpse from ground either way
+            Game.items = Game.items.filter(item => item !== corpse);
+            
+            if (result.success) {
+                // Success - create food item
+                const foodItem = {
+                    id: corpseData.harvest_food,
+                    name: corpseData.food_name || corpseData.harvest_food.replace(/_/g, ' '),
+                    itemClass: 'ingredients',
+                    symbol: '%',
+                    weight: Math.max(1, Math.floor(corpse.weight / 5)),
+                    identified: true
+                };
+                
+                // Try to add to inventory
+                if (Game.player.addToInventory(foodItem)) {
+                    Game.addMessage(`You expertly harvest ${foodItem.name} from the corpse!`, 'success');
+                } else {
+                    // Drop on ground if can't carry
+                    foodItem.x = Game.player.x;
+                    foodItem.y = Game.player.y;
+                    Game.items.push(foodItem);
+                    Game.addMessage(`You harvest ${foodItem.name} but can't carry it!`, 'warning');
+                }
+            } else {
+                // Failed - corpse is ruined
+                Game.addMessage("You butcher the corpse badly, ruining any usable meat!", 'danger');
+            }
+            
+            // Clear harvest state
+            Game.harvestingCorpse = null;
+            Game.processTurn();
         };
 
         // COOK - Create meals from ingredients
@@ -3086,6 +3332,16 @@
             return Game.getMonstersKilled() * 3; // Rough estimate
         };
 
+        Game.showHelp = function() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.add('active');
+        };
+
+        Game.hideHelp = function() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.remove('active');
+        };
+
         Game.gameOver = function(message) {
             Game.addMessage("=== GAME OVER ===", 'danger');
             Game.addMessage(message, 'danger');
@@ -3163,6 +3419,30 @@
             render();
         };
 
+        // Keyboard handler for multiple choice
+                document.addEventListener('keydown', function(e) {
+                    if (!Game.QuizEngine.isActive || !document.getElementById('quiz-modal').classList.contains('active')) return;
+                    
+                    // Check if it's a multiple choice question
+                    const buttons = document.querySelectorAll('.quiz-choice-button');
+                    if (buttons.length > 0) {
+                        // A-D keys for choices
+                        const key = e.key.toUpperCase();
+                        buttons.forEach(btn => {
+                            if (btn.dataset.key === key) {
+                                btn.click();
+                                e.preventDefault();
+                            }
+                        });
+                        
+                        // Enter to submit if choice selected
+                        if (e.key === 'Enter' && Game.QuizEngine.selectedChoice) {
+                            Game.QuizEngine.submitMultipleChoice();
+                            e.preventDefault();
+                        }
+                    }
+                });
+
         // Quiz modal event handlers
         document.getElementById('quiz-submit').addEventListener('click', function() {
             const answer = document.getElementById('quiz-answer').value;
@@ -3176,6 +3456,16 @@
                 const answer = e.target.value;
                 if (answer && Game.QuizEngine.isActive) {
                     Game.QuizEngine.handleAnswer(answer);
+                }
+            }
+        });
+
+        // Help modal close handler
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('help-modal').classList.contains('active')) {
+                if (e.key === 'Escape' || e.key === '?') {
+                    Game.hideHelp();
+                    e.preventDefault();
                 }
             }
         });
