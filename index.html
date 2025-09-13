@@ -677,6 +677,19 @@
             border: 1px solid var(--border-color);
             text-align: center;
         }
+
+        .score-line {
+            padding: 4px 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .score-line span {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -829,7 +842,62 @@
             </div>
         </div>
     </div>
+    
+    <!-- Exit Confirmation Modal -->
+    <div id="exit-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="quiz-header">
+                <div class="quiz-title">LEAVE THE DUNGEON?</div>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+                <p id="exit-message" style="font-size: 16px; margin-bottom: 20px;"></p>
+                <div style="margin-top: 30px;">
+                    <button class="quiz-button" onclick="Game.confirmExit()">Yes, Leave</button>
+                    <button class="quiz-button" onclick="Game.cancelExit()">No, Stay</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Victory Modal -->
+    <div id="victory-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="quiz-header">
+                <div class="quiz-title" style="color: var(--gold-bright); font-size: 36px; text-shadow: 0 0 30px var(--glow-color);">
+                    VICTORY!
+                </div>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+                <p style="font-size: 20px; color: var(--wisdom-purple); margin: 20px 0;">
+                    You have retrieved the Philosopher's Stone!
+                </p>
+                <p style="font-size: 16px; color: var(--text-primary); margin: 20px 0;">
+                    Knowledge truly is power. You have proven yourself worthy<br>
+                    by mastering both wisdom and courage to complete your quest.
+                </p>
+                <div style="font-size: 24px; color: var(--gold-bright); margin: 30px 0; animation: pulse 2s infinite;">
+                    ✦ ✦ ✦
+                </div>
+                <button class="quiz-button" onclick="Game.showScoreboard()">View Your Legacy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scoreboard Modal -->
+    <div id="scoreboard-modal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="quiz-header">
+                <div class="quiz-title">FINAL SCORE</div>
+                <div id="score-result" style="font-size: 18px; margin-top: 10px;"></div>
+            </div>
+            <div id="scoreboard-content" style="padding: 20px;">
+                <!-- Score details will be inserted here -->
+            </div>
+            <div style="text-align: center; padding: 20px;">
+                <button class="quiz-button" onclick="location.reload()">New Game</button>
+            </div>
+        </div>
+    </div>
     <script>
         // ===== PHILOSOPHER'S QUEST - COMPLETE GAME =====
         
@@ -2080,16 +2148,23 @@
             
             // Place player in first room
             if (rooms.length > 0) {
+                // Always place up stairs at spawn on level 1
+                if (Game.currentLevel === 1) {
+                    dungeon[rooms[0].y][rooms[0].x] = '<';
+                }
                 Game.player.x = rooms[0].x;
                 Game.player.y = rooms[0].y;
             }
-            
+
             // Place stairs in last room
             if (rooms.length > 1) {
                 const lastRoom = rooms[rooms.length - 1];
                 dungeon[lastRoom.y][lastRoom.x] = '>';
             }
             
+            if (Game.currentLevel > 1 && rooms.length > 0) {
+                dungeon[rooms[0].y][rooms[0].x] = '<';
+            }
             // Spawn items using new system
             Game.items = Game.spawnFloorItems(rooms, Game.currentLevel);
             
@@ -2374,12 +2449,15 @@
                     }
                     return;
                 case '<':
-                    Game.addMessage("There is no ascend command, only Zuul.", 'warning');
-                    return;
-                
-                // Help
-                case '?':
-                    Game.showHelp();
+                    if (Game.dungeon[Game.player.y][Game.player.x] === '<') {
+                        if (Game.currentLevel === 1) {
+                            Game.attemptExit();
+                        } else {
+                            Game.prevLevel();
+                        }
+                    } else {
+                        Game.addMessage("There are no up stairs here.", 'warning');
+                    }
                     return;
             }
             
@@ -2841,31 +2919,182 @@
         };
 
         Game.nextLevel = function() {
+            // Save current level before leaving
+            Game.saveCurrentLevel();
+            
             Game.currentLevel++;
             Game.addMessage(`You descend to level ${Game.currentLevel}...`, 'action');
-            Game.dungeon = generateDungeon(Game.config.mapWidth, Game.config.mapHeight);
+            
+            // Check if we've been here before
+            if (!Game.loadLevel(Game.currentLevel)) {
+                // Generate new level if first visit
+                Game.dungeon = generateDungeon(Game.config.mapWidth, Game.config.mapHeight);
+                
+                // Track deepest level
+                if (Game.currentLevel > Game.maxLevelReached) {
+                    Game.maxLevelReached = Game.currentLevel;
+                }
+                
+                // Spawn monsters for new level
+                Game.monsters = [];
+                const monsterBudget = 3 + Math.floor(Math.random() * 5) + Math.floor(Game.currentLevel / 5);
+                for (let i = 0; i < monsterBudget; i++) {
+                    const spawnedMonsters = Game.spawnMonster(Game.currentLevel, 1, 'dungeon');
+                    if (spawnedMonsters) {
+                        Game.monsters.push(...spawnedMonsters);
+                    }
+                }
+                
+                // Fresh FOV for new level
+                Game.remembered = [];
+            } else {
+                Game.addMessage("You return to familiar territory.", 'info');
+            }
+            
             render();
         };
 
-        Game.showHelp = function() {
-            const modal = document.getElementById('help-modal');
-            modal.classList.add('active');
+        Game.prevLevel = function() {
+            if (Game.currentLevel <= 1) {
+                Game.addMessage("You can't go up from here!", 'warning');
+                return;
+            }
             
-            // Allow closing with ESC or ?
-            const closeHelp = (e) => {
-                if (e.key === 'Escape' || e.key === '?') {
-                    modal.classList.remove('active');
-                    document.removeEventListener('keydown', closeHelp);
-                }
-            };
-            document.addEventListener('keydown', closeHelp);
+            // Save current level
+            Game.saveCurrentLevel();
+            
+            Game.currentLevel--;
+            Game.addMessage(`You ascend to level ${Game.currentLevel}...`, 'action');
+            
+            // Load the previous level (it must exist since we came from there)
+            if (!Game.loadLevel(Game.currentLevel)) {
+                Game.addMessage("ERROR: Previous level not found!", 'danger');
+                return;
+            }
+            
+            render();
+        };
+
+        Game.attemptExit = function() {
+            const hasStone = Game.player.inventory.some(item => item.id === 'philosophers_stone');
+            
+            const modal = document.getElementById('exit-modal');
+            const message = document.getElementById('exit-message');
+            
+            if (hasStone) {
+                message.innerHTML = `
+                    <strong style="color: var(--gold-bright);">You possess the Philosopher's Stone!</strong><br><br>
+                    Leaving now will complete your quest successfully.<br>
+                    Your journey will end in VICTORY.<br><br>
+                    Do you wish to leave the dungeon?
+                `;
+            } else {
+                message.innerHTML = `
+                    <strong style="color: var(--health-red);">You do not have the Philosopher's Stone!</strong><br><br>
+                    Leaving now will end your quest in failure.<br>
+                    Your journey will end in DEFEAT.<br><br>
+                    Do you still wish to leave the dungeon?
+                `;
+            }
+            
+            modal.classList.add('active');
+        };
+
+        Game.confirmExit = function() {
+            document.getElementById('exit-modal').classList.remove('active');
+            const hasStone = Game.player.inventory.some(item => item.id === 'philosophers_stone');
+            
+            if (hasStone) {
+                Game.victory();
+            } else {
+                Game.gameOver("You fled the dungeon without the Philosopher's Stone.");
+            }
+        };
+
+        Game.cancelExit = function() {
+            document.getElementById('exit-modal').classList.remove('active');
+            Game.addMessage("You decide to continue your quest.", 'info');
+        };
+
+        Game.victory = function() {
+            document.getElementById('victory-modal').classList.add('active');
+            // Remove all other event handlers
+            document.removeEventListener('keydown', Game.handleKeyPress);
+        };
+
+        Game.showScoreboard = function() {
+            // Hide victory modal if showing
+            document.getElementById('victory-modal').classList.remove('active');
+            
+            const modal = document.getElementById('scoreboard-modal');
+            const result = document.getElementById('score-result');
+            const content = document.getElementById('scoreboard-content');
+            
+            const hasStone = Game.player.inventory.some(item => item.id === 'philosophers_stone');
+            result.innerHTML = hasStone ? 
+                '<span style="color: var(--gold-bright);">QUEST COMPLETE - VICTORY!</span>' : 
+                '<span style="color: var(--health-red);">QUEST FAILED</span>';
+            
+            // Calculate score
+            const score = Game.calculateScore();
+            
+            content.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <h3 style="color: var(--gold-bright); margin-bottom: 10px;">Journey Statistics</h3>
+                        <div class="score-line">Turns Survived: <span>${Game.turn}</span></div>
+                        <div class="score-line">Deepest Level: <span>${Game.maxLevelReached}</span></div>
+                        <div class="score-line">Monsters Slain: <span>${Game.getMonstersKilled()}</span></div>
+                        <div class="score-line">Items Collected: <span>${Game.player.inventory.length}</span></div>
+                        <div class="score-line">Knowledge Used: <span>${Game.getQuestionsAnswered()}</span></div>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--gold-bright); margin-bottom: 10px;">Final Attributes</h3>
+                        <div class="score-line">Strength: <span>${Game.player.strength}</span></div>
+                        <div class="score-line">Constitution: <span>${Game.player.constitution}</span></div>
+                        <div class="score-line">Dexterity: <span>${Game.player.dexterity}</span></div>
+                        <div class="score-line">Intelligence: <span>${Game.player.intelligence}</span></div>
+                        <div class="score-line">Wisdom: <span>${Game.player.wisdom}</span></div>
+                        <div class="score-line">Perception: <span>${Game.player.perception}</span></div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <h2 style="color: var(--gold-bright);">FINAL SCORE: ${score}</h2>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        };
+
+        Game.calculateScore = function() {
+            let score = 0;
+            score += Game.turn * 10;
+            score += Game.maxLevelReached * 1000;
+            score += Game.getMonstersKilled() * 100;
+            if (Game.player.inventory.some(item => item.id === 'philosophers_stone')) {
+                score += 50000; // Huge bonus for winning
+            }
+            return score;
+        };
+
+        Game.getMonstersKilled = function() {
+            return Object.values(Game.extinctions).reduce((sum, count) => sum + count, 0);
+        };
+
+        Game.getQuestionsAnswered = function() {
+            // This would need to be tracked, for now return estimate
+            return Game.getMonstersKilled() * 3; // Rough estimate
         };
 
         Game.gameOver = function(message) {
             Game.addMessage("=== GAME OVER ===", 'danger');
             Game.addMessage(message, 'danger');
-            Game.addMessage(`You survived ${Game.turn} turns and reached level ${Game.currentLevel}.`, 'info');
             document.removeEventListener('keydown', Game.handleKeyPress);
+            
+            // Show scoreboard after a delay
+            setTimeout(() => {
+                Game.showScoreboard();
+            }, 2000);
         };
 
         // ===== INITIALIZATION =====
