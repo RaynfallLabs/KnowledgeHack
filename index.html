@@ -1072,35 +1072,39 @@
                     try {
                         const response = await fetch(`data/questions/questions-${subject}.json`);
                         if (!response.ok) {
-                            console.warn(`✗ ${subject} questions not found`);
-                            this.questions[subject] = this.createPlaceholderQuestions(subject);
+                            console.warn(`✗ ${subject} questions not found, using placeholders`);
+                            // Create obvious placeholder questions inline
+                            this.questions[subject] = {
+                                "1": [
+                                    {"question": `PLACEHOLDER ${subject}: What is 1 × 1?`, "answer": "1", "type": "input"},
+                                    {"question": `PLACEHOLDER ${subject}: What is 1 × 1?`, "answer": "1", "type": "input"}
+                                ]
+                            };
                         } else {
                             const data = await response.json();
-                            // Handle wrapped or unwrapped JSON structure
-                            this.questions[subject] = data[subject] || data;
+                            // Handle the nested structure - data.subject contains the tiers
+                            if (data[subject]) {
+                                this.questions[subject] = data[subject];
+                            } else {
+                                // Fallback if structure is different
+                                this.questions[subject] = data;
+                            }
                             console.log(`✓ Loaded ${subject}`);
                         }
                     } catch (error) {
                         console.error(`Failed to load ${subject}:`, error);
-                        this.questions[subject] = this.createPlaceholderQuestions(subject);
+                        // Create obvious placeholder questions inline
+                        this.questions[subject] = {
+                            "1": [
+                                {"question": `PLACEHOLDER ${subject}: What is 1 × 1?`, "answer": "1", "type": "input"},
+                                {"question": `PLACEHOLDER ${subject}: What is 1 × 1?`, "answer": "1", "type": "input"}
+                            ]
+                        };
                     }
                 }
                 
                 this.loaded = true;
                 console.log('Question loading complete!');
-            },
-            
-            // Create placeholder questions for missing files
-            createPlaceholderQuestions: function(subject) {
-                return {
-                    "1": {
-                        "tier": 1,
-                        "questions": [
-                            {"question": `Sample ${subject}: What is 2 + 2?`, "answer": "4", "type": "input"},
-                            {"question": `Sample ${subject}: What is 5 × 3?`, "answer": "15", "type": "input"}
-                        ]
-                    }
-                };
             },
             
             // Get a random question from subject and tier
