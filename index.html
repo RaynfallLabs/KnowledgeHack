@@ -1191,7 +1191,24 @@
 
                 // Show quiz modal
                 this.showQuizModal(question);
-                },
+            },
+            
+            // Check if quiz should end
+            shouldEndQuiz: function() {
+                const quiz = this.currentQuiz;
+                
+                switch (quiz.mode) {
+                    case 'threshold':
+                    case 'escalator_threshold':
+                        return quiz.correctCount >= quiz.threshold;
+                    case 'chain':
+                    case 'escalator_chain':
+                        // Chain ends on first wrong answer, checked elsewhere
+                        return quiz.correctCount >= quiz.maxChain;
+                    default:
+                        return false;
+                }
+            },
 
             // Display the quiz modal
             showQuizModal: function(question) {
