@@ -1132,6 +1132,13 @@
                 const questions = Array.isArray(tierData) ? tierData : tierData.questions;
                 return questions[Math.floor(Math.random() * questions.length)];
             },
+            
+            // Start a quiz with specified parameters
+            startQuiz: function(params) {
+                if (this.isActive) {
+                    console.warn('Quiz already active');
+                    return;
+                }
                 
                 // Initialize quiz state
                 this.currentQuiz = {
