@@ -711,6 +711,34 @@
             text-shadow: 0 0 10px currentColor;
         }
 
+        /* Cooking Modal Styles */
+        .ingredient-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-family: 'Fira Code', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .ingredient-button:hover {
+            background: var(--bg-raised);
+            border-color: var(--knowledge-blue);
+            transform: translateX(5px);
+        }
+
+        .ingredient-info {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
          /* Help Modal Styles */
         .help-command {
             padding: 4px 0;
@@ -896,6 +924,27 @@
         </div>
     </div>
     
+    <!-- Cooking Modal -->
+    <div id="cooking-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="quiz-header">
+                <div class="quiz-title">COOKING STATION</div>
+                <div style="color: var(--text-secondary); font-size: 14px;">Choose ingredients to cook</div>
+            </div>
+            
+            <div style="padding: 20px;">
+                <h3 style="color: var(--gold-bright); margin-bottom: 15px;">Available Ingredients:</h3>
+                <div id="ingredient-list" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Ingredients will be populated here -->
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="quiz-button" onclick="Game.cancelCooking()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Exit Confirmation Modal -->
     <div id="exit-modal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
@@ -1587,8 +1636,9 @@
             }
             
             getQuizTimer() {
-                return this.wisdom;
-            }            
+                return 20 + this.wisdom;
+            }
+                        
             getHungerStatus() {
                 const percent = this.sp / this.maxSp;
                 if (this.sp <= 0) return "Starving";
@@ -2970,30 +3020,40 @@
                 return;
             }
             
-            // For now, cook the first ingredient
-            const ingredient = ingredients[0];
-            const foodData = Game.foodData[ingredient.id];
+            // Show cooking modal
+            const modal = document.getElementById('cooking-modal');
+            const ingredientList = document.getElementById('ingredient-list');
             
-            if (!foodData) {
-                Game.addMessage(`You don't know how to cook ${ingredient.name}!`, 'warning');
-                return;
-            }
+            // Clear previous content
+            ingredientList.innerHTML = '';
             
-            // Store cooking state
-            Game.cookingIngredient = ingredient;
-            
-            // Start cooking quiz
-            Game.QuizEngine.startQuiz({
-                mode: 'escalator_chain',
-                subject: 'cooking',
-                startingTier: foodData.tier || 1,
-                maxChain: 5,  // 5 quality levels max (0-5 = 6 total outcomes)
-                reason: `Cooking ${ingredient.name}`,
-                target: ingredient,
-                callback: function(result) {
-                    Game.handleCookingResult(result);
+            // Populate ingredients
+            ingredients.forEach(ingredient => {
+                const button = document.createElement('button');
+                button.className = 'ingredient-button';
+                
+                const foodData = Game.foodData[ingredient.id];
+                let recipeInfo = '';
+                
+                if (foodData && foodData.recipes) {
+                    // Show what this can become
+                    const bestRecipe = foodData.recipes["5"] || foodData.recipes["4"] || foodData.recipes["3"];
+                    if (bestRecipe) {
+                        recipeInfo = `<div class="ingredient-info">Can cook into: ${bestRecipe.name} (and others)</div>`;
+                    }
                 }
+                
+                button.innerHTML = `
+                    <div style="font-weight: 600;">${ingredient.letter}) ${ingredient.name}</div>
+                    ${recipeInfo}
+                `;
+                
+                button.onclick = () => Game.startCooking(ingredient);
+                ingredientList.appendChild(button);
             });
+            
+            // Show modal
+            modal.classList.add('active');
         };
 
         // Handle cooking quiz result
@@ -3084,6 +3144,41 @@
             Game.cookingIngredient = null;
             Game.processTurn();
         };
+
+        // Start cooking the selected ingredient
+        Game.startCooking = function(ingredient) {
+            // Hide cooking modal
+            document.getElementById('cooking-modal').classList.remove('active');
+            
+            const foodData = Game.foodData[ingredient.id];
+            
+            if (!foodData) {
+                Game.addMessage(`You don't know how to cook ${ingredient.name}!`, 'warning');
+                return;
+            }
+            
+            // Store cooking state
+            Game.cookingIngredient = ingredient;
+            
+            // Start cooking quiz
+            Game.QuizEngine.startQuiz({
+                mode: 'escalator_chain',
+                subject: 'cooking',
+                startingTier: foodData.tier || 1,
+                maxChain: 5,  // 5 quality levels max (0-5 = 6 total outcomes)
+                reason: `Cooking ${ingredient.name}`,
+                target: ingredient,
+                callback: function(result) {
+                    Game.handleCookingResult(result);
+                }
+            });
+        };
+
+// Cancel cooking
+Game.cancelCooking = function() {
+    document.getElementById('cooking-modal').classList.remove('active');
+    Game.addMessage("You decide not to cook right now.", 'info');
+};
 
         // CAST - Cast spell from memory
         Game.playerCast = function(spell) {
