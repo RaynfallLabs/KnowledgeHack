@@ -1,0 +1,406 @@
+{
+  "foods": [
+    {
+      "id": "newt_tail",
+      "name": "rubbery newt tail",
+      "from_corpse": "newt_corpse",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "ruined newt mess", "sp": 0},
+        "1": {"name": "chewy newt jerky", "sp": 15},
+        "2": {"name": "grilled newt tail", "sp": 30},
+        "3": {"name": "newt tail tempura", "sp": 45, "dexterity": 1},
+        "4": {"name": "newt tail sashimi", "sp": 60, "dexterity": 1, "effect": "water_breathing", "duration": 50},
+        "5": {"name": "sublime newt nigiri", "sp": 75, "dexterity": 2, "perception": 1, "effect": "amphibious", "duration": 100}
+      }
+    },
+    {
+      "id": "gecko_strips",
+      "name": "dried gecko strips",
+      "from_corpse": "gecko_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt gecko leather", "sp": 0},
+        "1": {"name": "gecko jerky", "sp": 18},
+        "2": {"name": "crispy gecko chips", "sp": 35},
+        "3": {"name": "gecko satay", "sp": 50, "dexterity": 1},
+        "4": {"name": "gecko pad thai", "sp": 65, "dexterity": 1, "effect": "wall_climb", "duration": 75},
+        "5": {"name": "gecko molecular gastronomy", "sp": 80, "dexterity": 2, "effect": "sticky_grip", "duration": 150}
+      }
+    },
+    {
+      "id": "rat_meat",
+      "name": "stringy rat meat",
+      "from_corpse": "rat_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "putrid rat slop", "sp": 0},
+        "1": {"name": "rat jerky", "sp": 20},
+        "2": {"name": "fried rat bits", "sp": 40},
+        "3": {"name": "BBQ rat skewers", "sp": 60, "strength": 1},
+        "4": {"name": "rat wellington", "sp": 80, "strength": 1, "effect": "resist_poison", "duration": 50},
+        "5": {"name": "sublime rat confit", "sp": 100, "strength": 2, "constitution": 1, "effect": "regeneration", "duration": 100}
+      }
+    },
+    {
+      "id": "giant_rat_meat",
+      "name": "chunky rat meat",
+      "from_corpse": "giant_rat_corpse",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "spoiled rat chunks", "sp": 0},
+        "1": {"name": "rat meatballs", "sp": 25},
+        "2": {"name": "rat burger", "sp": 45},
+        "3": {"name": "rat pot roast", "sp": 65, "constitution": 1},
+        "4": {"name": "rat bourguignon", "sp": 85, "constitution": 1, "effect": "disease_immunity", "duration": 60},
+        "5": {"name": "rat kaiseki", "sp": 105, "constitution": 2, "strength": 1, "effect": "vitality", "duration": 120}
+      }
+    },
+    {
+      "id": "diseased_meat",
+      "name": "questionable rat meat",
+      "from_corpse": "rabid_rat_corpse",
+      "symbol": "%",
+      "weight": 0.4,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "toxic waste", "sp": -10, "effect": "poisoned", "duration": 30},
+        "1": {"name": "overcooked mystery meat", "sp": 15},
+        "2": {"name": "purified rat", "sp": 35},
+        "3": {"name": "cleansed rat curry", "sp": 55, "constitution": 1},
+        "4": {"name": "purified rat supreme", "sp": 75, "constitution": 2, "effect": "cure_disease", "duration": 100},
+        "5": {"name": "phoenix rat revival", "sp": 95, "constitution": 2, "effect": "immunity", "duration": 200}
+      }
+    },
+    {
+      "id": "goblin_jerky",
+      "name": "tough goblin jerky",
+      "from_corpse": "goblin_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rancid goblin mess", "sp": -5},
+        "1": {"name": "goblin strips", "sp": 30},
+        "2": {"name": "goblin nuggets", "sp": 50},
+        "3": {"name": "goblin curry", "sp": 70, "intelligence": 1},
+        "4": {"name": "goblin shawarma", "sp": 90, "intelligence": 1, "effect": "detect_traps", "duration": 75},
+        "5": {"name": "goblin molecular fusion", "sp": 110, "intelligence": 2, "wisdom": 1, "effect": "true_sight", "duration": 150}
+      }
+    },
+    {
+      "id": "wolf_steak",
+      "name": "prime wolf steak",
+      "from_corpse": "wolf_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt wolf char", "sp": 0},
+        "1": {"name": "wolf chops", "sp": 40},
+        "2": {"name": "grilled wolf steak", "sp": 65},
+        "3": {"name": "wolf ribeye", "sp": 90, "strength": 2},
+        "4": {"name": "wolf steak diane", "sp": 115, "strength": 2, "effect": "pack_leader", "duration": 100},
+        "5": {"name": "legendary wolf tomahawk", "sp": 140, "strength": 3, "constitution": 1, "effect": "primal_fury", "duration": 200}
+      }
+    },
+    {
+      "id": "ogre_ham",
+      "name": "massive ogre ham",
+      "from_corpse": "ogre_corpse",
+      "symbol": "%",
+      "weight": 5.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt ogre disaster", "sp": 0},
+        "1": {"name": "ogre jerky", "sp": 60},
+        "2": {"name": "roasted ogre", "sp": 90},
+        "3": {"name": "honey-glazed ogre", "sp": 120, "strength": 3, "constitution": 1},
+        "4": {"name": "ogre feast royale", "sp": 150, "strength": 3, "constitution": 2, "effect": "giant_strength", "duration": 150},
+        "5": {"name": "titan's banquet", "sp": 180, "strength": 4, "constitution": 3, "maxHp": 5, "effect": "unstoppable", "duration": 250}
+      }
+    },
+    {
+      "id": "regenerating_flesh",
+      "name": "still-twitching troll meat",
+      "from_corpse": "troll_corpse",
+      "symbol": "%",
+      "weight": 4.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "writhing troll chunks", "sp": -20, "effect": "confused", "duration": 20},
+        "1": {"name": "seared troll meat", "sp": 60},
+        "2": {"name": "troll steaks", "sp": 90},
+        "3": {"name": "troll regeneration roast", "sp": 120, "constitution": 2},
+        "4": {"name": "troll vitality supreme", "sp": 150, "constitution": 3, "effect": "fast_healing", "duration": 150},
+        "5": {"name": "immortal troll tartare", "sp": 180, "constitution": 4, "maxHp": 5, "effect": "regeneration", "duration": 300}
+      }
+    },
+    {
+      "id": "dragon_veal",
+      "name": "tender dragon veal",
+      "from_corpse": "baby_gray_dragon_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "ruined dragon meat", "sp": 0},
+        "1": {"name": "dragon cutlets", "sp": 70},
+        "2": {"name": "dragon scallopini", "sp": 100},
+        "3": {"name": "dragon osso buco", "sp": 130, "all_stats": 1},
+        "4": {"name": "dragon medallions royale", "sp": 160, "all_stats": 1, "effect": "dragon_scales", "duration": 200},
+        "5": {"name": "baby dragon perfection", "sp": 190, "all_stats": 2, "effect": "draconic_might", "duration": 300}
+      }
+    },
+    {
+      "id": "flame_dragon_heart",
+      "name": "flame-grilled dragon heart",
+      "from_corpse": "red_dragon_corpse",
+      "symbol": "%",
+      "weight": 8.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "charred dragon disaster", "sp": 0},
+        "1": {"name": "dragon heart strips", "sp": 100},
+        "2": {"name": "dragon heart steak", "sp": 150},
+        "3": {"name": "infernal dragon roast", "sp": 200, "strength": 3, "constitution": 2},
+        "4": {"name": "dragonfire supreme", "sp": 250, "strength": 4, "constitution": 3, "effect": "fire_immunity", "duration": 300},
+        "5": {"name": "legendary wyrm emperor feast", "sp": 300, "all_stats": 3, "maxHp": 10, "maxSp": 20, "effect": "dragon_lord", "duration": 500}
+      }
+    },
+    {
+      "id": "lich_dust",
+      "name": "powdered lich remains",
+      "from_corpse": "lich_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "cursed lich powder", "sp": -50, "effect": "cursed", "duration": 100},
+        "1": {"name": "lich bone broth", "sp": 80},
+        "2": {"name": "lich essence soup", "sp": 120},
+        "3": {"name": "phylactery stew", "sp": 160, "intelligence": 3, "wisdom": 2},
+        "4": {"name": "undeath elixir", "sp": 200, "intelligence": 4, "wisdom": 3, "effect": "death_ward", "duration": 400},
+        "5": {"name": "lichdom apotheosis", "sp": 240, "intelligence": 5, "wisdom": 4, "maxMp": 10, "effect": "arcane_ascension", "duration": 600}
+      }
+    },
+
+    {
+      "id": "food_ration",
+      "name": "food ration",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 0,
+      "findable": true,
+      "prob": 80,
+      "min_depth": 1,
+      "max_depth": 100,
+      "rarity": "common",
+      "recipes": {
+        "0": {"name": "moldy ration", "sp": 0},
+        "1": {"name": "stale hardtack", "sp": 30},
+        "2": {"name": "toasted ration", "sp": 50},
+        "3": {"name": "hearty trail bread", "sp": 70},
+        "4": {"name": "golden biscuit", "sp": 90},
+        "5": {"name": "artisan travel cake", "sp": 110}
+      }
+    },
+    {
+      "id": "wild_mushroom",
+      "name": "wild mushroom",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 0,
+      "findable": true,
+      "prob": 60,
+      "min_depth": 1,
+      "max_depth": 50,
+      "rarity": "common",
+      "recipes": {
+        "0": {"name": "poisonous mushroom", "sp": -20, "effect": "poisoned", "duration": 30},
+        "1": {"name": "grilled mushroom", "sp": 25},
+        "2": {"name": "sautéed mushrooms", "sp": 45},
+        "3": {"name": "mushroom risotto", "sp": 65, "wisdom": 1},
+        "4": {"name": "truffle delight", "sp": 85, "wisdom": 1},
+        "5": {"name": "mycological masterpiece", "sp": 105, "wisdom": 2}
+      }
+    },
+    {
+      "id": "cave_moss",
+      "name": "cave moss",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 0,
+      "findable": true,
+      "prob": 50,
+      "min_depth": 5,
+      "max_depth": 40,
+      "rarity": "common",
+      "recipes": {
+        "0": {"name": "bitter moss paste", "sp": 5},
+        "1": {"name": "moss salad", "sp": 20},
+        "2": {"name": "seasoned moss", "sp": 35},
+        "3": {"name": "moss soup", "sp": 50},
+        "4": {"name": "emerald moss medley", "sp": 65},
+        "5": {"name": "verdant vitality blend", "sp": 80, "constitution": 1}
+      }
+    },
+    {
+      "id": "dungeon_potato",
+      "name": "dungeon potato",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 0,
+      "findable": true,
+      "prob": 40,
+      "min_depth": 1,
+      "max_depth": 60,
+      "rarity": "common",
+      "recipes": {
+        "0": {"name": "raw potato", "sp": 10},
+        "1": {"name": "baked potato", "sp": 35},
+        "2": {"name": "mashed potatoes", "sp": 55},
+        "3": {"name": "twice-baked potato", "sp": 75},
+        "4": {"name": "potato gratin", "sp": 95},
+        "5": {"name": "pommes de terre extraordinaire", "sp": 115}
+      }
+    },
+    {
+      "id": "glowing_fungus",
+      "name": "glowing fungus",
+      "symbol": "%",
+      "weight": 0.4,
+      "tier": 0,
+      "findable": true,
+      "prob": 30,
+      "min_depth": 10,
+      "max_depth": 70,
+      "rarity": "uncommon",
+      "recipes": {
+        "0": {"name": "toxic glow paste", "sp": -10, "effect": "hallucinating", "duration": 50},
+        "1": {"name": "dim fungus bits", "sp": 30},
+        "2": {"name": "luminous soup", "sp": 50},
+        "3": {"name": "radiant stir-fry", "sp": 70, "perception": 1},
+        "4": {"name": "bioluminescent bisque", "sp": 90, "perception": 1, "effect": "light", "duration": 100},
+        "5": {"name": "celestial glow feast", "sp": 110, "perception": 2, "effect": "true_sight", "duration": 200}
+      }
+    },
+    {
+      "id": "crystal_berries",
+      "name": "crystal berries",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 0,
+      "findable": true,
+      "prob": 25,
+      "min_depth": 20,
+      "max_depth": 80,
+      "rarity": "uncommon",
+      "recipes": {
+        "0": {"name": "shattered berries", "sp": 0},
+        "1": {"name": "berry handful", "sp": 25},
+        "2": {"name": "berry compote", "sp": 40},
+        "3": {"name": "crystallized preserves", "sp": 55, "intelligence": 1},
+        "4": {"name": "prismatic berry tart", "sp": 70, "intelligence": 1},
+        "5": {"name": "ethereal berry ambrosia", "sp": 85, "intelligence": 2}
+      }
+    },
+    {
+      "id": "iron_rations",
+      "name": "iron rations",
+      "symbol": "%",
+      "weight": 2.0,
+      "tier": 0,
+      "findable": true,
+      "prob": 15,
+      "min_depth": 30,
+      "max_depth": 100,
+      "rarity": "rare",
+      "recipes": {
+        "0": {"name": "rusted rations", "sp": 0},
+        "1": {"name": "military hardtack", "sp": 40},
+        "2": {"name": "field rations", "sp": 65},
+        "3": {"name": "fortified meal", "sp": 90, "constitution": 1},
+        "4": {"name": "warrior's feast", "sp": 115, "constitution": 1},
+        "5": {"name": "legendary provisions", "sp": 140, "constitution": 2}
+      }
+    },
+    {
+      "id": "cave_lichen",
+      "name": "cave lichen",
+      "symbol": "%",
+      "weight": 0.1,
+      "tier": 0,
+      "findable": true,
+      "prob": 70,
+      "min_depth": 1,
+      "max_depth": 30,
+      "rarity": "common",
+      "recipes": {
+        "0": {"name": "dried lichen", "sp": 5},
+        "1": {"name": "lichen chips", "sp": 15},
+        "2": {"name": "lichen bread", "sp": 25},
+        "3": {"name": "lichen porridge", "sp": 35},
+        "4": {"name": "nutritious lichen cake", "sp": 45},
+        "5": {"name": "lichen ambrosia", "sp": 55}
+      }
+    },
+    {
+      "id": "shadow_fruit",
+      "name": "shadow fruit",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 0,
+      "findable": true,
+      "prob": 10,
+      "min_depth": 40,
+      "max_depth": 100,
+      "rarity": "rare",
+      "recipes": {
+        "0": {"name": "withered shadow pulp", "sp": -5, "effect": "blind", "duration": 20},
+        "1": {"name": "shadow jam", "sp": 35},
+        "2": {"name": "twilight compote", "sp": 60},
+        "3": {"name": "umbral pie", "sp": 85, "dexterity": 1},
+        "4": {"name": "shadow essence tart", "sp": 110, "dexterity": 2, "effect": "invisibility", "duration": 100},
+        "5": {"name": "void fruit supreme", "sp": 135, "dexterity": 2, "perception": 1, "effect": "shadow_form", "duration": 200}
+      }
+    },
+    {
+      "id": "royal_jelly",
+      "name": "royal jelly",
+      "from_corpse": "killer_bee_corpse",
+      "symbol": "%",
+      "weight": 0.1,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "fermented jelly", "sp": 0},
+        "1": {"name": "bee candy", "sp": 35},
+        "2": {"name": "honey glazed jelly", "sp": 55},
+        "3": {"name": "royal ambrosia", "sp": 75, "all_stats": 1},
+        "4": {"name": "queen's feast", "sp": 95, "all_stats": 1, "effect": "buzzing_mind", "duration": 100},
+        "5": {"name": "hive mind delicacy", "sp": 115, "all_stats": 2, "effect": "swarm_commander", "duration": 200}
+      }
+    }
+  ]
+}

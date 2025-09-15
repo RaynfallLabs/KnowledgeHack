@@ -2566,7 +2566,7 @@
                     Game.playerHarvest();
                     return;
                 case 'c':
-                    Game.addMessage("There is no cook command, only Zuul.", 'warning');
+                    Game.playerCook();
                     return;
                 
                 // Magic items
@@ -2835,6 +2835,49 @@
             };
         };
         
+        // ===== FOOD DATA SYSTEM =====
+        Game.foodData = {};
+
+        // Load food data
+        Game.loadFoodData = async function() {
+            try {
+                const response = await fetch('data/objects/foods.json');
+                if (!response.ok) {
+                    console.warn('foods.json not found, using defaults');
+                    Game.foodData = Game.getDefaultFoods();
+                } else {
+                    const data = await response.json();
+                    // Index by ID for quick lookup
+                    Game.foodData = {};
+                    (data.foods || []).forEach(food => {
+                        Game.foodData[food.id] = food;
+                    });
+                    console.log(`Loaded ${Object.keys(Game.foodData).length} food types`);
+                }
+            } catch (error) {
+                console.error('Failed to load foods.json:', error);
+                Game.foodData = Game.getDefaultFoods();
+            }
+        };
+
+        // Default foods if file missing
+        Game.getDefaultFoods = function() {
+            return {
+                "rat_meat": {
+                    id: "rat_meat",
+                    name: "stringy rat meat",
+                    recipes: {
+                        "0": {name: "ruined rat slop", sp: 0},
+                        "1": {name: "rat jerky", sp: 20},
+                        "2": {name: "fried rat bits", sp: 40},
+                        "3": {name: "BBQ rat skewers", sp: 60, strength: 1},
+                        "4": {name: "rat wellington", sp: 80, strength: 1},
+                        "5": {name: "sublime rat confit", sp: 100, strength: 2, constitution: 1}
+                    }
+                }
+            };
+        };
+
         // Main harvest function - only works on ground
         Game.playerHarvest = function() {
             // Check for corpses at player location
@@ -2916,35 +2959,130 @@
         };
 
         // COOK - Create meals from ingredients
-        Game.playerCook = function(ingredients) {
-            if (!ingredients || ingredients.length === 0) {
-                Game.addMessage("You need ingredients to cook!", 'warning');
+        Game.playerCook = function() {
+            // Check inventory for cookable ingredients
+            const ingredients = Game.player.inventory.filter(item => 
+                item.itemClass === 'ingredients'
+            );
+            
+            if (ingredients.length === 0) {
+                Game.addMessage("You have no ingredients to cook!", 'warning');
                 return;
             }
             
-            // TODO: Determine tier based on ingredients
-            const cookingTier = 1;
+            // For now, cook the first ingredient
+            const ingredient = ingredients[0];
+            const foodData = Game.foodData[ingredient.id];
             
+            if (!foodData) {
+                Game.addMessage(`You don't know how to cook ${ingredient.name}!`, 'warning');
+                return;
+            }
+            
+            // Store cooking state
+            Game.cookingIngredient = ingredient;
+            
+            // Start cooking quiz
             Game.QuizEngine.startQuiz({
                 mode: 'escalator_chain',
                 subject: 'cooking',
-                startingTier: cookingTier,
-                maxChain: 5,  // 5 quality levels
-                reason: 'Cooking a meal',
-                target: ingredients,
+                startingTier: foodData.tier || 1,
+                maxChain: 5,  // 5 quality levels max (0-5 = 6 total outcomes)
+                reason: `Cooking ${ingredient.name}`,
+                target: ingredient,
                 callback: function(result) {
-                    const quality = result.score;
-                    if (quality === 0) {
-                        Game.addMessage("You ruin the food!", 'danger');
-                    } else {
-                        // TODO: Create food with stats based on quality
-                        const qualityNames = ['', 'crude', 'decent', 'fine', 'excellent', 'masterwork'];
-                        Game.addMessage(`You create a ${qualityNames[quality]} meal!`, 'success');
-                        // Auto-consume and apply stats
-                    }
-                    Game.processTurn();
+                    Game.handleCookingResult(result);
                 }
             });
+        };
+
+        // Handle cooking quiz result
+        Game.handleCookingResult = function(result) {
+            const ingredient = Game.cookingIngredient;
+            const foodData = Game.foodData[ingredient.id];
+            
+            // Remove ingredient from inventory
+            Game.player.removeFromInventory(ingredient);
+            
+            const quality = result.score;
+            const recipe = foodData.recipes[quality.toString()];
+            
+            if (!recipe) {
+                Game.addMessage("Cooking error - no recipe found!", 'danger');
+                return;
+            }
+            
+            // Create the cooked meal
+            Game.addMessage(`You create ${recipe.name}!`, quality === 0 ? 'danger' : 'success');
+            
+            // Auto-consume and apply effects
+            if (recipe.sp) {
+                Game.player.restoreSP(recipe.sp);
+                Game.addMessage(`You restore ${recipe.sp} stamina!`, 'success');
+            }
+            
+            // Apply permanent stat gains
+            if (recipe.strength) {
+                Game.player.strength += recipe.strength;
+                Game.addMessage(`Your strength increases by ${recipe.strength}!`, 'loot');
+            }
+            if (recipe.constitution) {
+                Game.player.constitution += recipe.constitution;
+                // Recalculate HP/SP maximums
+                Game.player.maxHp = Game.config.baseHP + Math.floor((Game.player.constitution - 10) / 2);
+                Game.player.maxSp = Game.config.baseSP + (Game.player.constitution - 10) * 2;
+                Game.addMessage(`Your constitution increases by ${recipe.constitution}!`, 'loot');
+            }
+            if (recipe.dexterity) {
+                Game.player.dexterity += recipe.dexterity;
+                Game.addMessage(`Your dexterity increases by ${recipe.dexterity}!`, 'loot');
+            }
+            if (recipe.intelligence) {
+                Game.player.intelligence += recipe.intelligence;
+                // Recalculate MP maximum
+                Game.player.maxMp = Game.config.baseMP + Math.floor((Game.player.intelligence - 10) / 2);
+                Game.addMessage(`Your intelligence increases by ${recipe.intelligence}!`, 'loot');
+            }
+            if (recipe.wisdom) {
+                Game.player.wisdom += recipe.wisdom;
+                Game.addMessage(`Your wisdom increases by ${recipe.wisdom}!`, 'loot');
+            }
+            if (recipe.perception) {
+                Game.player.perception += recipe.perception;
+                Game.addMessage(`Your perception increases by ${recipe.perception}!`, 'loot');
+            }
+            if (recipe.all_stats) {
+                Game.player.strength += recipe.all_stats;
+                Game.player.constitution += recipe.all_stats;
+                Game.player.dexterity += recipe.all_stats;
+                Game.player.intelligence += recipe.all_stats;
+                Game.player.wisdom += recipe.all_stats;
+                Game.player.perception += recipe.all_stats;
+                // Recalculate derived stats
+                Game.player.maxHp = Game.config.baseHP + Math.floor((Game.player.constitution - 10) / 2);
+                Game.player.maxSp = Game.config.baseSP + (Game.player.constitution - 10) * 2;
+                Game.player.maxMp = Game.config.baseMP + Math.floor((Game.player.intelligence - 10) / 2);
+                Game.addMessage(`All your attributes increase by ${recipe.all_stats}!`, 'loot');
+            }
+            if (recipe.maxHp) {
+                Game.player.maxHp += recipe.maxHp;
+                Game.player.hp = Math.min(Game.player.hp, Game.player.maxHp);
+                Game.addMessage(`Your maximum HP increases by ${recipe.maxHp}!`, 'loot');
+            }
+            if (recipe.maxSp) {
+                Game.player.maxSp += recipe.maxSp;
+                Game.addMessage(`Your maximum SP increases by ${recipe.maxSp}!`, 'loot');
+            }
+            
+            // Apply temporary effects if any
+            if (recipe.effect) {
+                Game.addMessage(`You gain the ${recipe.effect} effect!`, 'info');
+                // TODO: Implement temporary effects system
+            }
+            
+            // Clear cooking state
+            Game.cookingIngredient = null;
+            Game.processTurn();
         };
 
         // CAST - Cast spell from memory
@@ -3406,6 +3544,9 @@
 
             // Load corpse data
             await Game.loadCorpseData();
+
+            // Load food data
+            await Game.loadFoodData();
 
             // LOAD QUESTIONS:
             await Game.QuizEngine.loadAllQuestions();
