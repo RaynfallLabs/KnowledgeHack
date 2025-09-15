@@ -1638,7 +1638,7 @@
             getQuizTimer() {
                 return 20 + this.wisdom;
             }
-                        
+
             getHungerStatus() {
                 const percent = this.sp / this.maxSp;
                 if (this.sp <= 0) return "Starving";
@@ -1847,7 +1847,7 @@
         // Load all item data files
         Game.loadItemData = async function() {
             const itemClasses = [
-                'weapons', 'armor', 'accessories', 'ingredients', 'corpses',
+                'weapons', 'armor', 'accessories', 'foods', 'corpses',
                 'potions', 'scrolls', 'books', 'wands', 'tools', 
                 'gems', 'currency', 'artifacts'
             ];
@@ -2978,13 +2978,20 @@
             Game.items = Game.items.filter(item => item !== corpse);
             
             if (result.success) {
-                // Success - create food item
+                // Look up the food data
+                const foodData = Game.foodData[corpseData.harvest_food];
+                
+                if (!foodData) {
+                    Game.addMessage(`You don't know how to harvest ${corpse.name}!`, 'warning');
+                    return;
+                }
+                
                 const foodItem = {
-                    id: corpseData.harvest_food,
-                    name: corpseData.food_name || corpseData.harvest_food.replace(/_/g, ' '),
-                    itemClass: 'ingredients',
+                    id: corpseData.harvest_food,  // This ID matches the key in foodData
+                    name: foodData.name,
+                    itemClass: 'ingredients',  // Just a label meaning "this can be cooked"
                     symbol: '%',
-                    weight: Math.max(1, Math.floor(corpse.weight / 5)),
+                    weight: foodData.weight,
                     identified: true
                 };
                 
