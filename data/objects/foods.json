@@ -35,6 +35,57 @@
       }
     },
     {
+      "id": "fox_haunch",
+      "name": "lean fox haunch",
+      "from_corpse": "fox_corpse",
+      "symbol": "%",
+      "weight": 0.8,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt fox meat", "sp": 0},
+        "1": {"name": "fox jerky", "sp": 25},
+        "2": {"name": "roasted fox", "sp": 45},
+        "3": {"name": "braised fox haunch", "sp": 65, "dexterity": 1},
+        "4": {"name": "fox confit", "sp": 85, "dexterity": 1, "perception": 1},
+        "5": {"name": "cunning fox feast", "sp": 105, "dexterity": 2, "perception": 1, "effect": "cunning", "duration": 100}
+      }
+    },
+    {
+      "id": "jackal_meat",
+      "name": "tough jackal meat",
+      "from_corpse": "jackal_corpse",
+      "symbol": "%",
+      "weight": 0.4,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt jackal scraps", "sp": 0},
+        "1": {"name": "jackal jerky", "sp": 20},
+        "2": {"name": "grilled jackal", "sp": 40},
+        "3": {"name": "jackal stew", "sp": 60, "constitution": 1},
+        "4": {"name": "jackal curry", "sp": 80, "constitution": 1, "effect": "scavenger", "duration": 50},
+        "5": {"name": "pack hunter's feast", "sp": 100, "constitution": 1, "dexterity": 1, "effect": "pack_tactics", "duration": 100}
+      }
+    },
+    {
+      "id": "coyote_ribs",
+      "name": "coyote rib meat",
+      "from_corpse": "coyote_corpse",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "charred coyote bones", "sp": 0},
+        "1": {"name": "coyote strips", "sp": 22},
+        "2": {"name": "BBQ coyote ribs", "sp": 42},
+        "3": {"name": "slow-cooked coyote", "sp": 62, "strength": 1},
+        "4": {"name": "coyote rib platter", "sp": 82, "strength": 1, "effect": "endurance", "duration": 60},
+        "5": {"name": "desert hunter special", "sp": 102, "strength": 1, "constitution": 1, "effect": "desert_adaptation", "duration": 120}
+      }
+    },
+    {
       "id": "rat_meat",
       "name": "stringy rat meat",
       "from_corpse": "rat_corpse",
@@ -86,6 +137,363 @@
       }
     },
     {
+      "id": "lycanthrope_flesh",
+      "name": "cursed wererat flesh",
+      "from_corpse": "wererat_corpse",
+      "symbol": "%",
+      "weight": 0.6,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "cursed meat", "sp": -5, "effect": "cursed", "duration": 50},
+        "1": {"name": "seared wererat", "sp": 30},
+        "2": {"name": "wererat steaks", "sp": 50},
+        "3": {"name": "lycanthrope roast", "sp": 70, "strength": 1, "dexterity": 1},
+        "4": {"name": "moonlight feast", "sp": 90, "strength": 2, "dexterity": 1, "effect": "lycanthropy", "duration": 100},
+        "5": {"name": "shapeshifter's banquet", "sp": 110, "all_stats": 1, "effect": "transform", "duration": 200}
+      }
+    },
+    {
+      "id": "bat_wing",
+      "name": "leathery bat wing",
+      "from_corpse": "bat_corpse",
+      "symbol": "%",
+      "weight": 0.1,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt leather scraps", "sp": 0},
+        "1": {"name": "crispy bat wings", "sp": 15},
+        "2": {"name": "bat wing chips", "sp": 30},
+        "3": {"name": "bat wing soup", "sp": 45, "perception": 1},
+        "4": {"name": "bat wing consommé", "sp": 60, "perception": 1, "effect": "echolocation", "duration": 50},
+        "5": {"name": "nocturnal delicacy", "sp": 75, "perception": 2, "effect": "night_vision", "duration": 100}
+      }
+    },
+    {
+      "id": "giant_bat_wings",
+      "name": "meaty bat wings",
+      "from_corpse": "giant_bat_corpse",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "ruined bat meat", "sp": 0},
+        "1": {"name": "bat wing jerky", "sp": 18},
+        "2": {"name": "buffalo bat wings", "sp": 35},
+        "3": {"name": "bat wing stir-fry", "sp": 52, "dexterity": 1},
+        "4": {"name": "bat wing teriyaki", "sp": 70, "dexterity": 1, "effect": "gliding", "duration": 60},
+        "5": {"name": "flying fox feast", "sp": 88, "dexterity": 2, "effect": "levitation", "duration": 120}
+      }
+    },
+    {
+      "id": "blood_wing",
+      "name": "blood-drained wing",
+      "from_corpse": "vampire_bat_corpse",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "desiccated wing", "sp": -5},
+        "1": {"name": "blood wing strips", "sp": 25},
+        "2": {"name": "crimson wings", "sp": 45},
+        "3": {"name": "vampire wing soup", "sp": 65, "constitution": 1},
+        "4": {"name": "sanguine feast", "sp": 85, "constitution": 2, "effect": "life_steal", "duration": 80},
+        "5": {"name": "vampiric delicacy", "sp": 105, "constitution": 2, "strength": 1, "effect": "vampirism", "duration": 150}
+      }
+    },
+    {
+      "id": "ant_thorax",
+      "name": "crunchy ant thorax",
+      "from_corpse": "giant_ant_corpse",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "crushed ant bits", "sp": 0},
+        "1": {"name": "roasted ant", "sp": 18},
+        "2": {"name": "ant crunchies", "sp": 35},
+        "3": {"name": "ant protein bowl", "sp": 52, "strength": 1},
+        "4": {"name": "ant colony special", "sp": 70, "strength": 1, "effect": "teamwork", "duration": 60},
+        "5": {"name": "formican feast", "sp": 88, "strength": 2, "effect": "hive_mind", "duration": 120}
+      }
+    },
+    {
+      "id": "soldier_ant_meat",
+      "name": "armored ant segments",
+      "from_corpse": "soldier_ant_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "ant shell fragments", "sp": 0},
+        "1": {"name": "soldier ant strips", "sp": 25},
+        "2": {"name": "crunchy ant bites", "sp": 45},
+        "3": {"name": "warrior ant stew", "sp": 65, "strength": 1, "constitution": 1},
+        "4": {"name": "ant battalion feast", "sp": 85, "strength": 2, "constitution": 1, "effect": "chitin_armor", "duration": 80},
+        "5": {"name": "legion's banquet", "sp": 105, "strength": 2, "constitution": 2, "effect": "swarm_tactics", "duration": 150}
+      }
+    },
+    {
+      "id": "spicy_ant_meat",
+      "name": "spicy fire ant meat",
+      "from_corpse": "fire_ant_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt ant ash", "sp": -5, "effect": "burning", "duration": 20},
+        "1": {"name": "fire ant jerky", "sp": 28},
+        "2": {"name": "spicy ant poppers", "sp": 48},
+        "3": {"name": "fire ant curry", "sp": 68, "strength": 1},
+        "4": {"name": "inferno ant feast", "sp": 88, "strength": 1, "effect": "fire_resistance", "duration": 80},
+        "5": {"name": "blazing ant delicacy", "sp": 108, "strength": 2, "effect": "flame_aura", "duration": 150}
+      }
+    },
+    {
+      "id": "beetle_grubs",
+      "name": "beetle grub meat",
+      "from_corpse": "giant_beetle_corpse",
+      "symbol": "%",
+      "weight": 0.4,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "mushy grub paste", "sp": 0},
+        "1": {"name": "fried grubs", "sp": 22},
+        "2": {"name": "grub nuggets", "sp": 42},
+        "3": {"name": "grub protein shake", "sp": 62, "constitution": 1},
+        "4": {"name": "beetle grub deluxe", "sp": 82, "constitution": 1, "effect": "fortitude", "duration": 60},
+        "5": {"name": "metamorphosis meal", "sp": 102, "constitution": 2, "effect": "transformation", "duration": 120}
+      }
+    },
+    {
+      "id": "spider_legs",
+      "name": "crispy spider legs",
+      "from_corpse": "cave_spider_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tangled leg mess", "sp": 0},
+        "1": {"name": "fried spider legs", "sp": 20},
+        "2": {"name": "spider leg tempura", "sp": 40},
+        "3": {"name": "arachnid appetizer", "sp": 60, "dexterity": 1},
+        "4": {"name": "web spinner special", "sp": 80, "dexterity": 1, "effect": "web_walk", "duration": 60},
+        "5": {"name": "eight-legged feast", "sp": 100, "dexterity": 2, "effect": "spider_climb", "duration": 120}
+      }
+    },
+    {
+      "id": "spider_meat",
+      "name": "white spider meat",
+      "from_corpse": "giant_spider_corpse",
+      "symbol": "%",
+      "weight": 0.8,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "webbed meat clump", "sp": 0},
+        "1": {"name": "spider steaks", "sp": 30},
+        "2": {"name": "spider meat balls", "sp": 50},
+        "3": {"name": "arachnid roast", "sp": 70, "dexterity": 1},
+        "4": {"name": "silk spinner supreme", "sp": 90, "dexterity": 2, "effect": "web_shot", "duration": 80},
+        "5": {"name": "spider queen banquet", "sp": 110, "dexterity": 2, "perception": 1, "effect": "tremorsense", "duration": 150}
+      }
+    },
+    {
+      "id": "scorpion_tail",
+      "name": "detoxified scorpion tail",
+      "from_corpse": "scorpion_corpse",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "toxic tail meat", "sp": -10, "effect": "poisoned", "duration": 30},
+        "1": {"name": "scorpion jerky", "sp": 28},
+        "2": {"name": "grilled scorpion", "sp": 48},
+        "3": {"name": "scorpion kabob", "sp": 68, "constitution": 1},
+        "4": {"name": "desert delicacy", "sp": 88, "constitution": 1, "effect": "poison_immunity", "duration": 80},
+        "5": {"name": "stinger supreme", "sp": 108, "constitution": 2, "effect": "venomous_strike", "duration": 150}
+      }
+    },
+    {
+      "id": "snake_meat",
+      "name": "serpent fillet",
+      "from_corpse": "snake_corpse",
+      "symbol": "%",
+      "weight": 0.4,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rubbery snake bits", "sp": 0},
+        "1": {"name": "snake jerky", "sp": 22},
+        "2": {"name": "fried snake", "sp": 42},
+        "3": {"name": "serpent stew", "sp": 62, "dexterity": 1},
+        "4": {"name": "snake fillet deluxe", "sp": 82, "dexterity": 1, "effect": "flexibility", "duration": 60},
+        "5": {"name": "serpentine feast", "sp": 102, "dexterity": 2, "effect": "snake_form", "duration": 120}
+      }
+    },
+    {
+      "id": "viper_steak",
+      "name": "carefully prepared viper",
+      "from_corpse": "pit_viper_corpse",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "venomous mess", "sp": -5, "effect": "poisoned", "duration": 40},
+        "1": {"name": "viper strips", "sp": 30},
+        "2": {"name": "grilled viper", "sp": 50},
+        "3": {"name": "viper steak dinner", "sp": 70, "constitution": 1},
+        "4": {"name": "pit viper supreme", "sp": 90, "constitution": 2, "effect": "venom_spit", "duration": 80},
+        "5": {"name": "venomancer's feast", "sp": 110, "constitution": 2, "dexterity": 1, "effect": "toxic_aura", "duration": 150}
+      }
+    },
+    {
+      "id": "cobra_meat",
+      "name": "de-venomed cobra meat",
+      "from_corpse": "cobra_corpse",
+      "symbol": "%",
+      "weight": 0.6,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "deadly cobra waste", "sp": -10, "effect": "paralyzed", "duration": 20},
+        "1": {"name": "cobra jerky", "sp": 32},
+        "2": {"name": "cobra steaks", "sp": 52},
+        "3": {"name": "hooded serpent special", "sp": 72, "dexterity": 1},
+        "4": {"name": "cobra king feast", "sp": 92, "dexterity": 1, "constitution": 1, "effect": "hypnotic_gaze", "duration": 80},
+        "5": {"name": "serpent lord banquet", "sp": 112, "dexterity": 2, "constitution": 1, "effect": "mesmerize", "duration": 150}
+      }
+    },
+    {
+      "id": "python_steak",
+      "name": "thick python steak",
+      "from_corpse": "python_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tough snake meat", "sp": 0},
+        "1": {"name": "python strips", "sp": 35},
+        "2": {"name": "grilled python", "sp": 55},
+        "3": {"name": "python roast", "sp": 75, "strength": 1},
+        "4": {"name": "constrictor feast", "sp": 95, "strength": 2, "effect": "crushing_grip", "duration": 80},
+        "5": {"name": "anaconda supreme", "sp": 115, "strength": 2, "constitution": 1, "effect": "coil", "duration": 150}
+      }
+    },
+    {
+      "id": "lizard_tail",
+      "name": "fresh lizard tail",
+      "from_corpse": "lizard_corpse",
+      "symbol": "%",
+      "weight": 0.4,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rotten tail", "sp": 0},
+        "1": {"name": "lizard jerky", "sp": 20},
+        "2": {"name": "grilled lizard", "sp": 40},
+        "3": {"name": "lizard tail soup", "sp": 60, "dexterity": 1},
+        "4": {"name": "regenerating feast", "sp": 80, "dexterity": 1, "effect": "regrowth", "duration": 60},
+        "5": {"name": "chameleon delicacy", "sp": 100, "dexterity": 2, "effect": "camouflage", "duration": 120}
+      }
+    },
+    {
+      "id": "iguana_ribs",
+      "name": "iguana rib meat",
+      "from_corpse": "iguana_corpse",
+      "symbol": "%",
+      "weight": 0.6,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt iguana", "sp": 0},
+        "1": {"name": "iguana strips", "sp": 25},
+        "2": {"name": "BBQ iguana ribs", "sp": 45},
+        "3": {"name": "iguana rack", "sp": 65, "constitution": 1},
+        "4": {"name": "tropical feast", "sp": 85, "constitution": 1, "effect": "sun_basking", "duration": 60},
+        "5": {"name": "desert dragon special", "sp": 105, "constitution": 2, "effect": "heat_immunity", "duration": 120}
+      }
+    },
+    {
+      "id": "gator_tail",
+      "name": "tender gator tail",
+      "from_corpse": "crocodile_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tough gator meat", "sp": 0},
+        "1": {"name": "gator jerky", "sp": 50},
+        "2": {"name": "fried gator", "sp": 80},
+        "3": {"name": "gator tail steak", "sp": 110, "strength": 2},
+        "4": {"name": "swamp king feast", "sp": 140, "strength": 2, "constitution": 1, "effect": "death_roll", "duration": 100},
+        "5": {"name": "apex predator banquet", "sp": 170, "strength": 3, "constitution": 2, "effect": "primal_power", "duration": 200}
+      }
+    },
+    {
+      "id": "dark_poultry",
+      "name": "dark raven meat",
+      "from_corpse": "raven_corpse",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt feathers", "sp": 0},
+        "1": {"name": "raven jerky", "sp": 18},
+        "2": {"name": "roasted raven", "sp": 35},
+        "3": {"name": "raven pie", "sp": 52, "intelligence": 1},
+        "4": {"name": "corvid feast", "sp": 70, "intelligence": 1, "effect": "foresight", "duration": 60},
+        "5": {"name": "oracle's meal", "sp": 88, "intelligence": 2, "effect": "prophecy", "duration": 120}
+      }
+    },
+    {
+      "id": "raptor_breast",
+      "name": "lean hawk breast",
+      "from_corpse": "hawk_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "stringy bird meat", "sp": 0},
+        "1": {"name": "hawk jerky", "sp": 22},
+        "2": {"name": "grilled hawk", "sp": 42},
+        "3": {"name": "hawk breast fillet", "sp": 62, "perception": 1},
+        "4": {"name": "sky hunter special", "sp": 82, "perception": 1, "effect": "keen_sight", "duration": 60},
+        "5": {"name": "raptor's feast", "sp": 102, "perception": 2, "effect": "eagle_eye", "duration": 120}
+      }
+    },
+    {
+      "id": "eagle_meat",
+      "name": "majestic eagle meat",
+      "from_corpse": "eagle_corpse",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tough eagle meat", "sp": 0},
+        "1": {"name": "eagle strips", "sp": 30},
+        "2": {"name": "roasted eagle", "sp": 50},
+        "3": {"name": "eagle steak", "sp": 70, "perception": 1, "dexterity": 1},
+        "4": {"name": "freedom feast", "sp": 90, "perception": 2, "dexterity": 1, "effect": "soaring", "duration": 80},
+        "5": {"name": "sky lord banquet", "sp": 110, "perception": 2, "dexterity": 2, "effect": "flight", "duration": 150}
+      }
+    },
+    {
       "id": "goblin_jerky",
       "name": "tough goblin jerky",
       "from_corpse": "goblin_corpse",
@@ -103,20 +511,224 @@
       }
     },
     {
-      "id": "wolf_steak",
-      "name": "prime wolf steak",
-      "from_corpse": "wolf_corpse",
+      "id": "hobgoblin_steak",
+      "name": "seasoned hobgoblin steak",
+      "from_corpse": "hobgoblin_corpse",
       "symbol": "%",
       "weight": 1.5,
       "tier": 2,
       "findable": false,
       "recipes": {
-        "0": {"name": "burnt wolf char", "sp": 0},
-        "1": {"name": "wolf chops", "sp": 40},
-        "2": {"name": "grilled wolf steak", "sp": 65},
-        "3": {"name": "wolf ribeye", "sp": 90, "strength": 2},
-        "4": {"name": "wolf steak diane", "sp": 115, "strength": 2, "effect": "pack_leader", "duration": 100},
-        "5": {"name": "legendary wolf tomahawk", "sp": 140, "strength": 3, "constitution": 1, "effect": "primal_fury", "duration": 200}
+        "0": {"name": "burnt hobgoblin", "sp": 0},
+        "1": {"name": "hobgoblin jerky", "sp": 38},
+        "2": {"name": "grilled hobgoblin", "sp": 58},
+        "3": {"name": "hobgoblin roast", "sp": 78, "strength": 1},
+        "4": {"name": "warrior's feast", "sp": 98, "strength": 1, "constitution": 1, "effect": "battle_fury", "duration": 80},
+        "5": {"name": "warchief banquet", "sp": 118, "strength": 2, "constitution": 1, "effect": "commanding_presence", "duration": 150}
+      }
+    },
+    {
+      "id": "bugbear_haunch",
+      "name": "massive bugbear haunch",
+      "from_corpse": "bugbear_corpse",
+      "symbol": "%",
+      "weight": 2.0,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "ruined bugbear meat", "sp": 0},
+        "1": {"name": "bugbear strips", "sp": 40},
+        "2": {"name": "roasted bugbear", "sp": 60},
+        "3": {"name": "bugbear ham", "sp": 80, "strength": 2},
+        "4": {"name": "brute's banquet", "sp": 100, "strength": 2, "constitution": 1, "effect": "intimidating", "duration": 80},
+        "5": {"name": "savage feast", "sp": 120, "strength": 3, "constitution": 1, "effect": "brutal_strength", "duration": 150}
+      }
+    },
+    {
+      "id": "kobold_meat",
+      "name": "scrawny kobold meat",
+      "from_corpse": "kobold_corpse",
+      "symbol": "%",
+      "weight": 0.6,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "spoiled kobold", "sp": 0},
+        "1": {"name": "kobold jerky", "sp": 25},
+        "2": {"name": "fried kobold", "sp": 45},
+        "3": {"name": "kobold stew", "sp": 65, "dexterity": 1},
+        "4": {"name": "trap setter special", "sp": 85, "dexterity": 1, "effect": "trap_sense", "duration": 60},
+        "5": {"name": "dragon-kin feast", "sp": 105, "dexterity": 2, "effect": "draconic_heritage", "duration": 120}
+      }
+    },
+    {
+      "id": "kobold_ribs",
+      "name": "kobold spare ribs",
+      "from_corpse": "large_kobold_corpse",
+      "symbol": "%",
+      "weight": 0.8,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt kobold ribs", "sp": 0},
+        "1": {"name": "kobold rib strips", "sp": 28},
+        "2": {"name": "BBQ kobold ribs", "sp": 48},
+        "3": {"name": "kobold rack", "sp": 68, "strength": 1},
+        "4": {"name": "scaled feast", "sp": 88, "strength": 1, "effect": "scale_armor", "duration": 60},
+        "5": {"name": "wyrmling special", "sp": 108, "strength": 1, "dexterity": 1, "effect": "dragon_breath", "duration": 120}
+      }
+    },
+    {
+      "id": "royal_kobold_meat",
+      "name": "royal kobold cutlet",
+      "from_corpse": "kobold_lord_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "spoiled royal meat", "sp": 0},
+        "1": {"name": "royal jerky", "sp": 35},
+        "2": {"name": "royal kobold steak", "sp": 55},
+        "3": {"name": "lord's feast", "sp": 75, "intelligence": 1},
+        "4": {"name": "dragon servant supreme", "sp": 95, "intelligence": 1, "dexterity": 1, "effect": "minor_magic", "duration": 80},
+        "5": {"name": "wyrmtongue banquet", "sp": 115, "intelligence": 2, "dexterity": 1, "effect": "dragon_speech", "duration": 150}
+      }
+    },
+    {
+      "id": "orc_meat",
+      "name": "greasy orc meat",
+      "from_corpse": "orc_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rancid orc fat", "sp": -5},
+        "1": {"name": "orc jerky", "sp": 35},
+        "2": {"name": "fried orc chops", "sp": 55},
+        "3": {"name": "orc roast", "sp": 75, "strength": 1},
+        "4": {"name": "warrior's meal", "sp": 95, "strength": 2, "effect": "bloodlust", "duration": 60},
+        "5": {"name": "orcish feast", "sp": 115, "strength": 2, "constitution": 1, "effect": "berserker_rage", "duration": 120}
+      }
+    },
+    {
+      "id": "hill_orc_bacon",
+      "name": "thick orc bacon",
+      "from_corpse": "hill_orc_corpse",
+      "symbol": "%",
+      "weight": 2.0,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt orc bacon", "sp": 0},
+        "1": {"name": "crispy orc bacon", "sp": 40},
+        "2": {"name": "orc bacon strips", "sp": 60},
+        "3": {"name": "hill orc feast", "sp": 80, "constitution": 1},
+        "4": {"name": "mountaineer's meal", "sp": 100, "constitution": 2, "effect": "endurance", "duration": 80},
+        "5": {"name": "highland banquet", "sp": 120, "constitution": 2, "strength": 1, "effect": "mountain_strength", "duration": 150}
+      }
+    },
+    {
+      "id": "mystical_meat",
+      "name": "strangely tingling meat",
+      "from_corpse": "orc_shaman_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "wild magic mess", "sp": -10, "effect": "confused", "duration": 30},
+        "1": {"name": "shaman jerky", "sp": 38},
+        "2": {"name": "mystical steaks", "sp": 58},
+        "3": {"name": "shaman's brew", "sp": 78, "intelligence": 1},
+        "4": {"name": "spirit feast", "sp": 98, "intelligence": 1, "wisdom": 1, "effect": "spirit_sight", "duration": 80},
+        "5": {"name": "vision quest banquet", "sp": 118, "intelligence": 2, "wisdom": 1, "effect": "astral_projection", "duration": 150}
+      }
+    },
+    {
+      "id": "captain_chops",
+      "name": "captain's choice chops",
+      "from_corpse": "orc_captain_corpse",
+      "symbol": "%",
+      "weight": 2.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tough captain meat", "sp": 0},
+        "1": {"name": "captain's jerky", "sp": 45},
+        "2": {"name": "grilled captain chops", "sp": 70},
+        "3": {"name": "officer's feast", "sp": 95, "strength": 2},
+        "4": {"name": "commander's banquet", "sp": 120, "strength": 2, "intelligence": 1, "effect": "leadership", "duration": 100},
+        "5": {"name": "warlord supreme", "sp": 145, "strength": 3, "intelligence": 1, "effect": "inspire_troops", "duration": 180}
+      }
+    },
+    {
+      "id": "gnome_meat",
+      "name": "earthy gnome meat",
+      "from_corpse": "gnome_corpse",
+      "symbol": "%",
+      "weight": 0.8,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "muddy gnome mess", "sp": 0},
+        "1": {"name": "gnome jerky", "sp": 28},
+        "2": {"name": "roasted gnome", "sp": 48},
+        "3": {"name": "gnome pot pie", "sp": 68, "intelligence": 1},
+        "4": {"name": "tinkerer's feast", "sp": 88, "intelligence": 1, "effect": "invention", "duration": 60},
+        "5": {"name": "artificer's delight", "sp": 108, "intelligence": 2, "effect": "mechanical_genius", "duration": 120}
+      }
+    },
+    {
+      "id": "dwarf_roast",
+      "name": "hearty dwarf roast",
+      "from_corpse": "dwarf_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt dwarf meat", "sp": 0},
+        "1": {"name": "dwarf jerky", "sp": 38},
+        "2": {"name": "grilled dwarf steak", "sp": 58},
+        "3": {"name": "mountain feast", "sp": 78, "constitution": 1},
+        "4": {"name": "miner's banquet", "sp": 98, "constitution": 2, "effect": "stone_skin", "duration": 80},
+        "5": {"name": "forge master's meal", "sp": 118, "constitution": 2, "strength": 1, "effect": "iron_will", "duration": 150}
+      }
+    },
+    {
+      "id": "elven_filet",
+      "name": "delicate elven filet",
+      "from_corpse": "elf_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "spoiled elf meat", "sp": 0},
+        "1": {"name": "elven strips", "sp": 35},
+        "2": {"name": "pan-seared elf", "sp": 55},
+        "3": {"name": "woodland feast", "sp": 75, "dexterity": 1},
+        "4": {"name": "sylvan banquet", "sp": 95, "dexterity": 1, "perception": 1, "effect": "nature_bond", "duration": 80},
+        "5": {"name": "fey touched delicacy", "sp": 115, "dexterity": 2, "perception": 1, "effect": "ethereal_grace", "duration": 150}
+      }
+    },
+    {
+      "id": "long_pork",
+      "name": "suspicious meat",
+      "from_corpse": "human_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "forbidden meat", "sp": -20, "effect": "cursed", "duration": 100},
+        "1": {"name": "mystery jerky", "sp": 30},
+        "2": {"name": "unmentionable steak", "sp": 50},
+        "3": {"name": "taboo feast", "sp": 70, "all_stats": 1},
+        "4": {"name": "cannibal's banquet", "sp": 90, "all_stats": 1, "effect": "madness", "duration": 80},
+        "5": {"name": "wendigo transformation", "sp": 110, "all_stats": 2, "effect": "inhuman_hunger", "duration": 200}
       }
     },
     {
@@ -137,6 +749,23 @@
       }
     },
     {
+      "id": "prime_ogre_meat",
+      "name": "prime ogre ribeye",
+      "from_corpse": "ogre_lord_corpse",
+      "symbol": "%",
+      "weight": 6.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "ruined prime cut", "sp": 0},
+        "1": {"name": "ogre lord jerky", "sp": 65},
+        "2": {"name": "grilled ogre ribeye", "sp": 95},
+        "3": {"name": "lord's roast", "sp": 125, "strength": 3, "constitution": 1},
+        "4": {"name": "ogre king feast", "sp": 155, "strength": 4, "constitution": 2, "effect": "crushing_blow", "duration": 150},
+        "5": {"name": "colossus banquet", "sp": 185, "strength": 4, "constitution": 3, "maxHp": 8, "effect": "giant_form", "duration": 250}
+      }
+    },
+    {
       "id": "regenerating_flesh",
       "name": "still-twitching troll meat",
       "from_corpse": "troll_corpse",
@@ -151,6 +780,703 @@
         "3": {"name": "troll regeneration roast", "sp": 120, "constitution": 2},
         "4": {"name": "troll vitality supreme", "sp": 150, "constitution": 3, "effect": "fast_healing", "duration": 150},
         "5": {"name": "immortal troll tartare", "sp": 180, "constitution": 4, "maxHp": 5, "effect": "regeneration", "duration": 300}
+      }
+    },
+    {
+      "id": "frozen_troll_meat",
+      "name": "frozen troll flesh",
+      "from_corpse": "ice_troll_corpse",
+      "symbol": "%",
+      "weight": 4.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "freezer burnt troll", "sp": -10, "effect": "slowed", "duration": 30},
+        "1": {"name": "thawed troll meat", "sp": 62},
+        "2": {"name": "ice troll steaks", "sp": 92},
+        "3": {"name": "frozen feast", "sp": 122, "constitution": 2},
+        "4": {"name": "permafrost banquet", "sp": 152, "constitution": 3, "effect": "ice_armor", "duration": 150},
+        "5": {"name": "glacier heart supreme", "sp": 182, "constitution": 4, "effect": "frozen_regeneration", "duration": 300}
+      }
+    },
+    {
+      "id": "stone_flesh",
+      "name": "rock-hard troll meat",
+      "from_corpse": "rock_troll_corpse",
+      "symbol": "%",
+      "weight": 4.5,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "granite chunks", "sp": 0},
+        "1": {"name": "tenderized stone meat", "sp": 70},
+        "2": {"name": "rock troll roast", "sp": 100},
+        "3": {"name": "mountain heart feast", "sp": 130, "constitution": 3},
+        "4": {"name": "earth shaker banquet", "sp": 160, "constitution": 3, "strength": 1, "effect": "stone_form", "duration": 180},
+        "5": {"name": "geological gastronomy", "sp": 190, "constitution": 4, "strength": 2, "effect": "earthquake", "duration": 300}
+      }
+    },
+    {
+      "id": "giant_steak",
+      "name": "enormous giant steak",
+      "from_corpse": "giant_corpse",
+      "symbol": "%",
+      "weight": 8.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt giant meat", "sp": 0},
+        "1": {"name": "giant jerky", "sp": 70},
+        "2": {"name": "grilled giant steak", "sp": 100},
+        "3": {"name": "giant's feast", "sp": 130, "strength": 3, "constitution": 1},
+        "4": {"name": "colossal banquet", "sp": 160, "strength": 3, "constitution": 2, "effect": "giant_size", "duration": 180},
+        "5": {"name": "titan's triumph", "sp": 190, "strength": 4, "constitution": 3, "maxHp": 10, "effect": "titanic_might", "duration": 300}
+      }
+    },
+    {
+      "id": "hill_giant_roast",
+      "name": "hill giant roast",
+      "from_corpse": "hill_giant_corpse",
+      "symbol": "%",
+      "weight": 9.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "ruined giant roast", "sp": 0},
+        "1": {"name": "hill giant strips", "sp": 72},
+        "2": {"name": "roasted hill giant", "sp": 102},
+        "3": {"name": "highland feast", "sp": 132, "strength": 3, "constitution": 2},
+        "4": {"name": "mountain king banquet", "sp": 162, "strength": 4, "constitution": 2, "effect": "boulder_throw", "duration": 180},
+        "5": {"name": "peak performance meal", "sp": 192, "strength": 4, "constitution": 3, "maxHp": 10, "effect": "mountain_lord", "duration": 300}
+      }
+    },
+    {
+      "id": "stony_meat",
+      "name": "mineral-rich giant meat",
+      "from_corpse": "stone_giant_corpse",
+      "symbol": "%",
+      "weight": 10.0,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rock-hard failure", "sp": 0},
+        "1": {"name": "stone giant jerky", "sp": 80},
+        "2": {"name": "mineral steak", "sp": 110},
+        "3": {"name": "quarry feast", "sp": 140, "constitution": 3, "strength": 1},
+        "4": {"name": "geological banquet", "sp": 170, "constitution": 4, "strength": 2, "effect": "stone_skin", "duration": 200},
+        "5": {"name": "tectonic gastronomy", "sp": 200, "constitution": 5, "strength": 3, "effect": "immovable", "duration": 350}
+      }
+    },
+    {
+      "id": "flame_seared_steak",
+      "name": "pre-seared giant steak",
+      "from_corpse": "fire_giant_corpse",
+      "symbol": "%",
+      "weight": 10.0,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "charcoal disaster", "sp": -10, "effect": "burning", "duration": 30},
+        "1": {"name": "fire giant jerky", "sp": 80},
+        "2": {"name": "flame-grilled giant", "sp": 110},
+        "3": {"name": "inferno feast", "sp": 140, "strength": 3, "constitution": 1},
+        "4": {"name": "volcanic banquet", "sp": 170, "strength": 4, "constitution": 2, "effect": "flame_body", "duration": 200},
+        "5": {"name": "pyroclastic perfection", "sp": 200, "strength": 5, "constitution": 3, "effect": "meteor_swarm", "duration": 350}
+      }
+    },
+    {
+      "id": "frozen_giant_meat",
+      "name": "ice-preserved giant meat",
+      "from_corpse": "frost_giant_corpse",
+      "symbol": "%",
+      "weight": 10.0,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "freezer burnt giant", "sp": -10, "effect": "frozen", "duration": 30},
+        "1": {"name": "frost giant jerky", "sp": 80},
+        "2": {"name": "chilled giant steak", "sp": 110},
+        "3": {"name": "glacier feast", "sp": 140, "constitution": 3, "strength": 1},
+        "4": {"name": "arctic banquet", "sp": 170, "constitution": 4, "strength": 2, "effect": "ice_storm", "duration": 200},
+        "5": {"name": "absolute zero delicacy", "sp": 200, "constitution": 5, "strength": 3, "effect": "frozen_wasteland", "duration": 350}
+      }
+    },
+    {
+      "id": "double_portion",
+      "name": "two-headed giant's feast",
+      "from_corpse": "ettin_corpse",
+      "symbol": "%",
+      "weight": 7.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "confused meat mess", "sp": 0},
+        "1": {"name": "ettin jerky", "sp": 68},
+        "2": {"name": "double steak special", "sp": 98},
+        "3": {"name": "twin feast", "sp": 128, "strength": 2, "intelligence": 1},
+        "4": {"name": "dual mind banquet", "sp": 158, "strength": 3, "intelligence": 2, "effect": "double_strike", "duration": 180},
+        "5": {"name": "bicephalic brilliance", "sp": 188, "strength": 3, "intelligence": 3, "wisdom": 1, "effect": "split_consciousness", "duration": 300}
+      }
+    },
+    {
+      "id": "maze_beef",
+      "name": "labyrinthine beef",
+      "from_corpse": "minotaur_corpse",
+      "symbol": "%",
+      "weight": 4.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "lost meat chunks", "sp": 0},
+        "1": {"name": "minotaur jerky", "sp": 65},
+        "2": {"name": "grilled maze beef", "sp": 95},
+        "3": {"name": "labyrinth roast", "sp": 125, "strength": 2, "perception": 1},
+        "4": {"name": "bull's feast", "sp": 155, "strength": 3, "perception": 1, "effect": "maze_sense", "duration": 180},
+        "5": {"name": "theseus special", "sp": 185, "strength": 3, "perception": 2, "intelligence": 1, "effect": "pathfinding", "duration": 300}
+      }
+    },
+    {
+      "id": "centaur_flank",
+      "name": "noble centaur flank",
+      "from_corpse": "centaur_corpse",
+      "symbol": "%",
+      "weight": 4.5,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tough horse meat", "sp": 0},
+        "1": {"name": "centaur jerky", "sp": 68},
+        "2": {"name": "grilled centaur", "sp": 98},
+        "3": {"name": "noble feast", "sp": 128, "dexterity": 2, "wisdom": 1},
+        "4": {"name": "archer's banquet", "sp": 158, "dexterity": 2, "wisdom": 1, "perception": 1, "effect": "perfect_aim", "duration": 180},
+        "5": {"name": "sagittarian supreme", "sp": 188, "dexterity": 3, "wisdom": 2, "perception": 1, "effect": "divine_archery", "duration": 300}
+      }
+    },
+    {
+      "id": "field_rations",
+      "name": "preserved field meat",
+      "from_corpse": "soldier_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "spoiled rations", "sp": 0},
+        "1": {"name": "field jerky", "sp": 38},
+        "2": {"name": "soldier's meal", "sp": 58},
+        "3": {"name": "military feast", "sp": 78, "constitution": 1},
+        "4": {"name": "warrior's banquet", "sp": 98, "constitution": 1, "strength": 1, "effect": "discipline", "duration": 80},
+        "5": {"name": "veteran's victory meal", "sp": 118, "constitution": 2, "strength": 1, "effect": "tactical_advantage", "duration": 150}
+      }
+    },
+    {
+      "id": "veteran_meat",
+      "name": "tough veteran's cut",
+      "from_corpse": "sergeant_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "old soldier meat", "sp": 0},
+        "1": {"name": "veteran jerky", "sp": 40},
+        "2": {"name": "sergeant's steak", "sp": 60},
+        "3": {"name": "NCO feast", "sp": 80, "strength": 1, "constitution": 1},
+        "4": {"name": "drill instructor special", "sp": 100, "strength": 1, "constitution": 1, "effect": "rally", "duration": 80},
+        "5": {"name": "sergeant major supreme", "sp": 120, "strength": 2, "constitution": 2, "effect": "inspire", "duration": 150}
+      }
+    },
+    {
+      "id": "officer_steak",
+      "name": "officer's prime cut",
+      "from_corpse": "lieutenant_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rank meat", "sp": 0},
+        "1": {"name": "officer jerky", "sp": 45},
+        "2": {"name": "lieutenant's lunch", "sp": 70},
+        "3": {"name": "officer's mess", "sp": 95, "intelligence": 1, "strength": 1},
+        "4": {"name": "command feast", "sp": 120, "intelligence": 2, "strength": 1, "effect": "tactics", "duration": 100},
+        "5": {"name": "strategic supremacy", "sp": 145, "intelligence": 2, "strength": 2, "wisdom": 1, "effect": "battlefield_genius", "duration": 180}
+      }
+    },
+    {
+      "id": "commanders_feast",
+      "name": "commander's feast",
+      "from_corpse": "captain_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "failed command", "sp": 0},
+        "1": {"name": "captain's jerky", "sp": 48},
+        "2": {"name": "captain's cut", "sp": 73},
+        "3": {"name": "commander's banquet", "sp": 98, "all_stats": 1},
+        "4": {"name": "general's glory", "sp": 123, "all_stats": 1, "effect": "leadership_aura", "duration": 100},
+        "5": {"name": "supreme commander special", "sp": 148, "all_stats": 2, "effect": "army_of_one", "duration": 180}
+      }
+    },
+    {
+      "id": "preserved_flesh",
+      "name": "mysteriously preserved meat",
+      "from_corpse": "zombie_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rotting flesh", "sp": -15, "effect": "diseased", "duration": 50},
+        "1": {"name": "embalmed meat", "sp": 30},
+        "2": {"name": "preserved steaks", "sp": 50},
+        "3": {"name": "undead feast", "sp": 70, "constitution": 1},
+        "4": {"name": "necromancer's meal", "sp": 90, "constitution": 2, "effect": "undeath", "duration": 80},
+        "5": {"name": "lich preparation", "sp": 110, "constitution": 2, "intelligence": 1, "effect": "deathless", "duration": 150}
+      }
+    },
+    {
+      "id": "marrow",
+      "name": "ancient bone marrow",
+      "from_corpse": "skeleton_corpse",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "brittle bones", "sp": 0},
+        "1": {"name": "marrow broth", "sp": 25},
+        "2": {"name": "roasted marrow", "sp": 45},
+        "3": {"name": "bone meal soup", "sp": 65, "constitution": 1},
+        "4": {"name": "skeletal feast", "sp": 85, "constitution": 1, "effect": "bone_armor", "duration": 80},
+        "5": {"name": "ossuary delicacy", "sp": 105, "constitution": 2, "effect": "skeletal_form", "duration": 150}
+      }
+    },
+    {
+      "id": "desiccated_meat",
+      "name": "spiced mummy jerky",
+      "from_corpse": "mummy_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "cursed wrappings", "sp": -20, "effect": "mummy_rot", "duration": 100},
+        "1": {"name": "ancient jerky", "sp": 40},
+        "2": {"name": "preserved mummy meat", "sp": 65},
+        "3": {"name": "pharaoh's feast", "sp": 90, "intelligence": 1, "constitution": 1},
+        "4": {"name": "tomb lord's banquet", "sp": 115, "intelligence": 2, "constitution": 1, "effect": "curse_immunity", "duration": 100},
+        "5": {"name": "eternal preservation", "sp": 140, "intelligence": 2, "constitution": 2, "effect": "mummification", "duration": 200}
+      }
+    },
+    {
+      "id": "ghoul_flesh",
+      "name": "putrid ghoul flesh",
+      "from_corpse": "ghoul_corpse",
+      "symbol": "%",
+      "weight": 1.2,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rotting ghoul meat", "sp": -15, "effect": "paralyzed", "duration": 30},
+        "1": {"name": "ghoul jerky", "sp": 32},
+        "2": {"name": "grilled ghoul", "sp": 52},
+        "3": {"name": "ghoul feast", "sp": 72, "constitution": 1},
+        "4": {"name": "grave robber's meal", "sp": 92, "constitution": 1, "dexterity": 1, "effect": "paralyzing_touch", "duration": 80},
+        "5": {"name": "ghoulish delight", "sp": 112, "constitution": 2, "dexterity": 1, "effect": "cannibalize", "duration": 150}
+      }
+    },
+    {
+      "id": "ectoplasm",
+      "name": "congealed ectoplasm",
+      "from_corpse": "ghost_corpse",
+      "symbol": "%",
+      "weight": 0.1,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "dispersed essence", "sp": 0},
+        "1": {"name": "ectoplasm jelly", "sp": 35},
+        "2": {"name": "spirit soup", "sp": 60},
+        "3": {"name": "ghostly feast", "sp": 85, "wisdom": 1},
+        "4": {"name": "spectral banquet", "sp": 110, "wisdom": 2, "effect": "ethereal", "duration": 100},
+        "5": {"name": "phantom cuisine", "sp": 135, "wisdom": 2, "intelligence": 1, "effect": "phase_walk", "duration": 200}
+      }
+    },
+    {
+      "id": "shadow_essence",
+      "name": "solidified shadow",
+      "from_corpse": "shade_corpse",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "dispersed darkness", "sp": 0},
+        "1": {"name": "shadow strips", "sp": 38},
+        "2": {"name": "dark essence soup", "sp": 63},
+        "3": {"name": "umbral feast", "sp": 88, "dexterity": 1},
+        "4": {"name": "twilight banquet", "sp": 113, "dexterity": 2, "effect": "shadow_step", "duration": 100},
+        "5": {"name": "void touched delicacy", "sp": 138, "dexterity": 2, "perception": 1, "effect": "shadow_mastery", "duration": 200}
+      }
+    },
+    {
+      "id": "wraith_vapor",
+      "name": "chilled wraith essence",
+      "from_corpse": "wraith_corpse",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "dissipated vapor", "sp": 0},
+        "1": {"name": "wraith essence", "sp": 40},
+        "2": {"name": "chilled spirit soup", "sp": 65},
+        "3": {"name": "wraith feast", "sp": 90, "intelligence": 1},
+        "4": {"name": "spectral banquet", "sp": 115, "intelligence": 1, "wisdom": 1, "effect": "life_drain", "duration": 100},
+        "5": {"name": "soul reaper cuisine", "sp": 140, "intelligence": 2, "wisdom": 1, "effect": "wraith_form", "duration": 200}
+      }
+    },
+    {
+      "id": "spectral_residue",
+      "name": "haunting spectral matter",
+      "from_corpse": "spectre_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "failed binding", "sp": 0},
+        "1": {"name": "spectral jerky", "sp": 45},
+        "2": {"name": "ghost matter stew", "sp": 75},
+        "3": {"name": "spectre feast", "sp": 105, "intelligence": 1, "wisdom": 1},
+        "4": {"name": "haunting banquet", "sp": 135, "intelligence": 2, "wisdom": 1, "effect": "possession", "duration": 120},
+        "5": {"name": "poltergeist perfection", "sp": 165, "intelligence": 2, "wisdom": 2, "effect": "spectral_army", "duration": 250}
+      }
+    },
+    {
+      "id": "bloodless_meat",
+      "name": "pale bloodless flesh",
+      "from_corpse": "vampire_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "drained husk", "sp": 0},
+        "1": {"name": "vampire jerky", "sp": 50},
+        "2": {"name": "bloodless steaks", "sp": 80},
+        "3": {"name": "vampire feast", "sp": 110, "dexterity": 1, "constitution": 1},
+        "4": {"name": "nosferatu banquet", "sp": 140, "dexterity": 2, "constitution": 1, "effect": "blood_thirst", "duration": 120},
+        "5": {"name": "dracula supreme", "sp": 170, "dexterity": 2, "constitution": 2, "effect": "vampiric_embrace", "duration": 250}
+      }
+    },
+    {
+      "id": "noble_flesh",
+      "name": "ancient vampire flesh",
+      "from_corpse": "vampire_lord_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "cursed nobility", "sp": -10, "effect": "cursed", "duration": 100},
+        "1": {"name": "lord's jerky", "sp": 60},
+        "2": {"name": "vampire lord steaks", "sp": 95},
+        "3": {"name": "aristocrat feast", "sp": 125, "all_stats": 1},
+        "4": {"name": "blood court banquet", "sp": 155, "all_stats": 1, "effect": "dominate", "duration": 150},
+        "5": {"name": "immortal sovereign cuisine", "sp": 185, "all_stats": 2, "effect": "vampire_lord", "duration": 300}
+      }
+    },
+    {
+      "id": "lich_dust",
+      "name": "powdered lich remains",
+      "from_corpse": "lich_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "cursed lich powder", "sp": -50, "effect": "cursed", "duration": 100},
+        "1": {"name": "lich bone broth", "sp": 80},
+        "2": {"name": "lich essence soup", "sp": 120},
+        "3": {"name": "phylactery stew", "sp": 160, "intelligence": 3, "wisdom": 2},
+        "4": {"name": "undeath elixir", "sp": 200, "intelligence": 4, "wisdom": 3, "effect": "death_ward", "duration": 400},
+        "5": {"name": "lichdom apotheosis", "sp": 240, "intelligence": 5, "wisdom": 4, "maxMp": 10, "effect": "arcane_ascension", "duration": 600}
+      }
+    },
+    {
+      "id": "soul_crystals",
+      "name": "crystallized soul fragments",
+      "from_corpse": "demilich_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "shattered souls", "sp": -30, "effect": "soul_burn", "duration": 50},
+        "1": {"name": "soul fragment soup", "sp": 70},
+        "2": {"name": "crystallized essence", "sp": 110},
+        "3": {"name": "soul feast", "sp": 150, "intelligence": 2, "wisdom": 2},
+        "4": {"name": "demilich banquet", "sp": 190, "intelligence": 3, "wisdom": 2, "effect": "soul_cage", "duration": 200},
+        "5": {"name": "eternal mind delicacy", "sp": 230, "intelligence": 4, "wisdom": 3, "effect": "transcendence", "duration": 400}
+      }
+    },
+    {
+      "id": "barrow_meat",
+      "name": "tomb-aged flesh",
+      "from_corpse": "barrow_wight_corpse",
+      "symbol": "%",
+      "weight": 1.2,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "grave rot", "sp": -10, "effect": "cursed", "duration": 50},
+        "1": {"name": "barrow jerky", "sp": 42},
+        "2": {"name": "tomb-aged steaks", "sp": 67},
+        "3": {"name": "burial feast", "sp": 92, "strength": 1, "constitution": 1},
+        "4": {"name": "barrow king banquet", "sp": 117, "strength": 2, "constitution": 1, "effect": "drain_strength", "duration": 100},
+        "5": {"name": "ancient burial cuisine", "sp": 142, "strength": 2, "constitution": 2, "effect": "barrow_curse", "duration": 200}
+      }
+    },
+    {
+      "id": "wight_flesh",
+      "name": "life-draining meat",
+      "from_corpse": "wight_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "drained flesh", "sp": -5, "effect": "weakness", "duration": 40},
+        "1": {"name": "wight jerky", "sp": 40},
+        "2": {"name": "wight steaks", "sp": 65},
+        "3": {"name": "draining feast", "sp": 90, "constitution": 1},
+        "4": {"name": "life thief banquet", "sp": 115, "constitution": 2, "effect": "energy_drain", "duration": 100},
+        "5": {"name": "soul devourer supreme", "sp": 140, "constitution": 2, "strength": 1, "effect": "level_drain", "duration": 200}
+      }
+    },
+    {
+      "id": "imp_meat",
+      "name": "sulfurous imp meat",
+      "from_corpse": "imp_corpse",
+      "symbol": "%",
+      "weight": 0.4,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burnt imp bits", "sp": -5, "effect": "burning", "duration": 20},
+        "1": {"name": "imp jerky", "sp": 30},
+        "2": {"name": "deviled imp", "sp": 50},
+        "3": {"name": "imp roast", "sp": 70, "dexterity": 1},
+        "4": {"name": "hellish feast", "sp": 90, "dexterity": 1, "effect": "fire_resistance", "duration": 80},
+        "5": {"name": "infernal delicacy", "sp": 110, "dexterity": 2, "effect": "hellfire", "duration": 150}
+      }
+    },
+    {
+      "id": "quasit_wings",
+      "name": "tiny demon wings",
+      "from_corpse": "quasit_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "singed wings", "sp": 0},
+        "1": {"name": "crispy quasit wings", "sp": 28},
+        "2": {"name": "demon wing chips", "sp": 48},
+        "3": {"name": "quasit wing soup", "sp": 68, "intelligence": 1},
+        "4": {"name": "familiar's feast", "sp": 88, "intelligence": 1, "effect": "minor_invisibility", "duration": 80},
+        "5": {"name": "demonic appetizer", "sp": 108, "intelligence": 2, "effect": "shape_change", "duration": 150}
+      }
+    },
+    {
+      "id": "lemure_blob",
+      "name": "formless demon flesh",
+      "from_corpse": "lemure_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "melted demon goo", "sp": -10},
+        "1": {"name": "lemure jerky", "sp": 32},
+        "2": {"name": "shaped lemure meat", "sp": 52},
+        "3": {"name": "lesser demon feast", "sp": 72, "constitution": 1},
+        "4": {"name": "hell spawn banquet", "sp": 92, "constitution": 1, "effect": "reform", "duration": 80},
+        "5": {"name": "primordial evil cuisine", "sp": 112, "constitution": 2, "effect": "demonic_regeneration", "duration": 150}
+      }
+    },
+    {
+      "id": "tempting_meat",
+      "name": "strangely alluring flesh",
+      "from_corpse": "succubus_corpse",
+      "symbol": "%",
+      "weight": 1.2,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "corrupted temptation", "sp": -10, "effect": "charmed", "duration": 50},
+        "1": {"name": "succubus jerky", "sp": 42},
+        "2": {"name": "seductive steaks", "sp": 67},
+        "3": {"name": "temptress feast", "sp": 92, "dexterity": 1, "intelligence": 1},
+        "4": {"name": "desire's banquet", "sp": 117, "dexterity": 2, "intelligence": 1, "effect": "charm_person", "duration": 100},
+        "5": {"name": "lust's ultimate cuisine", "sp": 142, "dexterity": 2, "intelligence": 2, "effect": "mass_charm", "duration": 200}
+      }
+    },
+    {
+      "id": "charming_meat",
+      "name": "mysteriously charming flesh",
+      "from_corpse": "incubus_corpse",
+      "symbol": "%",
+      "weight": 1.3,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tainted charm", "sp": -10, "effect": "confused", "duration": 50},
+        "1": {"name": "incubus jerky", "sp": 44},
+        "2": {"name": "enchanting steaks", "sp": 69},
+        "3": {"name": "seducer's feast", "sp": 94, "strength": 1, "intelligence": 1},
+        "4": {"name": "passion's banquet", "sp": 119, "strength": 1, "intelligence": 2, "effect": "dominate_mind", "duration": 100},
+        "5": {"name": "ultimate seduction cuisine", "sp": 144, "strength": 2, "intelligence": 2, "effect": "irresistible", "duration": 200}
+      }
+    },
+    {
+      "id": "vulture_demon_meat",
+      "name": "foul vulture-demon meat",
+      "from_corpse": "vrock_corpse",
+      "symbol": "%",
+      "weight": 2.5,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "toxic demon meat", "sp": -15, "effect": "poisoned", "duration": 60},
+        "1": {"name": "vrock jerky", "sp": 55},
+        "2": {"name": "demon vulture steaks", "sp": 85},
+        "3": {"name": "vrock feast", "sp": 115, "strength": 2, "constitution": 1},
+        "4": {"name": "spore cloud banquet", "sp": 145, "strength": 2, "constitution": 2, "effect": "toxic_spores", "duration": 120},
+        "5": {"name": "abyssal vulture supreme", "sp": 175, "strength": 3, "constitution": 2, "effect": "dance_of_ruin", "duration": 250}
+      }
+    },
+    {
+      "id": "toad_demon_flesh",
+      "name": "noxious toad-demon flesh",
+      "from_corpse": "hezrou_corpse",
+      "symbol": "%",
+      "weight": 3.5,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "putrid toad meat", "sp": -20, "effect": "nauseated", "duration": 60},
+        "1": {"name": "hezrou jerky", "sp": 58},
+        "2": {"name": "demon toad steaks", "sp": 88},
+        "3": {"name": "hezrou feast", "sp": 118, "constitution": 2, "strength": 1},
+        "4": {"name": "swamp demon banquet", "sp": 148, "constitution": 3, "strength": 1, "effect": "noxious_cloud", "duration": 120},
+        "5": {"name": "abyssal toad delicacy", "sp": 178, "constitution": 3, "strength": 2, "effect": "demonic_stench", "duration": 250}
+      }
+    },
+    {
+      "id": "boar_demon_meat",
+      "name": "corrupted boar-demon meat",
+      "from_corpse": "nalfeshnee_corpse",
+      "symbol": "%",
+      "weight": 4.0,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "corrupted boar chunks", "sp": -10},
+        "1": {"name": "nalfeshnee jerky", "sp": 60},
+        "2": {"name": "demon boar roast", "sp": 90},
+        "3": {"name": "nalfeshnee feast", "sp": 120, "intelligence": 2, "strength": 1},
+        "4": {"name": "judge demon banquet", "sp": 150, "intelligence": 2, "strength": 2, "effect": "unholy_nimbus", "duration": 120},
+        "5": {"name": "abyssal judge supreme", "sp": 180, "intelligence": 3, "strength": 2, "effect": "true_seeing", "duration": 250}
+      }
+    },
+    {
+      "id": "serpent_demon_tail",
+      "name": "six-armed demon flesh",
+      "from_corpse": "marilith_corpse",
+      "symbol": "%",
+      "weight": 4.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tangled demon meat", "sp": 0},
+        "1": {"name": "marilith jerky", "sp": 65},
+        "2": {"name": "serpent demon steaks", "sp": 100},
+        "3": {"name": "marilith feast", "sp": 135, "dexterity": 2, "strength": 1},
+        "4": {"name": "six-blade banquet", "sp": 170, "dexterity": 3, "strength": 2, "effect": "multi_attack", "duration": 150},
+        "5": {"name": "demon general cuisine", "sp": 205, "dexterity": 3, "strength": 3, "effect": "whirlwind", "duration": 300}
+      }
+    },
+    {
+      "id": "flame_demon_heart",
+      "name": "still-burning demon heart",
+      "from_corpse": "balrog_corpse",
+      "symbol": "%",
+      "weight": 6.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "immolated heart", "sp": -30, "effect": "burning", "duration": 100},
+        "1": {"name": "balrog jerky", "sp": 70},
+        "2": {"name": "flame demon steaks", "sp": 105},
+        "3": {"name": "balrog feast", "sp": 140, "strength": 3, "constitution": 2},
+        "4": {"name": "shadowflame banquet", "sp": 175, "strength": 4, "constitution": 2, "effect": "flame_whip", "duration": 150},
+        "5": {"name": "ancient evil supreme", "sp": 210, "strength": 4, "constitution": 3, "effect": "balor_transformation", "duration": 300}
+      }
+    },
+    {
+      "id": "infernal_steak",
+      "name": "infernal overlord steak",
+      "from_corpse": "pit_fiend_corpse",
+      "symbol": "%",
+      "weight": 5.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "hellish failure", "sp": -20, "effect": "cursed", "duration": 100},
+        "1": {"name": "pit fiend jerky", "sp": 68},
+        "2": {"name": "infernal steaks", "sp": 103},
+        "3": {"name": "pit fiend feast", "sp": 138, "all_stats": 2},
+        "4": {"name": "devil lord banquet", "sp": 173, "all_stats": 2, "effect": "fear_aura", "duration": 150},
+        "5": {"name": "archdevil supreme", "sp": 208, "all_stats": 3, "effect": "infernal_majesty", "duration": 300}
+      }
+    },
+    {
+      "id": "devil_horn_meat",
+      "name": "horn devil steaks",
+      "from_corpse": "horned_devil_corpse",
+      "symbol": "%",
+      "weight": 2.5,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "splintered horn meat", "sp": 0},
+        "1": {"name": "horned devil jerky", "sp": 56},
+        "2": {"name": "devil horn roast", "sp": 86},
+        "3": {"name": "horned feast", "sp": 116, "strength": 2},
+        "4": {"name": "cornugon banquet", "sp": 146, "strength": 2, "constitution": 1, "effect": "stunning_blow", "duration": 120},
+        "5": {"name": "horned lord supreme", "sp": 176, "strength": 3, "constitution": 2, "effect": "infernal_wound", "duration": 250}
+      }
+    },
+    {
+      "id": "barbed_flesh",
+      "name": "carefully trimmed devil meat",
+      "from_corpse": "barbed_devil_corpse",
+      "symbol": "%",
+      "weight": 2.2,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "barbed mess", "sp": -10, "effect": "bleeding", "duration": 40},
+        "1": {"name": "barbed devil jerky", "sp": 54},
+        "2": {"name": "trimmed devil steaks", "sp": 84},
+        "3": {"name": "barbed feast", "sp": 114, "dexterity": 2},
+        "4": {"name": "hamatula banquet", "sp": 144, "dexterity": 2, "constitution": 1, "effect": "barbed_defense", "duration": 120},
+        "5": {"name": "spike devil supreme", "sp": 174, "dexterity": 3, "constitution": 1, "effect": "impaling_strike", "duration": 250}
       }
     },
     {
@@ -171,6 +1497,40 @@
       }
     },
     {
+      "id": "cancellation_steak",
+      "name": "magic-nullifying dragon steak",
+      "from_corpse": "gray_dragon_corpse",
+      "symbol": "%",
+      "weight": 16.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "null magic meat", "sp": 0, "effect": "silenced", "duration": 100},
+        "1": {"name": "gray dragon jerky", "sp": 90},
+        "2": {"name": "cancellation steaks", "sp": 130},
+        "3": {"name": "null dragon feast", "sp": 170, "intelligence": 3, "wisdom": 2},
+        "4": {"name": "antimagic banquet", "sp": 210, "intelligence": 4, "wisdom": 2, "effect": "dispel_magic", "duration": 250},
+        "5": {"name": "void dragon supreme", "sp": 250, "intelligence": 4, "wisdom": 3, "effect": "antimagic_field", "duration": 400}
+      }
+    },
+    {
+      "id": "spicy_dragon_meat",
+      "name": "fiery dragon cutlets",
+      "from_corpse": "baby_red_dragon_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "charred dragon bits", "sp": -10, "effect": "burning", "duration": 30},
+        "1": {"name": "spicy dragon jerky", "sp": 72},
+        "2": {"name": "fire dragon steaks", "sp": 102},
+        "3": {"name": "flamekissed feast", "sp": 132, "strength": 2, "constitution": 1},
+        "4": {"name": "dragonfire banquet", "sp": 162, "strength": 2, "constitution": 1, "effect": "fire_breath", "duration": 200},
+        "5": {"name": "baby inferno supreme", "sp": 192, "strength": 3, "constitution": 2, "effect": "immolation", "duration": 300}
+      }
+    },
+    {
       "id": "flame_dragon_heart",
       "name": "flame-grilled dragon heart",
       "from_corpse": "red_dragon_corpse",
@@ -188,20 +1548,751 @@
       }
     },
     {
-      "id": "lich_dust",
-      "name": "powdered lich remains",
-      "from_corpse": "lich_corpse",
+      "id": "frozen_dragon_meat",
+      "name": "icy dragon strips",
+      "from_corpse": "baby_white_dragon_corpse",
       "symbol": "%",
-      "weight": 1.0,
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "freezer burnt dragon", "sp": -10, "effect": "frozen", "duration": 30},
+        "1": {"name": "frozen dragon jerky", "sp": 72},
+        "2": {"name": "ice dragon steaks", "sp": 102},
+        "3": {"name": "frostbite feast", "sp": 132, "constitution": 2},
+        "4": {"name": "glacial banquet", "sp": 162, "constitution": 2, "dexterity": 1, "effect": "ice_breath", "duration": 200},
+        "5": {"name": "baby blizzard supreme", "sp": 192, "constitution": 3, "dexterity": 1, "effect": "frozen_aura", "duration": 300}
+      }
+    },
+    {
+      "id": "frost_dragon_loin",
+      "name": "permafrost dragon loin",
+      "from_corpse": "white_dragon_corpse",
+      "symbol": "%",
+      "weight": 16.0,
       "tier": 5,
       "findable": false,
       "recipes": {
-        "0": {"name": "cursed lich powder", "sp": -50, "effect": "cursed", "duration": 100},
-        "1": {"name": "lich bone broth", "sp": 80},
-        "2": {"name": "lich essence soup", "sp": 120},
-        "3": {"name": "phylactery stew", "sp": 160, "intelligence": 3, "wisdom": 2},
-        "4": {"name": "undeath elixir", "sp": 200, "intelligence": 4, "wisdom": 3, "effect": "death_ward", "duration": 400},
-        "5": {"name": "lichdom apotheosis", "sp": 240, "intelligence": 5, "wisdom": 4, "maxMp": 10, "effect": "arcane_ascension", "duration": 600}
+        "0": {"name": "frozen solid", "sp": -20, "effect": "paralyzed", "duration": 60},
+        "1": {"name": "white dragon jerky", "sp": 95},
+        "2": {"name": "permafrost steaks", "sp": 135},
+        "3": {"name": "ice wyrm feast", "sp": 175, "constitution": 3, "dexterity": 1},
+        "4": {"name": "arctic sovereign banquet", "sp": 215, "constitution": 4, "dexterity": 2, "effect": "absolute_zero", "duration": 250},
+        "5": {"name": "eternal winter supreme", "sp": 255, "constitution": 4, "dexterity": 3, "effect": "ice_age", "duration": 400}
+      }
+    },
+    {
+      "id": "acid_washed_meat",
+      "name": "acid-washed dragon meat",
+      "from_corpse": "baby_black_dragon_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "dissolved meat", "sp": -15, "effect": "corroding", "duration": 40},
+        "1": {"name": "acid dragon jerky", "sp": 72},
+        "2": {"name": "caustic dragon steaks", "sp": 102},
+        "3": {"name": "corrosive feast", "sp": 132, "constitution": 1, "intelligence": 1},
+        "4": {"name": "acid pool banquet", "sp": 162, "constitution": 2, "intelligence": 1, "effect": "acid_spit", "duration": 200},
+        "5": {"name": "baby dissolve supreme", "sp": 192, "constitution": 2, "intelligence": 2, "effect": "corrosive_aura", "duration": 300}
+      }
+    },
+    {
+      "id": "caustic_dragon_flesh",
+      "name": "caustic dragon tenderloin",
+      "from_corpse": "black_dragon_corpse",
+      "symbol": "%",
+      "weight": 16.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "melted flesh", "sp": -25, "effect": "melting", "duration": 80},
+        "1": {"name": "black dragon jerky", "sp": 95},
+        "2": {"name": "caustic tenderloin", "sp": 135},
+        "3": {"name": "acid wyrm feast", "sp": 175, "constitution": 2, "intelligence": 2},
+        "4": {"name": "swamp tyrant banquet", "sp": 215, "constitution": 3, "intelligence": 2, "effect": "acid_immunity", "duration": 250},
+        "5": {"name": "dissolution supreme", "sp": 255, "constitution": 3, "intelligence": 3, "effect": "caustic_blood", "duration": 400}
+      }
+    },
+    {
+      "id": "tingling_dragon_meat",
+      "name": "electrically charged meat",
+      "from_corpse": "baby_blue_dragon_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "overcharged meat", "sp": -10, "effect": "stunned", "duration": 20},
+        "1": {"name": "electric dragon jerky", "sp": 72},
+        "2": {"name": "lightning dragon steaks", "sp": 102},
+        "3": {"name": "storm feast", "sp": 132, "dexterity": 1, "intelligence": 1},
+        "4": {"name": "thunder banquet", "sp": 162, "dexterity": 2, "intelligence": 1, "effect": "lightning_bolt", "duration": 200},
+        "5": {"name": "baby storm supreme", "sp": 192, "dexterity": 2, "intelligence": 2, "effect": "electric_aura", "duration": 300}
+      }
+    },
+    {
+      "id": "storm_dragon_steak",
+      "name": "lightning-struck dragon steak",
+      "from_corpse": "blue_dragon_corpse",
+      "symbol": "%",
+      "weight": 16.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "overloaded steak", "sp": -20, "effect": "paralyzed", "duration": 40},
+        "1": {"name": "blue dragon jerky", "sp": 95},
+        "2": {"name": "storm dragon steaks", "sp": 135},
+        "3": {"name": "thunder wyrm feast", "sp": 175, "dexterity": 2, "intelligence": 2},
+        "4": {"name": "tempest lord banquet", "sp": 215, "dexterity": 3, "intelligence": 2, "effect": "chain_lightning", "duration": 250},
+        "5": {"name": "stormcaller supreme", "sp": 255, "dexterity": 3, "intelligence": 3, "effect": "living_storm", "duration": 400}
+      }
+    },
+    {
+      "id": "toxic_dragon_meat",
+      "name": "detoxified dragon meat",
+      "from_corpse": "baby_green_dragon_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "poisonous dragon", "sp": -20, "effect": "poisoned", "duration": 60},
+        "1": {"name": "green dragon jerky", "sp": 72},
+        "2": {"name": "detoxified dragon steaks", "sp": 102},
+        "3": {"name": "venom feast", "sp": 132, "constitution": 2},
+        "4": {"name": "poison cloud banquet", "sp": 162, "constitution": 2, "wisdom": 1, "effect": "toxic_breath", "duration": 200},
+        "5": {"name": "baby venom supreme", "sp": 192, "constitution": 3, "wisdom": 1, "effect": "plague_bearer", "duration": 300}
+      }
+    },
+    {
+      "id": "poison_dragon_filet",
+      "name": "carefully prepared poison dragon",
+      "from_corpse": "green_dragon_corpse",
+      "symbol": "%",
+      "weight": 16.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "deadly poison meat", "sp": -30, "effect": "deadly_poison", "duration": 100},
+        "1": {"name": "green dragon jerky", "sp": 95},
+        "2": {"name": "neutralized dragon filet", "sp": 135},
+        "3": {"name": "venom wyrm feast", "sp": 175, "constitution": 3, "wisdom": 1},
+        "4": {"name": "forest tyrant banquet", "sp": 215, "constitution": 4, "wisdom": 2, "effect": "poison_immunity", "duration": 250},
+        "5": {"name": "plague dragon supreme", "sp": 255, "constitution": 4, "wisdom": 3, "effect": "toxic_dominion", "duration": 400}
+      }
+    },
+    {
+      "id": "neutralized_gel",
+      "name": "neutralized acid gel",
+      "from_corpse": "acid_blob_corpse",
+      "symbol": "%",
+      "weight": 0.8,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "acidic mess", "sp": -10, "effect": "corroding", "duration": 30},
+        "1": {"name": "gel cubes", "sp": 28},
+        "2": {"name": "acid jello", "sp": 48},
+        "3": {"name": "neutralized soup", "sp": 68, "constitution": 1},
+        "4": {"name": "alchemical feast", "sp": 88, "constitution": 1, "effect": "acid_resistance", "duration": 80},
+        "5": {"name": "dissolution delicacy", "sp": 108, "constitution": 2, "effect": "acid_body", "duration": 150}
+      }
+    },
+    {
+      "id": "cube_jelly",
+      "name": "transparent cube jelly",
+      "from_corpse": "gelatinous_cube_corpse",
+      "symbol": "%",
+      "weight": 2.5,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "dissolved remains", "sp": 0},
+        "1": {"name": "cube jerky", "sp": 45},
+        "2": {"name": "gelatinous steaks", "sp": 70},
+        "3": {"name": "cube feast", "sp": 95, "constitution": 2},
+        "4": {"name": "transparent banquet", "sp": 120, "constitution": 2, "effect": "engulf", "duration": 100},
+        "5": {"name": "perfect cube cuisine", "sp": 145, "constitution": 3, "effect": "gelatinous_form", "duration": 200}
+      }
+    },
+    {
+      "id": "gray_pudding",
+      "name": "congealed gray pudding",
+      "from_corpse": "gray_ooze_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "gray slop", "sp": 0},
+        "1": {"name": "gray pudding chips", "sp": 30},
+        "2": {"name": "ooze steaks", "sp": 50},
+        "3": {"name": "gray feast", "sp": 70, "constitution": 1},
+        "4": {"name": "rust monster special", "sp": 90, "constitution": 1, "effect": "corrode_metal", "duration": 80},
+        "5": {"name": "entropic delicacy", "sp": 110, "constitution": 2, "effect": "disintegration", "duration": 150}
+      }
+    },
+    {
+      "id": "brown_gelatin",
+      "name": "thick brown gelatin",
+      "from_corpse": "brown_pudding_corpse",
+      "symbol": "%",
+      "weight": 1.2,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "brown mush", "sp": 0},
+        "1": {"name": "brown pudding jerky", "sp": 38},
+        "2": {"name": "thick gelatin steaks", "sp": 63},
+        "3": {"name": "pudding feast", "sp": 88, "constitution": 1},
+        "4": {"name": "alchemical banquet", "sp": 113, "constitution": 2, "effect": "acid_split", "duration": 100},
+        "5": {"name": "division delicacy", "sp": 138, "constitution": 2, "strength": 1, "effect": "mitosis", "duration": 200}
+      }
+    },
+    {
+      "id": "black_tar",
+      "name": "viscous black tar",
+      "from_corpse": "black_pudding_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "corrosive tar", "sp": -15, "effect": "corroding", "duration": 50},
+        "1": {"name": "black pudding jerky", "sp": 48},
+        "2": {"name": "tar steaks", "sp": 78},
+        "3": {"name": "black feast", "sp": 108, "constitution": 2},
+        "4": {"name": "void pudding banquet", "sp": 138, "constitution": 3, "effect": "corrode_everything", "duration": 120},
+        "5": {"name": "abyssal tar supreme", "sp": 168, "constitution": 3, "strength": 1, "effect": "division", "duration": 250}
+      }
+    },
+    {
+      "id": "slime_extract",
+      "name": "processed slime extract",
+      "from_corpse": "green_slime_corpse",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "infectious slime", "sp": -20, "effect": "sliming", "duration": 100},
+        "1": {"name": "slime jerky", "sp": 35},
+        "2": {"name": "processed slime", "sp": 60},
+        "3": {"name": "slime feast", "sp": 85, "constitution": 1},
+        "4": {"name": "primordial banquet", "sp": 110, "constitution": 2, "effect": "slime_touch", "duration": 100},
+        "5": {"name": "evolution's end", "sp": 135, "constitution": 3, "effect": "slime_transformation", "duration": 200}
+      }
+    },
+    {
+      "id": "mold_spores",
+      "name": "dried yellow spores",
+      "from_corpse": "yellow_mold_corpse",
+      "symbol": "%",
+      "weight": 0.1,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "toxic spores", "sp": -5, "effect": "stunned", "duration": 20},
+        "1": {"name": "dried spores", "sp": 15},
+        "2": {"name": "spore cakes", "sp": 30},
+        "3": {"name": "fungal feast", "sp": 45, "constitution": 1},
+        "4": {"name": "mycologist's delight", "sp": 60, "constitution": 1, "effect": "spore_cloud", "duration": 60},
+        "5": {"name": "fungal network", "sp": 75, "constitution": 1, "wisdom": 1, "effect": "hive_mind", "duration": 120}
+      }
+    },
+    {
+      "id": "cold_fungus",
+      "name": "chilled brown fungus",
+      "from_corpse": "brown_mold_corpse",
+      "symbol": "%",
+      "weight": 0.1,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "frozen fungus", "sp": -5, "effect": "frozen", "duration": 20},
+        "1": {"name": "cold fungus chips", "sp": 20},
+        "2": {"name": "chilled mushrooms", "sp": 40},
+        "3": {"name": "arctic fungus soup", "sp": 60, "constitution": 1},
+        "4": {"name": "permafrost feast", "sp": 80, "constitution": 1, "effect": "cold_resistance", "duration": 80},
+        "5": {"name": "glacial spore supreme", "sp": 100, "constitution": 2, "effect": "ice_armor", "duration": 150}
+      }
+    },
+    {
+      "id": "fire_fungus",
+      "name": "spicy red fungus",
+      "from_corpse": "red_mold_corpse",
+      "symbol": "%",
+      "weight": 0.1,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "burning spores", "sp": -5, "effect": "burning", "duration": 20},
+        "1": {"name": "fire fungus strips", "sp": 20},
+        "2": {"name": "spicy mushrooms", "sp": 40},
+        "3": {"name": "inferno fungus stir-fry", "sp": 60, "strength": 1},
+        "4": {"name": "pyroclastic feast", "sp": 80, "strength": 1, "effect": "fire_resistance", "duration": 80},
+        "5": {"name": "volcanic spore supreme", "sp": 100, "strength": 2, "effect": "flame_body", "duration": 150}
+      }
+    },
+    {
+      "id": "eye_jelly",
+      "name": "vitreous eye jelly",
+      "from_corpse": "floating_eye_corpse",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "blind jelly", "sp": 0, "effect": "blind", "duration": 30},
+        "1": {"name": "eye drops", "sp": 18},
+        "2": {"name": "eye soup", "sp": 35},
+        "3": {"name": "vision feast", "sp": 52, "perception": 1},
+        "4": {"name": "telepathic banquet", "sp": 70, "perception": 1, "effect": "telepathy", "duration": 60},
+        "5": {"name": "all-seeing delicacy", "sp": 88, "perception": 2, "effect": "true_sight", "duration": 120}
+      }
+    },
+    {
+      "id": "central_eye",
+      "name": "anti-magic eye meat",
+      "from_corpse": "beholder_corpse",
+      "symbol": "%",
+      "weight": 2.0,
+      "tier": 5,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "cursed eye", "sp": -20, "effect": "antimagic", "duration": 100},
+        "1": {"name": "beholder jerky", "sp": 60},
+        "2": {"name": "eye tyrant steaks", "sp": 95},
+        "3": {"name": "aberrant feast", "sp": 130, "intelligence": 2, "perception": 1},
+        "4": {"name": "eye ray banquet", "sp": 165, "intelligence": 3, "perception": 2, "effect": "disintegration_gaze", "duration": 150},
+        "5": {"name": "ultimate tyrant supreme", "sp": 200, "intelligence": 4, "perception": 3, "effect": "death_gaze", "duration": 300}
+      }
+    },
+    {
+      "id": "stone_chicken",
+      "name": "carefully handled fowl",
+      "from_corpse": "cockatrice_corpse",
+      "symbol": "%",
+      "weight": 0.5,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "petrified meal", "sp": -30, "effect": "stoning", "duration": 200},
+        "1": {"name": "cockatrice jerky", "sp": 40},
+        "2": {"name": "stone fowl filet", "sp": 65},
+        "3": {"name": "basilisk feast", "sp": 90, "constitution": 1},
+        "4": {"name": "medusa's banquet", "sp": 115, "constitution": 2, "effect": "stone_gaze", "duration": 100},
+        "5": {"name": "gorgon supreme", "sp": 140, "constitution": 3, "effect": "petrification_immunity", "duration": 200}
+      }
+    },
+    {
+      "id": "basilisk_steak",
+      "name": "petrification-free steak",
+      "from_corpse": "basilisk_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "stony meat", "sp": -25, "effect": "slowed", "duration": 100},
+        "1": {"name": "basilisk jerky", "sp": 50},
+        "2": {"name": "safe basilisk steaks", "sp": 80},
+        "3": {"name": "serpent king feast", "sp": 110, "constitution": 2},
+        "4": {"name": "stone serpent banquet", "sp": 140, "constitution": 2, "strength": 1, "effect": "stone_skin", "duration": 120},
+        "5": {"name": "petrifaction master", "sp": 170, "constitution": 3, "strength": 1, "effect": "living_statue", "duration": 250}
+      }
+    },
+    {
+      "id": "firebird_meat",
+      "name": "self-cooking firebird",
+      "from_corpse": "pyrolisk_corpse",
+      "symbol": "%",
+      "weight": 1.5,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "ash pile", "sp": -20, "effect": "burning", "duration": 60},
+        "1": {"name": "firebird jerky", "sp": 50},
+        "2": {"name": "phoenix steaks", "sp": 80},
+        "3": {"name": "pyrolisk feast", "sp": 110, "strength": 1, "constitution": 1},
+        "4": {"name": "phoenix banquet", "sp": 140, "strength": 2, "constitution": 1, "effect": "immolation_gaze", "duration": 120},
+        "5": {"name": "rebirth supreme", "sp": 170, "strength": 2, "constitution": 2, "effect": "phoenix_form", "duration": 250}
+      }
+    },
+    {
+      "id": "pure_meat",
+      "name": "blessed unicorn meat",
+      "from_corpse": "white_unicorn_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tainted purity", "sp": 0},
+        "1": {"name": "unicorn jerky", "sp": 50},
+        "2": {"name": "blessed steaks", "sp": 75},
+        "3": {"name": "pure feast", "sp": 100, "wisdom": 1, "constitution": 1},
+        "4": {"name": "celestial banquet", "sp": 125, "wisdom": 2, "constitution": 1, "effect": "blessing", "duration": 100},
+        "5": {"name": "divine grace supreme", "sp": 150, "wisdom": 2, "constitution": 2, "effect": "holy_aura", "duration": 200}
+      }
+    },
+    {
+      "id": "neutral_meat",
+      "name": "balanced unicorn meat",
+      "from_corpse": "gray_unicorn_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "unbalanced meat", "sp": 0},
+        "1": {"name": "gray unicorn jerky", "sp": 50},
+        "2": {"name": "neutral steaks", "sp": 75},
+        "3": {"name": "balanced feast", "sp": 100, "all_stats": 1},
+        "4": {"name": "equilibrium banquet", "sp": 125, "all_stats": 1, "effect": "balance", "duration": 100},
+        "5": {"name": "perfect harmony supreme", "sp": 150, "all_stats": 2, "effect": "true_neutral", "duration": 200}
+      }
+    },
+    {
+      "id": "cursed_meat",
+      "name": "tainted unicorn meat",
+      "from_corpse": "black_unicorn_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "corrupted unicorn", "sp": -20, "effect": "cursed", "duration": 100},
+        "1": {"name": "black unicorn jerky", "sp": 50},
+        "2": {"name": "cursed steaks", "sp": 75},
+        "3": {"name": "dark feast", "sp": 100, "strength": 1, "intelligence": 1},
+        "4": {"name": "shadow unicorn banquet", "sp": 125, "strength": 1, "intelligence": 1, "effect": "curse", "duration": 100},
+        "5": {"name": "corruption supreme", "sp": 150, "strength": 2, "intelligence": 2, "effect": "dark_blessing", "duration": 200}
+      }
+    },
+    {
+      "id": "stone_meat",
+      "name": "carved stone flesh",
+      "from_corpse": "gargoyle_corpse",
+      "symbol": "%",
+      "weight": 2.5,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rock chunks", "sp": 0},
+        "1": {"name": "gargoyle jerky", "sp": 45},
+        "2": {"name": "stone steaks", "sp": 70},
+        "3": {"name": "guardian feast", "sp": 95, "constitution": 2},
+        "4": {"name": "cathedral banquet", "sp": 120, "constitution": 2, "dexterity": 1, "effect": "stone_form", "duration": 100},
+        "5": {"name": "architectural supreme", "sp": 145, "constitution": 3, "dexterity": 1, "effect": "living_statue", "duration": 200}
+      }
+    },
+    {
+      "id": "flying_stone",
+      "name": "aerodynamic stone meat",
+      "from_corpse": "winged_gargoyle_corpse",
+      "symbol": "%",
+      "weight": 2.8,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "heavy stone", "sp": 0},
+        "1": {"name": "winged gargoyle jerky", "sp": 48},
+        "2": {"name": "flying stone steaks", "sp": 73},
+        "3": {"name": "aerial guardian feast", "sp": 98, "constitution": 1, "dexterity": 1},
+        "4": {"name": "sky cathedral banquet", "sp": 123, "constitution": 2, "dexterity": 2, "effect": "stone_wings", "duration": 100},
+        "5": {"name": "gothic flight supreme", "sp": 148, "constitution": 2, "dexterity": 3, "effect": "gargoyle_form", "duration": 200}
+      }
+    },
+    {
+      "id": "wind_essence",
+      "name": "solidified wind",
+      "from_corpse": "air_elemental_corpse",
+      "symbol": "%",
+      "weight": 0.1,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "dispersed air", "sp": 0},
+        "1": {"name": "wind strips", "sp": 55},
+        "2": {"name": "air essence soup", "sp": 85},
+        "3": {"name": "elemental feast", "sp": 115, "dexterity": 2},
+        "4": {"name": "storm wind banquet", "sp": 145, "dexterity": 3, "effect": "wind_walk", "duration": 120},
+        "5": {"name": "tempest lord supreme", "sp": 175, "dexterity": 3, "perception": 1, "effect": "elemental_air", "duration": 250}
+      }
+    },
+    {
+      "id": "earth_crystals",
+      "name": "nutritious earth crystals",
+      "from_corpse": "earth_elemental_corpse",
+      "symbol": "%",
+      "weight": 5.0,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "dirt clumps", "sp": 0},
+        "1": {"name": "earth crystal chips", "sp": 55},
+        "2": {"name": "mineral steaks", "sp": 85},
+        "3": {"name": "elemental feast", "sp": 115, "constitution": 2},
+        "4": {"name": "mountain heart banquet", "sp": 145, "constitution": 3, "effect": "earth_meld", "duration": 120},
+        "5": {"name": "tectonic supreme", "sp": 175, "constitution": 4, "effect": "elemental_earth", "duration": 250}
+      }
+    },
+    {
+      "id": "ember_core",
+      "name": "cooled ember core",
+      "from_corpse": "fire_elemental_corpse",
+      "symbol": "%",
+      "weight": 0.3,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "ash pile", "sp": -10, "effect": "burning", "duration": 40},
+        "1": {"name": "ember jerky", "sp": 55},
+        "2": {"name": "flame essence steaks", "sp": 85},
+        "3": {"name": "elemental feast", "sp": 115, "strength": 2},
+        "4": {"name": "inferno core banquet", "sp": 145, "strength": 3, "effect": "flame_shield", "duration": 120},
+        "5": {"name": "pyroclastic supreme", "sp": 175, "strength": 3, "constitution": 1, "effect": "elemental_fire", "duration": 250}
+      }
+    },
+    {
+      "id": "water_gel",
+      "name": "concentrated water gel",
+      "from_corpse": "water_elemental_corpse",
+      "symbol": "%",
+      "weight": 1.2,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "muddy water", "sp": 0},
+        "1": {"name": "water gel cubes", "sp": 55},
+        "2": {"name": "aqueous steaks", "sp": 85},
+        "3": {"name": "elemental feast", "sp": 115, "wisdom": 2},
+        "4": {"name": "tidal wave banquet", "sp": 145, "wisdom": 2, "dexterity": 1, "effect": "water_breathing", "duration": 120},
+        "5": {"name": "oceanic supreme", "sp": 175, "wisdom": 3, "dexterity": 1, "effect": "elemental_water", "duration": 250}
+      }
+    },
+    {
+      "id": "rothe_steak",
+      "name": "marbled rothe steak",
+      "from_corpse": "rothe_corpse",
+      "symbol": "%",
+      "weight": 4.0,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tough rothe meat", "sp": 0},
+        "1": {"name": "rothe jerky", "sp": 40},
+        "2": {"name": "grilled rothe", "sp": 60},
+        "3": {"name": "rothe roast", "sp": 80, "strength": 1, "constitution": 1},
+        "4": {"name": "underdark feast", "sp": 100, "strength": 2, "constitution": 1, "effect": "darkvision", "duration": 80},
+        "5": {"name": "deep delicacy", "sp": 120, "strength": 2, "constitution": 2, "effect": "stone_sense", "duration": 150}
+      }
+    },
+    {
+      "id": "mumak_trunk",
+      "name": "tender mumak trunk",
+      "from_corpse": "mumak_corpse",
+      "symbol": "%",
+      "weight": 20.0,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rubbery trunk", "sp": 0},
+        "1": {"name": "mumak jerky", "sp": 80},
+        "2": {"name": "trunk steaks", "sp": 115},
+        "3": {"name": "oliphaunt feast", "sp": 150, "strength": 3, "constitution": 2},
+        "4": {"name": "war elephant banquet", "sp": 185, "strength": 4, "constitution": 3, "effect": "trample", "duration": 150},
+        "5": {"name": "mammoth supreme", "sp": 220, "strength": 5, "constitution": 4, "maxHp": 10, "effect": "unstoppable_charge", "duration": 300}
+      }
+    },
+    {
+      "id": "owlbear_chops",
+      "name": "hybrid owlbear chops",
+      "from_corpse": "owlbear_corpse",
+      "symbol": "%",
+      "weight": 5.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "mangled hybrid meat", "sp": 0},
+        "1": {"name": "owlbear jerky", "sp": 55},
+        "2": {"name": "grilled owlbear", "sp": 85},
+        "3": {"name": "owlbear feast", "sp": 115, "strength": 2, "perception": 1},
+        "4": {"name": "hybrid predator banquet", "sp": 145, "strength": 2, "perception": 2, "effect": "keen_senses", "duration": 100},
+        "5": {"name": "chimeric supreme", "sp": 175, "strength": 3, "perception": 2, "effect": "beast_form", "duration": 200}
+      }
+    },
+    {
+      "id": "electric_thorax",
+      "name": "zappy bug bits",
+      "from_corpse": "grid_bug_corpse",
+      "symbol": "%",
+      "weight": 0.05,
+      "tier": 1,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "fried circuits", "sp": 0},
+        "1": {"name": "crispy bug bits", "sp": 12},
+        "2": {"name": "electric crunchies", "sp": 25},
+        "3": {"name": "grid bug soup", "sp": 38, "intelligence": 1},
+        "4": {"name": "circuit feast", "sp": 51, "intelligence": 1, "effect": "shocking_grasp", "duration": 50},
+        "5": {"name": "digital delicacy", "sp": 64, "intelligence": 2, "effect": "lightning_speed", "duration": 100}
+      }
+    },
+    {
+      "id": "royal_jelly",
+      "name": "royal jelly",
+      "from_corpse": "killer_bee_corpse",
+      "symbol": "%",
+      "weight": 0.1,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "fermented jelly", "sp": 0},
+        "1": {"name": "bee candy", "sp": 35},
+        "2": {"name": "honey glazed jelly", "sp": 55},
+        "3": {"name": "royal ambrosia", "sp": 75, "all_stats": 1},
+        "4": {"name": "queen's feast", "sp": 95, "all_stats": 1, "effect": "buzzing_mind", "duration": 100},
+        "5": {"name": "hive mind delicacy", "sp": 115, "all_stats": 2, "effect": "swarm_commander", "duration": 200}
+      }
+    },
+    {
+      "id": "wasp_larvae",
+      "name": "protein-rich wasp larvae",
+      "from_corpse": "giant_wasp_corpse",
+      "symbol": "%",
+      "weight": 0.15,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "spoiled larvae", "sp": 0},
+        "1": {"name": "fried larvae", "sp": 32},
+        "2": {"name": "larvae nuggets", "sp": 52},
+        "3": {"name": "wasp nest special", "sp": 72, "dexterity": 1},
+        "4": {"name": "stinger squadron feast", "sp": 92, "dexterity": 1, "constitution": 1, "effect": "venomous_sting", "duration": 80},
+        "5": {"name": "swarm lord supreme", "sp": 112, "dexterity": 2, "constitution": 1, "effect": "wasp_swarm", "duration": 150}
+      }
+    },
+    {
+      "id": "jellyfish_tentacles",
+      "name": "de-stung tentacles",
+      "from_corpse": "jellyfish_corpse",
+      "symbol": "%",
+      "weight": 0.2,
+      "tier": 2,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "stinging mess", "sp": -10, "effect": "paralyzed", "duration": 30},
+        "1": {"name": "jellyfish strips", "sp": 30},
+        "2": {"name": "tentacle salad", "sp": 50},
+        "3": {"name": "sea nettle soup", "sp": 70, "constitution": 1},
+        "4": {"name": "cnidarian feast", "sp": 90, "constitution": 1, "dexterity": 1, "effect": "numbing_touch", "duration": 80},
+        "5": {"name": "medusa delicacy", "sp": 110, "constitution": 2, "dexterity": 1, "effect": "paralytic_aura", "duration": 150}
+      }
+    },
+    {
+      "id": "electric_eel_filet",
+      "name": "shocking eel filet",
+      "from_corpse": "giant_eel_corpse",
+      "symbol": "%",
+      "weight": 1.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "overcharged eel", "sp": -10, "effect": "stunned", "duration": 20},
+        "1": {"name": "eel jerky", "sp": 45},
+        "2": {"name": "grilled eel", "sp": 70},
+        "3": {"name": "unagi feast", "sp": 95, "dexterity": 1, "intelligence": 1},
+        "4": {"name": "electric eel supreme", "sp": 120, "dexterity": 2, "intelligence": 1, "effect": "shocking_aura", "duration": 100},
+        "5": {"name": "voltaic delicacy", "sp": 145, "dexterity": 2, "intelligence": 2, "effect": "chain_lightning", "duration": 200}
+      }
+    },
+    {
+      "id": "shark_fin",
+      "name": "predator's fin soup base",
+      "from_corpse": "shark_corpse",
+      "symbol": "%",
+      "weight": 3.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "bloody shark meat", "sp": 0},
+        "1": {"name": "shark jerky", "sp": 50},
+        "2": {"name": "shark steaks", "sp": 75},
+        "3": {"name": "fin soup", "sp": 100, "strength": 1, "dexterity": 1},
+        "4": {"name": "apex predator feast", "sp": 125, "strength": 2, "dexterity": 1, "effect": "blood_frenzy", "duration": 100},
+        "5": {"name": "ocean terror supreme", "sp": 150, "strength": 2, "dexterity": 2, "effect": "feeding_frenzy", "duration": 200}
+      }
+    },
+    {
+      "id": "lurker_leather",
+      "name": "chewy lurker hide",
+      "from_corpse": "lurker_above_corpse",
+      "symbol": "%",
+      "weight": 2.0,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "tough leather", "sp": 0},
+        "1": {"name": "lurker jerky", "sp": 42},
+        "2": {"name": "lurker steaks", "sp": 67},
+        "3": {"name": "ambush feast", "sp": 92, "dexterity": 1, "perception": 1},
+        "4": {"name": "ceiling crawler banquet", "sp": 117, "dexterity": 2, "perception": 1, "effect": "cling", "duration": 100},
+        "5": {"name": "shadow ambusher supreme", "sp": 142, "dexterity": 2, "perception": 2, "effect": "perfect_ambush", "duration": 200}
+      }
+    },
+    {
+      "id": "trapper_sheet",
+      "name": "thin trapper cutlet",
+      "from_corpse": "trapper_corpse",
+      "symbol": "%",
+      "weight": 2.5,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rubbery sheet", "sp": 0},
+        "1": {"name": "trapper strips", "sp": 45},
+        "2": {"name": "flat steaks", "sp": 70},
+        "3": {"name": "floor mimic feast", "sp": 95, "constitution": 1, "dexterity": 1},
+        "4": {"name": "dungeon trap banquet", "sp": 120, "constitution": 2, "dexterity": 1, "effect": "camouflage", "duration": 100},
+        "5": {"name": "perfect disguise supreme", "sp": 145, "constitution": 2, "dexterity": 2, "effect": "mimic_form", "duration": 200}
+      }
+    },
+    {
+      "id": "mineral_meat",
+      "name": "gem-infused xorn flesh",
+      "from_corpse": "xorn_corpse",
+      "symbol": "%",
+      "weight": 6.0,
+      "tier": 4,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rock-hard xorn", "sp": 0},
+        "1": {"name": "xorn jerky", "sp": 60},
+        "2": {"name": "mineral steaks", "sp": 90},
+        "3": {"name": "earth glide feast", "sp": 120, "constitution": 2, "strength": 1},
+        "4": {"name": "gem eater banquet", "sp": 150, "constitution": 3, "strength": 1, "effect": "earth_phase", "duration": 120},
+        "5": {"name": "lithophage supreme", "sp": 180, "constitution": 3, "strength": 2, "effect": "treasure_sense", "duration": 250}
+      }
+    },
+    {
+      "id": "rust_free_meat",
+      "name": "oxidation-resistant meat",
+      "from_corpse": "rust_monster_corpse",
+      "symbol": "%",
+      "weight": 1.2,
+      "tier": 3,
+      "findable": false,
+      "recipes": {
+        "0": {"name": "rusty meat", "sp": 0},
+        "1": {"name": "rust monster jerky", "sp": 40},
+        "2": {"name": "clean steaks", "sp": 65},
+        "3": {"name": "oxidation feast", "sp": 90, "constitution": 1},
+        "4": {"name": "anti-rust banquet", "sp": 115, "constitution": 2, "effect": "rust_proof", "duration": 100},
+        "5": {"name": "metal eater supreme", "sp": 140, "constitution": 2, "strength": 1, "effect": "corrode_metal", "duration": 200}
       }
     },
 
@@ -383,23 +2474,6 @@
         "3": {"name": "umbral pie", "sp": 85, "dexterity": 1},
         "4": {"name": "shadow essence tart", "sp": 110, "dexterity": 2, "effect": "invisibility", "duration": 100},
         "5": {"name": "void fruit supreme", "sp": 135, "dexterity": 2, "perception": 1, "effect": "shadow_form", "duration": 200}
-      }
-    },
-    {
-      "id": "royal_jelly",
-      "name": "royal jelly",
-      "from_corpse": "killer_bee_corpse",
-      "symbol": "%",
-      "weight": 0.1,
-      "tier": 2,
-      "findable": false,
-      "recipes": {
-        "0": {"name": "fermented jelly", "sp": 0},
-        "1": {"name": "bee candy", "sp": 35},
-        "2": {"name": "honey glazed jelly", "sp": 55},
-        "3": {"name": "royal ambrosia", "sp": 75, "all_stats": 1},
-        "4": {"name": "queen's feast", "sp": 95, "all_stats": 1, "effect": "buzzing_mind", "duration": 100},
-        "5": {"name": "hive mind delicacy", "sp": 115, "all_stats": 2, "effect": "swarm_commander", "duration": 200}
       }
     }
   ]
