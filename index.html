@@ -829,7 +829,8 @@
                 <div class="stat-group">
                     <h3>STATUS</h3>
                     <div>AC: <span id="ac">10</span> | Level: <span id="dungeon-level">1</span></div>
-                    <div>Sight: <span id="sight">5</span> | Timer: <span id="timer">10</span>s</div>
+                    <div>Weight: <span id="current-weight">0</span>/<span id="max-weight">50</span> | Timer: <span id="timer">10</span>s</div>
+                    <div>Sight: <span id="sight">5</span></div>
                     <div id="hunger-status"></div>
                     <div id="burden-status"></div>
                     <div id="status-effects"></div>
@@ -845,7 +846,7 @@
 
                 <!-- Inventory -->
                 <div class="stat-group">
-                    <h3>INVENTORY (<span id="weight">0/50</span>)</h3>
+                    <h3>INVENTORY</h3>
                     <div id="inventory-list">
                         <div class="inventory-item">Empty</div>
                     </div>
@@ -1619,6 +1620,32 @@
                     isInvisible: false
                 };
                 
+                // Status effect durations and intensities
+                this.statusEffects = {
+                    poison: { duration: 0, damage: 0 },
+                    disease: { duration: 0, severity: 0 },
+                    paralysis: { duration: 0 },
+                    stun: { duration: 0 },
+                    confusion: { duration: 0 },
+                    blindness: { duration: 0 },
+                    burning: { duration: 0, damage: 0 },
+                    freezing: { duration: 0, slow: 0 },
+                    shock: { duration: 0, spasms: false }
+                };
+                
+                // Resistances (0 = none, 1 = partial, 2 = full immunity)
+                this.resistances = {
+                    fire: 0,
+                    cold: 0,
+                    shock: 0,
+                    poison: 0,
+                    disease: 0,
+                    paralysis: 0,
+                    confusion: 0,
+                    sleep: 0,
+                    acid: 0
+                };
+                
                 // Inventory letter assignment
                 this.nextInventoryLetter = 'a';
             }
@@ -1709,11 +1736,215 @@
                 }
                 return false;
             }
+
+            processStatusEffects() {
+                // Process poison
+                if (this.statusEffects.poison.duration > 0) {
+                    this.statusEffects.poison.duration--;
+                    if (this.resistances.poison < 2) {
+                        const poisonDamage = Math.max(1, Math.floor(this.statusEffects.poison.damage * (1 - this.resistances.poison * 0.5)));
+                        this.takeDamage(poisonDamage);
+                        Game.addMessage(`The poison courses through your veins! (-${poisonDamage} HP)`, 'danger');
+                    }
+                    if (this.statusEffects.poison.duration <= 0) {
+                        this.statusFlags.isPoisoned = false;
+                        Game.addMessage("You feel the poison leaving your system.", 'success');
+                    }
+                }
+                
+                // Process disease  
+                if (this.statusEffects.disease.duration > 0) {
+                    this.statusEffects.disease.duration--;
+                    if (this.resistances.disease < 2) {
+                        // Disease weakens stats temporarily
+                        if (Game.turn % 10 === 0) {
+                            Game.addMessage("You feel ill and weakened.", 'warning');
+                        }
+                    }
+                    if (this.statusEffects.disease.duration <= 0) {
+                        this.statusFlags.isSick = false;
+                        Game.addMessage("You feel healthy again.", 'success');
+                    }
+                }
+                
+                // Process paralysis
+                if (this.statusEffects.paralysis.duration > 0) {
+                    this.statusEffects.paralysis.duration--;
+                    if (this.statusEffects.paralysis.duration <= 0) {
+                        this.statusFlags.isParalyzed = false;
+                        Game.addMessage("You can move again!", 'success');
+                    }
+                }
+                
+                // Process stun
+                if (this.statusEffects.stun.duration > 0) {
+                    this.statusEffects.stun.duration--;
+                    if (this.statusEffects.stun.duration <= 0) {
+                        this.statusFlags.isStunned = false;
+                        Game.addMessage("You feel steady again.", 'success');
+                    }
+                }
+                
+                // Process confusion
+                if (this.statusEffects.confusion.duration > 0) {
+                    this.statusEffects.confusion.duration--;
+                    if (this.statusEffects.confusion.duration <= 0) {
+                        this.statusFlags.isConfused = false;
+                        Game.addMessage("Your mind clears.", 'success');
+                    }
+                }
+                
+                // Process blindness
+                if (this.statusEffects.blindness.duration > 0) {
+                    this.statusEffects.blindness.duration--;
+                    if (this.statusEffects.blindness.duration <= 0) {
+                        this.statusFlags.isBlind = false;
+                        Game.addMessage("You can see again!", 'success');
+                    }
+                }
+                
+                // Process burning
+                if (this.statusEffects.burning.duration > 0) {
+                    this.statusEffects.burning.duration--;
+                    if (this.resistances.fire < 2) {
+                        const fireDamage = Math.max(1, Math.floor(this.statusEffects.burning.damage * (1 - this.resistances.fire * 0.5)));
+                        this.takeDamage(fireDamage);
+                        Game.addMessage(`You are burning! (-${fireDamage} HP)`, 'danger');
+                    }
+                }
+                
+                // Process freezing
+                if (this.statusEffects.freezing.duration > 0) {
+                    this.statusEffects.freezing.duration--;
+                    if (this.statusEffects.freezing.duration <= 0) {
+                        Game.addMessage("You warm up.", 'info');
+                    }
+                }
+                
+                // Process shock
+                if (this.statusEffects.shock.duration > 0) {
+                    this.statusEffects.shock.duration--;
+                    if (this.statusEffects.shock.spasms && Math.random() < 0.3) {
+                        Game.addMessage("Your muscles spasm from the electricity!", 'warning');
+                    }
+                }
+            }
+            
+            applyStatusEffect(effect, duration, intensity = 1) {
+                switch(effect) {
+                    case 'poison':
+                        if (this.resistances.poison >= 2) {
+                            Game.addMessage("You resist the poison completely!", 'success');
+                            return;
+                        }
+                        this.statusEffects.poison.duration = Math.max(this.statusEffects.poison.duration, duration);
+                        this.statusEffects.poison.damage = Math.max(this.statusEffects.poison.damage, intensity);
+                        this.statusFlags.isPoisoned = true;
+                        Game.addMessage("You feel very sick!", 'danger');
+                        break;
+                        
+                    case 'disease':
+                        if (this.resistances.disease >= 2) {
+                            Game.addMessage("Your constitution resists the disease!", 'success');
+                            return;
+                        }
+                        this.statusEffects.disease.duration = Math.max(this.statusEffects.disease.duration, duration);
+                        this.statusEffects.disease.severity = Math.max(this.statusEffects.disease.severity, intensity);
+                        this.statusFlags.isSick = true;
+                        Game.addMessage("You feel ill!", 'warning');
+                        break;
+                        
+                    case 'paralysis':
+                        if (this.resistances.paralysis >= 2) {
+                            Game.addMessage("You resist the paralysis!", 'success');
+                            return;
+                        }
+                        this.statusEffects.paralysis.duration = Math.max(this.statusEffects.paralysis.duration, duration);
+                        this.statusFlags.isParalyzed = true;
+                        Game.addMessage("You are paralyzed!", 'danger');
+                        break;
+                        
+                    case 'stun':
+                        this.statusEffects.stun.duration = Math.max(this.statusEffects.stun.duration, duration);
+                        this.statusFlags.isStunned = true;
+                        Game.addMessage("You feel stunned!", 'warning');
+                        break;
+                        
+                    case 'confusion':
+                        if (this.resistances.confusion >= 2) {
+                            Game.addMessage("Your mind resists the confusion!", 'success');
+                            return;
+                        }
+                        this.statusEffects.confusion.duration = Math.max(this.statusEffects.confusion.duration, duration);
+                        this.statusFlags.isConfused = true;
+                        Game.addMessage("You feel confused!", 'warning');
+                        break;
+                        
+                    case 'blindness':
+                        this.statusEffects.blindness.duration = Math.max(this.statusEffects.blindness.duration, duration);
+                        this.statusFlags.isBlind = true;
+                        Game.addMessage("You can't see!", 'danger');
+                        break;
+                        
+                    case 'burning':
+                        if (this.resistances.fire >= 2) {
+                            Game.addMessage("You resist the flames!", 'success');
+                            return;
+                        }
+                        this.statusEffects.burning.duration = Math.max(this.statusEffects.burning.duration, duration);
+                        this.statusEffects.burning.damage = Math.max(this.statusEffects.burning.damage, intensity);
+                        Game.addMessage("You are on fire!", 'danger');
+                        break;
+                        
+                    case 'freezing':
+                        if (this.resistances.cold >= 2) {
+                            Game.addMessage("You resist the cold!", 'success');
+                            return;
+                        }
+                        this.statusEffects.freezing.duration = Math.max(this.statusEffects.freezing.duration, duration);
+                        this.statusEffects.freezing.slow = intensity;
+                        Game.addMessage("You are freezing!", 'warning');
+                        break;
+                        
+                    case 'shock':
+                        if (this.resistances.shock >= 2) {
+                            Game.addMessage("You resist the electricity!", 'success');
+                            return;
+                        }
+                        this.statusEffects.shock.duration = Math.max(this.statusEffects.shock.duration, duration);
+                        this.statusEffects.shock.spasms = true;
+                        Game.addMessage("Electricity courses through you!", 'warning');
+                        break;
+                }
+            }
         }
         
         // ===== FOV (FIELD OF VIEW) =====
         // Shadowcasting algorithm for proper line of sight
         Game.calculateFOV = function() {
+            // If blind, can only see adjacent squares
+            if (Game.player.statusFlags.isBlind) {
+                const fov = [];
+                for (let y = 0; y < Game.config.mapHeight; y++) {
+                    fov[y] = [];
+                    for (let x = 0; x < Game.config.mapWidth; x++) {
+                        fov[y][x] = false;
+                    }
+                }
+                
+                // Only see immediately adjacent squares
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const x = Game.player.x + dx;
+                        const y = Game.player.y + dy;
+                        if (y >= 0 && y < fov.length && x >= 0 && x < fov[0].length) {
+                            fov[y][x] = true;
+                        }
+                    }
+                }
+                return fov;
+            }
+
             const fov = [];
             for (let y = 0; y < Game.config.mapHeight; y++) {
                 fov[y] = [];
@@ -2095,6 +2326,15 @@
                 this.hp = this.maxHp;
                 this.dead = false;
                 this.paralyzeTurns = 0;
+                this.aiState = 'normal';  // normal, fleeing, hunting, guarding
+                this.fleeThreshold = 0.25;  // Flee when HP below this percentage
+                this.lastSeenPlayerX = null;
+                this.lastSeenPlayerY = null;
+                this.guardX = x;  // Original position to guard
+                this.guardY = y;
+                this.guardRadius = 5;
+                this.smellTrail = [];  // Track player's scent
+                this.heardSound = null;  // Last heard sound position
             }
             
             takeDamage(amount) {
@@ -2116,14 +2356,24 @@
                 const speedRoll = Math.random() * 12;
                 if (speedRoll > (this.speed || 12)) return;
                 
+                // Update AI state
+                this.updateAIState();
+                
                 // AI patterns
                 const pattern = this.ai_pattern || 'aggressive';
                 switch(pattern) {
                     case 'aggressive':
-                        this.moveAggressive();
+                        if (this.aiState === 'fleeing') {
+                            this.moveFleeing();
+                        } else {
+                            this.moveAggressive();
+                        }
                         break;
                     case 'cowardly':
                         this.moveCowardly();
+                        break;
+                    case 'territorial':
+                        this.moveTerritorial();
                         break;
                     case 'grid':
                         this.moveGrid();
@@ -2132,11 +2382,70 @@
                         break;
                     case 'slow':
                     case 'slow_pursuit':
-                        if (Game.turn % 2 === 0) this.moveAggressive();
+                        if (Game.turn % 2 === 0) {
+                            if (this.aiState === 'fleeing') {
+                                this.moveFleeing();
+                            } else {
+                                this.moveAggressive();
+                            }
+                        }
                         break;
                     default:
                         this.moveAggressive();
                 }
+            }
+            
+            updateAIState() {
+                // Check for fleeing condition
+                if (this.hp / this.maxHp <= this.fleeThreshold) {
+                    if (this.aiState !== 'fleeing') {
+                        this.aiState = 'fleeing';
+                        Game.addMessage(`The ${this.name} looks badly wounded!`, 'info');
+                    }
+                    return;
+                }
+                
+                // Can we see the player?
+                const canSeePlayer = this.canSeePosition(Game.player.x, Game.player.y);
+                if (canSeePlayer) {
+                    this.lastSeenPlayerX = Game.player.x;
+                    this.lastSeenPlayerY = Game.player.y;
+                    this.aiState = 'hunting';
+                } else if (this.lastSeenPlayerX !== null) {
+                    // Lost sight of player, but remember where they were
+                    this.aiState = 'hunting';
+                } else {
+                    this.aiState = 'normal';
+                }
+            }
+            
+            canSeePosition(targetX, targetY) {
+                const dx = Math.abs(targetX - this.x);
+                const dy = Math.abs(targetY - this.y);
+                const distance = Math.max(dx, dy);
+                
+                // Check sight range (most monsters see 8 squares)
+                if (distance > (this.sightRange || 8)) return false;
+                
+                // Check line of sight
+                return this.hasLineOfSight(targetX, targetY);
+            }
+            
+            hasLineOfSight(targetX, targetY) {
+                // Simple line-of-sight check
+                const dx = targetX - this.x;
+                const dy = targetY - this.y;
+                const steps = Math.max(Math.abs(dx), Math.abs(dy));
+                
+                for (let i = 1; i < steps; i++) {
+                    const x = Math.round(this.x + (dx * i / steps));
+                    const y = Math.round(this.y + (dy * i / steps));
+                    
+                    if (Game.dungeon[y] && Game.dungeon[y][x] === '#') {
+                        return false;
+                    }
+                }
+                return true;
             }
             
             moveAggressive() {
@@ -2144,7 +2453,99 @@
                 const dy = Game.player.y - this.y;
                 const distance = Math.abs(dx) + Math.abs(dy);
                 
-                if (distance > 10) return;
+                // If we can see the player, move directly toward them
+                if (this.canSeePosition(Game.player.x, Game.player.y)) {
+                    this.moveToward(Game.player.x, Game.player.y);
+                    return;
+                }
+                
+                // If we remember where player was, hunt there
+                if (this.aiState === 'hunting' && this.lastSeenPlayerX !== null) {
+                    this.huntLastKnownPosition();
+                    return;
+                }
+                
+                // If we can smell, follow scent trail
+                if (this.canSmell && distance > 10) {
+                    const scent = Game.findStrongestScentNearby(this.x, this.y);
+                    if (scent && scent.strength > 3) {
+                        this.moveToward(scent.x, scent.y);
+                        return;
+                    }
+                }
+                
+                // Default: wander randomly if too far
+                if (distance > 15 && Math.random() < 0.5) {
+                    const moves = [[0,1], [0,-1], [1,0], [-1,0]];
+                    const move = moves[Math.floor(Math.random() * moves.length)];
+                    this.tryMove(this.x + move[0], this.y + move[1]);
+                }
+            }
+            
+            moveFleeing() {
+                // Run away from player
+                const dx = this.x - Game.player.x;
+                const dy = this.y - Game.player.y;
+                const distance = Math.abs(dx) + Math.abs(dy);
+                
+                // If far enough away, stop fleeing
+                if (distance > 15) {
+                    this.aiState = 'normal';
+                    return;
+                }
+                
+                // Find best escape direction
+                const moves = [];
+                for (let moveX = -1; moveX <= 1; moveX++) {
+                    for (let moveY = -1; moveY <= 1; moveY++) {
+                        if (moveX === 0 && moveY === 0) continue;
+                        
+                        const newX = this.x + moveX;
+                        const newY = this.y + moveY;
+                        
+                        if (this.canMoveTo(newX, newY)) {
+                            const newDist = Math.abs(newX - Game.player.x) + Math.abs(newY - Game.player.y);
+                            moves.push({ x: newX, y: newY, distance: newDist });
+                        }
+                    }
+                }
+                
+                // Sort by distance (farthest from player first)
+                moves.sort((a, b) => b.distance - a.distance);
+                
+                if (moves.length > 0) {
+                    this.tryMove(moves[0].x, moves[0].y);
+                }
+            }
+            
+            moveTerritorial() {
+                const dx = Math.abs(this.x - this.guardX);
+                const dy = Math.abs(this.y - this.guardY);
+                const distFromGuard = Math.max(dx, dy);
+                
+                const playerDx = Math.abs(Game.player.x - this.guardX);
+                const playerDy = Math.abs(Game.player.y - this.guardY);
+                const playerDistFromGuard = Math.max(playerDx, playerDy);
+                
+                // If player is in our territory, attack
+                if (playerDistFromGuard <= this.guardRadius) {
+                    this.moveAggressive();
+                } 
+                // If we're too far from guard post, return
+                else if (distFromGuard > this.guardRadius) {
+                    this.moveToward(this.guardX, this.guardY);
+                }
+                // Otherwise, patrol randomly
+                else if (Math.random() < 0.3) {
+                    const moves = [[0,1], [0,-1], [1,0], [-1,0], [1,1], [1,-1], [-1,1], [-1,-1]];
+                    const move = moves[Math.floor(Math.random() * moves.length)];
+                    this.tryMove(this.x + move[0], this.y + move[1]);
+                }
+            }
+            
+            moveToward(targetX, targetY) {
+                const dx = targetX - this.x;
+                const dy = targetY - this.y;
                 
                 let moveX = 0, moveY = 0;
                 if (Math.abs(dx) > Math.abs(dy)) {
@@ -2153,9 +2554,57 @@
                     moveY = dy > 0 ? 1 : -1;
                 }
                 
+                // Try primary direction
+                if (this.tryMove(this.x + moveX, this.y + moveY)) {
+                    return;
+                }
+                
+                // Try secondary direction
+                if (moveX === 0) {
+                    moveX = dx > 0 ? 1 : (dx < 0 ? -1 : 0);
+                } else {
+                    moveY = dy > 0 ? 1 : (dy < 0 ? -1 : 0);
+                }
+                
                 this.tryMove(this.x + moveX, this.y + moveY);
             }
             
+            huntLastKnownPosition() {
+                if (this.lastSeenPlayerX === null) return;
+                
+                const dx = Math.abs(this.lastSeenPlayerX - this.x);
+                const dy = Math.abs(this.lastSeenPlayerY - this.y);
+                
+                // If we reached last known position, forget it
+                if (dx <= 1 && dy <= 1) {
+                    this.lastSeenPlayerX = null;
+                    this.lastSeenPlayerY = null;
+                    this.aiState = 'normal';
+                    return;
+                }
+                
+                // Move toward last known position
+                this.moveToward(this.lastSeenPlayerX, this.lastSeenPlayerY);
+            }
+            
+            canMoveTo(x, y) {
+                if (!Game.canMoveTo(x, y)) {
+                    // Check if it's a door
+                    if (Game.dungeon[y] && Game.dungeon[y][x] === '+') {
+                        return this.canOpenDoors || false;
+                    }
+                    return false;
+                }
+                
+                // Check for other monsters
+                if (Game.getMonsterAt(x, y)) return false;
+                
+                // Check for player
+                if (x === Game.player.x && y === Game.player.y) return false;
+                
+                return true;
+            }
+
             moveCowardly() {
                 const dx = Game.player.x - this.x;
                 const dy = Game.player.y - this.y;
@@ -2184,28 +2633,207 @@
             }
             
             tryMove(newX, newY) {
+                // Check for player
                 if (newX === Game.player.x && newY === Game.player.y) {
-                    this.attack();
-                } else if (Game.canMoveTo(newX, newY) && !Game.getMonsterAt(newX, newY)) {
+                    if (this.aiState !== 'fleeing') {
+                        this.attack();
+                    }
+                    return true;
+                }
+                
+                // Check for doors
+                if (Game.dungeon[newY] && Game.dungeon[newY][x] === '+') {
+                    if (this.canOpenDoors) {
+                        // Open the door
+                        Game.dungeon[newY][newX] = "'";
+                        Game.addMessage(`The ${this.name} opens a door!`, 'info');
+                        return true;
+                    } else if (this.canBreakDoors && this.mlevel >= 3) {
+                        // Strong monsters can break doors
+                        if (Math.random() < 0.3) {
+                            Game.dungeon[newY][newX] = '.';
+                            Game.addMessage(`The ${this.name} breaks down the door!`, 'warning');
+                        }
+                        return false;
+                    }
+                    return false;
+                }
+                
+                // Normal movement
+                if (this.canMoveTo(newX, newY)) {
+                    // Add current position to smell trail (for tracking)
+                    if (this.tracks) {
+                        Game.addScentTrail(this.x, this.y);
+                    }
+                    
                     this.x = newX;
                     this.y = newY;
+                    return true;
                 }
+                
+                return false;
             }
             
             attack() {
                 if (!this.attacks || this.attacks.length === 0) return;
                 
-                let totalDamage = 0;
                 for (const attack of this.attacks) {
-                    totalDamage += Game.Dice.roll(attack.dam || "1d2");
-                }
-                
-                if (totalDamage > 0) {
-                    Game.player.takeDamage(totalDamage);
-                    Game.addMessage(`The ${this.name} hits you for ${totalDamage} damage!`, 'danger');
+                    // Calculate base damage
+                    let damage = Game.Dice.roll(attack.dam || "1d2");
+                    
+                    // Apply damage based on type
+                    switch(attack.adtyp) {
+                        case 'phys':
+                            // Physical damage - apply directly
+                            if (damage > 0) {
+                                Game.player.takeDamage(damage);
+                                Game.addMessage(`The ${this.name} ${attack.type}s you for ${damage} damage!`, 'danger');
+                            }
+                            break;
+                            
+                        case 'poison':
+                            // Poison attack
+                            if (damage > 0) {
+                                Game.player.takeDamage(Math.floor(damage / 2));
+                                Game.addMessage(`The ${this.name}'s ${attack.type} is poisonous!`, 'danger');
+                                Game.player.applyStatusEffect('poison', 10 + this.mlevel * 2, this.mlevel);
+                            }
+                            break;
+                            
+                        case 'disease':
+                            // Disease attack
+                            if (damage > 0) {
+                                Game.player.takeDamage(damage);
+                                Game.addMessage(`The ${this.name}'s ${attack.type} is diseased!`, 'danger');
+                                if (Math.random() < 0.3) {
+                                    Game.player.applyStatusEffect('disease', 50 + this.mlevel * 10, this.mlevel);
+                                }
+                            }
+                            break;
+                            
+                        case 'paralyze':
+                            // Paralysis attack (like floating eye)
+                            Game.addMessage(`The ${this.name} gazes at you!`, 'warning');
+                            if (Math.random() < 0.5) {
+                                Game.player.applyStatusEffect('paralysis', 3 + this.mlevel, 1);
+                            }
+                            break;
+                            
+                        case 'shock':
+                            // Electrical damage
+                            if (damage > 0) {
+                                const shockDamage = Game.player.resistances.shock >= 2 ? 0 : 
+                                    Math.floor(damage * (1 - Game.player.resistances.shock * 0.5));
+                                if (shockDamage > 0) {
+                                    Game.player.takeDamage(shockDamage);
+                                    Game.addMessage(`The ${this.name} shocks you for ${shockDamage} damage!`, 'danger');
+                                    Game.player.applyStatusEffect('shock', 3, 1);
+                                    if (Math.random() < 0.2) {
+                                        Game.player.applyStatusEffect('stun', 2, 1);
+                                    }
+                                }
+                            }
+                            break;
+                            
+                        case 'fire':
+                            // Fire damage
+                            if (damage > 0) {
+                                const fireDamage = Game.player.resistances.fire >= 2 ? 0 : 
+                                    Math.floor(damage * (1 - Game.player.resistances.fire * 0.5));
+                                if (fireDamage > 0) {
+                                    Game.player.takeDamage(fireDamage);
+                                    Game.addMessage(`The ${this.name} burns you for ${fireDamage} damage!`, 'danger');
+                                    if (Math.random() < 0.3) {
+                                        Game.player.applyStatusEffect('burning', 5, Math.ceil(this.mlevel / 2));
+                                    }
+                                }
+                            }
+                            break;
+                            
+                        case 'cold':
+                            // Cold damage
+                            if (damage > 0) {
+                                const coldDamage = Game.player.resistances.cold >= 2 ? 0 : 
+                                    Math.floor(damage * (1 - Game.player.resistances.cold * 0.5));
+                                if (coldDamage > 0) {
+                                    Game.player.takeDamage(coldDamage);
+                                    Game.addMessage(`The ${this.name} freezes you for ${coldDamage} damage!`, 'danger');
+                                    Game.player.applyStatusEffect('freezing', 5, 1);
+                                }
+                            }
+                            break;
+                            
+                        case 'confuse':
+                            // Confusion attack
+                            Game.addMessage(`The ${this.name} confuses you!`, 'warning');
+                            Game.player.applyStatusEffect('confusion', 5 + this.mlevel, 1);
+                            break;
+                            
+                        case 'blind':
+                            // Blindness attack
+                            Game.addMessage(`The ${this.name} blinds you!`, 'warning');
+                            Game.player.applyStatusEffect('blindness', 10 + this.mlevel * 2, 1);
+                            break;
+                            
+                        default:
+                            // Unknown damage type, treat as physical
+                            if (damage > 0) {
+                                Game.player.takeDamage(damage);
+                                Game.addMessage(`The ${this.name} ${attack.type}s you for ${damage} damage!`, 'danger');
+                            }
+                    }
                 }
             }
         }
+
+        // ===== SCENT TRAIL SYSTEM =====
+        Game.scentTrails = [];
+        Game.maxScentAge = 20;  // Scent lasts 20 turns
+        
+        Game.addScentTrail = function(x, y) {
+            Game.scentTrails.push({
+                x: x,
+                y: y,
+                age: 0,
+                strength: 10
+            });
+        };
+        
+        Game.updateScentTrails = function() {
+            // Age all scent trails
+            Game.scentTrails = Game.scentTrails.filter(scent => {
+                scent.age++;
+                scent.strength = Math.max(0, 10 - scent.age);
+                return scent.age < Game.maxScentAge;
+            });
+        };
+        
+        Game.getScentAtPosition = function(x, y) {
+            const scent = Game.scentTrails.find(s => s.x === x && s.y === y);
+            return scent ? scent.strength : 0;
+        };
+        
+        Game.findStrongestScentNearby = function(monsterX, monsterY, range = 3) {
+            let strongestScent = null;
+            let maxStrength = 0;
+            
+            for (let dx = -range; dx <= range; dx++) {
+                for (let dy = -range; dy <= range; dy++) {
+                    if (dx === 0 && dy === 0) continue;
+                    
+                    const x = monsterX + dx;
+                    const y = monsterY + dy;
+                    const strength = Game.getScentAtPosition(x, y);
+                    
+                    if (strength > maxStrength) {
+                        maxStrength = strength;
+                        strongestScent = { x, y, strength };
+                    }
+                }
+            }
+            
+            return strongestScent;
+        };
 
         // ===== MONSTER SPAWNING (NetHack-style) =====
         Game.spawnMonster = function(currentLevel, playerLevel = 1, levelType = 'dungeon') {
@@ -2516,6 +3144,8 @@
             document.getElementById('ac').textContent = player.getAC();
             document.getElementById('sight').textContent = player.getSightRadius();
             document.getElementById('timer').textContent = player.getQuizTimer();
+            document.getElementById('current-weight').textContent = player.currentWeight;
+            document.getElementById('max-weight').textContent = player.maxCarry;
             document.getElementById('dungeon-level').textContent = Game.currentLevel;
             
             // Hunger status
@@ -2526,9 +3156,27 @@
             const burdenStatus = player.getBurdenStatus();
             document.getElementById('burden-status').textContent = burdenStatus;
             
-            // Weight
-            document.getElementById('weight').textContent = `${player.currentWeight}/${player.maxCarry}`;
+            // Status effects display
+            const statusEffects = [];
+            if (player.statusFlags.isPoisoned) statusEffects.push('Poisoned');
+            if (player.statusFlags.isSick) statusEffects.push('Sick');
+            if (player.statusFlags.isParalyzed) statusEffects.push('Paralyzed');
+            if (player.statusFlags.isStunned) statusEffects.push('Stunned');
+            if (player.statusFlags.isConfused) statusEffects.push('Confused');
+            if (player.statusFlags.isBlind) statusEffects.push('Blind');
+            if (player.statusEffects.burning.duration > 0) statusEffects.push('Burning');
+            if (player.statusEffects.freezing.duration > 0) statusEffects.push('Frozen');
+            if (player.statusEffects.shock.duration > 0) statusEffects.push('Shocked');
             
+            const statusDiv = document.getElementById('status-effects');
+            if (statusEffects.length > 0) {
+                statusDiv.innerHTML = statusEffects.map(effect => 
+                    `<span style="color: var(--health-red);">${effect}</span>`
+                ).join(' ');
+            } else {
+                statusDiv.innerHTML = '';
+            }
+
             // Inventory
             const invList = document.getElementById('inventory-list');
             if (player.inventory.length === 0) {
@@ -2678,6 +3326,31 @@
         };
 
         Game.movePlayer = function(dx, dy) {
+            // Handle confusion - randomize movement
+            if (Game.player.statusFlags.isConfused && Math.random() < 0.75) {
+                const directions = [[-1,-1], [-1,0], [-1,1], [0,-1], [0,1], [1,-1], [1,0], [1,1]];
+                const confused = directions[Math.floor(Math.random() * directions.length)];
+                dx = confused[0];
+                dy = confused[1];
+                Game.addMessage("You stumble around in confusion!", 'warning');
+            }
+            
+            // Handle paralysis - can't move
+            if (Game.player.statusFlags.isParalyzed) {
+                Game.addMessage("You are paralyzed and cannot move!", 'danger');
+                Game.player.spendSP(1);
+                Game.processTurn();
+                return;
+            }
+            
+            // Handle stun - chance to fail movement
+            if (Game.player.statusFlags.isStunned && Math.random() < 0.5) {
+                Game.addMessage("You are too stunned to move properly!", 'warning');
+                Game.player.spendSP(1);
+                Game.processTurn();
+                return;
+            }
+
             const player = Game.player;
             const newX = player.x + dx;
             const newY = player.y + dy;
@@ -2729,8 +3402,19 @@
         };
 
         Game.processTurn = function() {
-            // Move monsters
-            Game.monsters.forEach(m => m.move());
+            // Add player's scent trail
+            Game.addScentTrail(Game.player.x, Game.player.y);
+            
+            // Process player status effects
+            Game.player.processStatusEffects();
+            
+            // Update scent trails
+            Game.updateScentTrails();
+            
+            // Move monsters (unless player is paralyzed)
+            if (!Game.player.statusFlags.isParalyzed) {
+                Game.monsters.forEach(m => m.move());
+            }
             
             // Increment turn
             Game.turn++;
@@ -3420,6 +4104,51 @@ Game.cancelCooking = function() {
             }
         };
 
+        // Level persistence functions (stub implementations for now)
+        Game.savedLevels = {};
+        
+        Game.saveCurrentLevel = function() {
+            // Store the current level state
+            Game.savedLevels[Game.currentLevel] = {
+                dungeon: JSON.parse(JSON.stringify(Game.dungeon)),
+                monsters: Game.monsters.map(m => ({...m})),
+                items: Game.items.map(i => ({...i})),
+                remembered: Game.remembered ? JSON.parse(JSON.stringify(Game.remembered)) : []
+            };
+        };
+        
+        Game.loadLevel = function(level) {
+            if (!Game.savedLevels[level]) {
+                return false;
+            }
+            
+            const saved = Game.savedLevels[level];
+            Game.dungeon = saved.dungeon;
+            Game.monsters = saved.monsters;
+            Game.items = saved.items;
+            Game.remembered = saved.remembered;
+            
+            // Find stairs and position player there
+            for (let y = 0; y < Game.dungeon.length; y++) {
+                for (let x = 0; x < Game.dungeon[y].length; x++) {
+                    if (level > Game.currentLevel && Game.dungeon[y][x] === '<') {
+                        // Coming from above, place at up stairs
+                        Game.player.x = x;
+                        Game.player.y = y;
+                        return true;
+                    } else if (level < Game.currentLevel && Game.dungeon[y][x] === '>') {
+                        // Coming from below, place at down stairs
+                        Game.player.x = x;
+                        Game.player.y = y;
+                        return true;
+                    }
+                }
+            }
+            
+            return true;
+        };
+        
+        Game.maxLevelReached = 1;
         Game.nextLevel = function() {
             // Save current level before leaving
             Game.saveCurrentLevel();
