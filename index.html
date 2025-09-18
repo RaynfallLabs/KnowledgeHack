@@ -2642,7 +2642,7 @@
                 }
                 
                 // Check for doors
-                if (Game.dungeon[newY] && Game.dungeon[newY][x] === '+') {
+                if (Game.dungeon[newY] && Game.dungeon[newY][newX] === '+') {
                     if (this.canOpenDoors) {
                         // Open the door
                         Game.dungeon[newY][newX] = "'";
