@@ -771,6 +771,155 @@
             color: var(--text-primary);
             font-weight: 600;
         }
+
+        /* Universal Menu System */
+        .universal-menu {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+            background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-raised) 100%);
+            border: 2px solid var(--gold-dim);
+            border-radius: 12px;
+            box-shadow: 
+                0 0 50px rgba(255, 215, 0, 0.2),
+                0 10px 40px rgba(0, 0, 0, 0.8);
+            animation: menuSlideIn 0.3s ease;
+            max-width: 600px;
+            min-width: 400px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .universal-menu.active {
+            display: flex;
+        }
+        
+        @keyframes menuSlideIn {
+            from { 
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+            to { 
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        .menu-content {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .menu-header {
+            padding: 20px 30px;
+            border-bottom: 2px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .menu-title {
+            font-family: 'Cinzel', serif;
+            color: var(--gold-bright);
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 20px var(--glow-color);
+            text-align: center;
+        }
+        
+        .menu-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            text-align: center;
+            margin-top: 8px;
+        }
+        
+        .menu-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 0;
+            scrollbar-width: none;
+        }
+        
+        .menu-items::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .menu-item {
+            padding: 12px 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .menu-item:hover:not(.disabled) {
+            background: rgba(52, 152, 219, 0.1);
+            padding-left: 35px;
+        }
+        
+        .menu-item.selected {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 3px solid var(--gold-bright);
+        }
+        
+        .menu-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .menu-letter {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            background: var(--wisdom-purple);
+            color: var(--text-primary);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .menu-item:hover:not(.disabled) .menu-letter {
+            background: var(--knowledge-blue);
+            transform: scale(1.1);
+        }
+        
+        .menu-item.selected .menu-letter {
+            background: var(--gold-bright);
+            color: var(--bg-dark);
+        }
+        
+        .menu-text {
+            flex: 1;
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 500;
+        }
+        
+        .menu-description {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-style: italic;
+        }
+        
+        .menu-footer {
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 13px;
+            background: rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -1032,6 +1181,188 @@
                 baseSP: 100,
                 baseMP: 10,
                 startingWisdom: 10
+            }
+        };
+
+        // ===== UNIFIED MENU SYSTEM =====
+        Game.MenuSystem = {
+            activeMenu: null,
+            menuItems: [],
+            selectedIndex: -1,
+            
+            show: function(title, items, callback, subtitle = '') {
+                // Close any existing menu
+                this.close();
+                
+                // Store menu data
+                this.menuItems = items;
+                this.callback = callback;
+                this.activeMenu = true;
+                
+                // Create menu HTML
+                const menuHTML = this.createMenuHTML(title, items, subtitle);
+                
+                // Add menu to page
+                const menuContainer = document.createElement('div');
+                menuContainer.id = 'universal-menu';
+                menuContainer.className = 'universal-menu active';
+                menuContainer.innerHTML = menuHTML;
+                document.body.appendChild(menuContainer);
+                
+                // Add event listeners
+                this.attachEventListeners();
+                
+                // Focus menu for keyboard input
+                menuContainer.focus();
+            },
+            
+            createMenuHTML: function(title, items, subtitle) {
+                let html = `
+                    <div class="menu-content">
+                        <div class="menu-header">
+                            <div class="menu-title">${title}</div>
+                            ${subtitle ? `<div class="menu-subtitle">${subtitle}</div>` : ''}
+                        </div>
+                        <div class="menu-items">
+                `;
+                
+                items.forEach((item, index) => {
+                    const letter = String.fromCharCode(97 + index); // a, b, c, etc.
+                    const disabled = item.disabled ? 'disabled' : '';
+                    const disabledText = item.disabled ? ' (unavailable)' : '';
+                    
+                    html += `
+                        <div class="menu-item ${disabled}" data-index="${index}" data-letter="${letter}">
+                            <span class="menu-letter">${letter})</span>
+                            <span class="menu-text">${item.name}${disabledText}</span>
+                            ${item.description ? `<span class="menu-description">${item.description}</span>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                        <div class="menu-footer">
+                            Press letter to select, or ESC to cancel
+                        </div>
+                    </div>
+                `;
+                
+                return html;
+            },
+            
+            attachEventListeners: function() {
+                const menu = document.getElementById('universal-menu');
+                if (!menu) return;
+                
+                // Mouse hover
+                const items = menu.querySelectorAll('.menu-item:not(.disabled)');
+                items.forEach(item => {
+                    item.addEventListener('mouseenter', () => {
+                        this.selectItem(parseInt(item.dataset.index));
+                    });
+                    
+                    item.addEventListener('click', () => {
+                        this.confirmSelection();
+                    });
+                });
+                
+                // Keyboard handler
+                this.keyHandler = (e) => this.handleKeyPress(e);
+                document.addEventListener('keydown', this.keyHandler);
+            },
+            
+            handleKeyPress: function(e) {
+                if (!this.activeMenu) return;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // ESC to cancel
+                if (e.key === 'Escape') {
+                    this.close();
+                    return;
+                }
+                
+                // Letter selection (a-z)
+                const letter = e.key.toLowerCase();
+                const index = letter.charCodeAt(0) - 97;
+                
+                if (index >= 0 && index < this.menuItems.length) {
+                    if (!this.menuItems[index].disabled) {
+                        this.selectedIndex = index;
+                        this.confirmSelection();
+                    }
+                    return;
+                }
+                
+                // Arrow keys
+                if (e.key === 'ArrowUp') {
+                    this.moveSelection(-1);
+                } else if (e.key === 'ArrowDown') {
+                    this.moveSelection(1);
+                } else if (e.key === 'Enter' && this.selectedIndex >= 0) {
+                    this.confirmSelection();
+                }
+            },
+            
+            selectItem: function(index) {
+                if (index < 0 || index >= this.menuItems.length) return;
+                if (this.menuItems[index].disabled) return;
+                
+                // Remove old selection
+                const items = document.querySelectorAll('.menu-item');
+                items.forEach(item => item.classList.remove('selected'));
+                
+                // Add new selection
+                this.selectedIndex = index;
+                items[index].classList.add('selected');
+            },
+            
+            moveSelection: function(direction) {
+                let newIndex = this.selectedIndex + direction;
+                
+                // Wrap around
+                if (newIndex < 0) newIndex = this.menuItems.length - 1;
+                if (newIndex >= this.menuItems.length) newIndex = 0;
+                
+                // Skip disabled items
+                while (this.menuItems[newIndex].disabled) {
+                    newIndex += direction;
+                    if (newIndex < 0) newIndex = this.menuItems.length - 1;
+                    if (newIndex >= this.menuItems.length) newIndex = 0;
+                }
+                
+                this.selectItem(newIndex);
+            },
+            
+            confirmSelection: function() {
+                if (this.selectedIndex < 0 || this.selectedIndex >= this.menuItems.length) return;
+                
+                const selected = this.menuItems[this.selectedIndex];
+                if (selected.disabled) return;
+                
+                this.close();
+                
+                if (this.callback) {
+                    this.callback(selected);
+                }
+            },
+            
+            close: function() {
+                const menu = document.getElementById('universal-menu');
+                if (menu) {
+                    menu.remove();
+                }
+                
+                if (this.keyHandler) {
+                    document.removeEventListener('keydown', this.keyHandler);
+                }
+                
+                this.activeMenu = null;
+                this.menuItems = [];
+                this.selectedIndex = -1;
+                this.callback = null;
             }
         };
 
@@ -1582,19 +1913,23 @@
                 
                 // Equipment slots
                 this.equipped = {
-                    weapon: null,
+                    weapon: null,        // Primary weapon (no quiz needed)
+                    shield: null,        // Off-hand (can't use with 2H weapons)
                     armor: {
-                        head: null,
-                        body: null,
-                        hands: null,
-                        legs: null,
-                        cloak: null,
-                        shirt: null
+                        head: null,      // Helmet
+                        body: null,      // Chest armor  
+                        arms: null,      // Arm guards/bracers
+                        hands: null,     // Gloves
+                        legs: null,      // Leg armor
+                        feet: null,      // Boots
+                        cloak: null,     // Outer cloak/cape
+                        shirt: null      // Under-armor
                     },
                     accessories: {
                         leftRing: null,
                         rightRing: null,
-                        amulet: null
+                        amulet: null,    // Neck slot
+                        belt: null       // Optional utility belt
                     }
                 };
                 
@@ -1652,9 +1987,24 @@
             
             getAC() {
                 let ac = 10 + Math.floor((this.dexterity - 10) / 2);
+                
+                // Add armor bonuses
                 Object.values(this.equipped.armor).forEach(armor => {
-                    if (armor) ac += armor.acBonus || 0;
+                    if (armor) ac += armor.ac_bonus || 0;
                 });
+                
+                // Add shield bonus
+                if (this.equipped.shield) {
+                    ac += this.equipped.shield.ac_bonus || 0;
+                }
+                
+                // Add accessory bonuses
+                Object.values(this.equipped.accessories).forEach(accessory => {
+                    if (accessory && accessory.ac_bonus) {
+                        ac += accessory.ac_bonus;
+                    }
+                });
+                
                 return ac;
             }
             
@@ -1715,6 +2065,20 @@
                 if (this.currentWeight + (item.weight || 1) > this.maxCarry) {
                     Game.addMessage("You can't carry that much weight!", 'warning');
                     return false;
+                }
+                
+                // Check if item is stackable and we already have some
+                if (item.stackable) {
+                    const existing = this.inventory.find(i => 
+                        i.id === item.id && 
+                        i.blessed === item.blessed && 
+                        i.cursed === item.cursed
+                    );
+                    
+                    if (existing) {
+                        existing.quantity = (existing.quantity || 1) + (item.quantity || 1);
+                        return true;
+                    }
                 }
                 
                 // Assign inventory letter
@@ -1919,6 +2283,339 @@
             }
         }
         
+        // ===== EQUIPMENT MANAGEMENT =====
+        Game.equipItem = function(item) {
+            if (!item) {
+                Game.addMessage("What do you want to equip?", 'info');
+                Game.showEquipmentMenu();
+                return;
+            }
+            
+            // Determine slot and quiz requirements
+            let slot = null;
+            let quizSubject = null;
+            let quizThreshold = 3;
+            
+            // Weapons - no quiz required
+            if (item.itemClass === 'weapons') {
+                // Check if two-handed weapon conflicts with shield
+                if (item.two_handed && Game.player.equipped.shield) {
+                    Game.addMessage("You must unequip your shield first to wield a two-handed weapon!", 'warning');
+                    return;
+                }
+                
+                // Unequip current weapon if any
+                if (Game.player.equipped.weapon) {
+                    Game.unequipItem(Game.player.equipped.weapon, true);
+                }
+                
+                Game.player.equipped.weapon = item;
+                Game.player.removeFromInventory(item);
+                Game.addMessage(`You wield the ${item.name}.`, 'success');
+                Game.processTurn();
+                return;
+            }
+            
+            // Shields - Geography quiz
+            if (item.itemClass === 'shields') {
+                // Check for two-handed weapon conflict
+                if (Game.player.equipped.weapon && Game.player.equipped.weapon.two_handed) {
+                    Game.addMessage("You can't use a shield with a two-handed weapon!", 'warning');
+                    return;
+                }
+                
+                slot = 'shield';
+                quizSubject = 'geography';
+                quizThreshold = item.equip_threshold || 2;
+            }
+            // Armor - Geography quiz
+            else if (item.itemClass === 'armor') {
+                // Determine which armor slot
+                const armorSlot = item.slot || 'body'; // Default to body if not specified
+                
+                if (!Game.player.equipped.armor.hasOwnProperty(armorSlot)) {
+                    Game.addMessage(`Invalid armor slot: ${armorSlot}`, 'danger');
+                    return;
+                }
+                
+                slot = `armor.${armorSlot}`;
+                quizSubject = 'geography';
+                quizThreshold = item.equip_threshold || 3;
+            }
+            // Accessories - History quiz
+            else if (item.itemClass === 'accessories') {
+                if (item.slot === 'ring') {
+                    // Choose which ring finger
+                    if (!Game.player.equipped.accessories.leftRing) {
+                        slot = 'accessories.leftRing';
+                    } else if (!Game.player.equipped.accessories.rightRing) {
+                        slot = 'accessories.rightRing';
+                    } else {
+                        Game.addMessage("Both ring fingers are occupied! Unequip a ring first.", 'warning');
+                        return;
+                    }
+                } else if (item.slot === 'amulet') {
+                    slot = 'accessories.amulet';
+                } else if (item.slot === 'belt') {
+                    slot = 'accessories.belt';
+                } else {
+                    Game.addMessage(`Unknown accessory type: ${item.slot}`, 'warning');
+                    return;
+                }
+                
+                quizSubject = 'history';
+                quizThreshold = item.equip_threshold || 3;
+            } else {
+                Game.addMessage(`You can't equip ${item.name}!`, 'warning');
+                return;
+            }
+            
+            // Check if slot is occupied
+            const currentItem = Game.getEquippedItem(slot);
+            if (currentItem && currentItem.cursed) {
+                Game.addMessage(`The ${currentItem.name} is cursed and won't come off!`, 'danger');
+                return;
+            }
+            
+            // Store the item and slot for after the quiz
+            Game.pendingEquip = {
+                item: item,
+                slot: slot,
+                currentItem: currentItem
+            };
+            
+            // Start the quiz
+            Game.QuizEngine.startQuiz({
+                mode: 'threshold',
+                subject: quizSubject,
+                startingTier: item.quiz_tier || 1,
+                threshold: quizThreshold,
+                reason: `Equipping ${item.name}`,
+                target: item,
+                callback: function(result) {
+                    Game.handleEquipResult(result);
+                }
+            });
+        };
+        
+        Game.handleEquipResult = function(result) {
+            const pending = Game.pendingEquip;
+            if (!pending) return;
+            
+            if (result.success) {
+                // Unequip current item if any
+                if (pending.currentItem) {
+                    Game.unequipItem(pending.currentItem, true);
+                }
+                
+                // Equip the new item
+                Game.setEquippedItem(pending.slot, pending.item);
+                pending.item.equipped = true;
+                Game.player.removeFromInventory(pending.item);
+                Game.addMessage(`You equip the ${pending.item.name}.`, 'success');
+                
+                // Apply any special effects
+                if (pending.item.onEquip) {
+                    pending.item.onEquip(Game.player);
+                }
+            } else {
+                Game.addMessage(`You fail to properly equip the ${pending.item.name}.`, 'warning');
+            }
+            
+            Game.pendingEquip = null;
+            Game.processTurn();
+        };
+        
+        Game.unequipItem = function(item, silent = false) {
+            if (!item) {
+                Game.addMessage("What do you want to unequip?", 'info');
+                Game.showUnequipMenu();
+                return;
+            }
+            
+            if (item.cursed) {
+                if (!silent) {
+                    Game.addMessage(`The ${item.name} is cursed and won't come off!`, 'danger');
+                }
+                return false;
+            }
+            
+            // Find where item is equipped
+            let unequipped = false;
+            
+            // Check weapon
+            if (Game.player.equipped.weapon === item) {
+                Game.player.equipped.weapon = null;
+                unequipped = true;
+            }
+            
+            // Check shield
+            if (Game.player.equipped.shield === item) {
+                Game.player.equipped.shield = null;
+                unequipped = true;
+            }
+            
+            // Check armor slots
+            for (let slot in Game.player.equipped.armor) {
+                if (Game.player.equipped.armor[slot] === item) {
+                    Game.player.equipped.armor[slot] = null;
+                    unequipped = true;
+                    break;
+                }
+            }
+            
+            // Check accessories
+            for (let slot in Game.player.equipped.accessories) {
+                if (Game.player.equipped.accessories[slot] === item) {
+                    Game.player.equipped.accessories[slot] = null;
+                    unequipped = true;
+                    break;
+                }
+            }
+            
+            if (unequipped) {
+                item.equipped = false;
+                // Apply any removal effects
+                if (item.onUnequip) {
+                    item.onUnequip(Game.player);
+                }
+                
+                // Add back to inventory
+                if (Game.player.addToInventory(item)) {
+                    if (!silent) {
+                        Game.addMessage(`You unequip the ${item.name}.`, 'info');
+                    }
+                } else {
+                    // Drop if can't carry
+                    item.x = Game.player.x;
+                    item.y = Game.player.y;
+                    Game.items.push(item);
+                    if (!silent) {
+                        Game.addMessage(`You unequip and drop the ${item.name} (too heavy to carry).`, 'warning');
+                    }
+                }
+                
+                if (!silent) {
+                    Game.processTurn();
+                }
+                return true;
+            }
+            
+            if (!silent) {
+                Game.addMessage(`You're not wearing the ${item.name}!`, 'warning');
+            }
+            return false;
+        };
+        
+        // Helper functions for equipment
+        Game.getEquippedItem = function(slotPath) {
+            const parts = slotPath.split('.');
+            let current = Game.player.equipped;
+            
+            for (let part of parts) {
+                current = current[part];
+                if (current === undefined) return null;
+            }
+            
+            return current;
+        };
+        
+        Game.setEquippedItem = function(slotPath, item) {
+            const parts = slotPath.split('.');
+            let current = Game.player.equipped;
+            
+            for (let i = 0; i < parts.length - 1; i++) {
+                current = current[parts[i]];
+            }
+            
+            current[parts[parts.length - 1]] = item;
+        };
+
+        // Equipment menu functions
+        Game.promptEquip = function() {
+            const equipable = Game.player.inventory.filter(item => 
+                item.itemClass === 'weapons' || 
+                item.itemClass === 'armor' || 
+                item.itemClass === 'shields' ||
+                item.itemClass === 'accessories'
+            );
+            
+            if (equipable.length === 0) {
+                Game.addMessage("You have nothing to equip!", 'info');
+                return;
+            }
+            
+            // Build menu items
+            const menuItems = equipable.map(item => {
+                let description = '';
+                if (item.ac_bonus) description = `AC +${item.ac_bonus}`;
+                if (item.base_damage) description = `Damage: ${item.base_damage}`;
+                if (item.cursed) description += ' (cursed)';
+                
+                return {
+                    name: item.name,
+                    description: description,
+                    data: item
+                };
+            });
+            
+            Game.MenuSystem.show(
+                'EQUIP ITEM',
+                menuItems,
+                (selected) => {
+                    Game.equipItem(selected.data);
+                },
+                'Choose an item to equip'
+            );
+        };
+        
+        Game.promptUnequip = function() {
+            const equipped = Game.getAllEquippedItems();
+            
+            if (equipped.length === 0) {
+                Game.addMessage("You have nothing equipped!", 'info');
+                return;
+            }
+            
+            // Build menu items  
+            const menuItems = equipped.map(item => ({
+                name: item.name,
+                description: item.cursed ? 'Cannot remove - cursed!' : '',
+                disabled: item.cursed,
+                data: item
+            }));
+            
+            Game.MenuSystem.show(
+                'UNEQUIP ITEM',
+                menuItems,
+                (selected) => {
+                    Game.unequipItem(selected.data);
+                },
+                'Choose an item to remove'
+            );
+        };
+        
+        Game.getAllEquippedItems = function() {
+            const items = [];
+            
+            if (Game.player.equipped.weapon) items.push(Game.player.equipped.weapon);
+            if (Game.player.equipped.shield) items.push(Game.player.equipped.shield);
+            
+            for (let slot in Game.player.equipped.armor) {
+                if (Game.player.equipped.armor[slot]) {
+                    items.push(Game.player.equipped.armor[slot]);
+                }
+            }
+            
+            for (let slot in Game.player.equipped.accessories) {
+                if (Game.player.equipped.accessories[slot]) {
+                    items.push(Game.player.equipped.accessories[slot]);
+                }
+            }
+            
+            return items;
+        };
+
         // ===== FOV (FIELD OF VIEW) =====
         // Shadowcasting algorithm for proper line of sight
         Game.calculateFOV = function() {
@@ -3245,7 +3942,10 @@
                     Game.processTurn();
                     return;
                 case 'd':
-                    Game.addMessage("There is no drop command, only Zuul.", 'warning');
+                    Game.dropItem();
+                    return;
+                case 'D':
+                    Game.dropMultiple();
                     return;
                 case 'i':
                     Game.addMessage("There is no inventory command, only Zuul.", 'warning');
@@ -3253,7 +3953,10 @@
                 
                 // Equipment & Combat
                 case 'e':
-                    Game.addMessage("There is no equip command, only Zuul.", 'warning');
+                    Game.promptEquip();
+                    return;
+                case 'E':
+                    Game.promptUnequip();
                     return;
                 case 'f':
                     Game.addMessage("There is no fire command, only Zuul.", 'warning');
@@ -3424,6 +4127,16 @@
         };
 
         Game.playerAttack = function(monster) {
+            // Special case: attacking floating eye causes paralysis
+            if (monster.id === 'floating_eye' && !monster.dead) {
+                if (Math.random() < 0.66) {  // 66% chance
+                    Game.addMessage(`You gaze into the floating eye and are paralyzed!`, 'danger');
+                    Game.player.applyStatusEffect('paralysis', 5 + monster.mlevel, 1);
+                    Game.processTurn();
+                    return;
+                }
+            }
+
             const weapon = Game.player.equipped.weapon || {
                 // Default unarmed stats
                 quiz_tier: 1,
@@ -3711,40 +4424,34 @@
                 return;
             }
             
-            // Show cooking modal
-            const modal = document.getElementById('cooking-modal');
-            const ingredientList = document.getElementById('ingredient-list');
-            
-            // Clear previous content
-            ingredientList.innerHTML = '';
-            
-            // Populate ingredients
-            ingredients.forEach(ingredient => {
-                const button = document.createElement('button');
-                button.className = 'ingredient-button';
-                
+            // Build menu items
+            const menuItems = ingredients.map(ingredient => {
                 const foodData = Game.foodData[ingredient.id];
-                let recipeInfo = '';
+                let description = '';
                 
                 if (foodData && foodData.recipes) {
-                    // Show what this can become
                     const bestRecipe = foodData.recipes["5"] || foodData.recipes["4"] || foodData.recipes["3"];
                     if (bestRecipe) {
-                        recipeInfo = `<div class="ingredient-info">Can cook into: ${bestRecipe.name} (and others)</div>`;
+                        description = `Can become: ${bestRecipe.name}`;
                     }
                 }
                 
-                button.innerHTML = `
-                    <div style="font-weight: 600;">${ingredient.letter}) ${ingredient.name}</div>
-                    ${recipeInfo}
-                `;
-                
-                button.onclick = () => Game.startCooking(ingredient);
-                ingredientList.appendChild(button);
+                return {
+                    name: ingredient.name,
+                    description: description,
+                    data: ingredient
+                };
             });
             
-            // Show modal
-            modal.classList.add('active');
+            // Show menu
+            Game.MenuSystem.show(
+                'COOKING STATION',
+                menuItems,
+                (selected) => {
+                    Game.startCooking(selected.data);
+                },
+                'Choose an ingredient to cook'
+            );
         };
 
         // Handle cooking quiz result
@@ -3865,11 +4572,11 @@
             });
         };
 
-// Cancel cooking
-Game.cancelCooking = function() {
-    document.getElementById('cooking-modal').classList.remove('active');
-    Game.addMessage("You decide not to cook right now.", 'info');
-};
+        // Cancel cooking
+        Game.cancelCooking = function() {
+            document.getElementById('cooking-modal').classList.remove('active');
+            Game.addMessage("You decide not to cook right now.", 'info');
+        };
 
         // CAST - Cast spell from memory
         Game.playerCast = function(spell) {
@@ -4102,6 +4809,80 @@ Game.cancelCooking = function() {
                 Game.items = Game.items.filter(i => i !== item);
                 Game.addMessage(`You pick up the ${item.name}.`, 'action');
             }
+        };
+
+        Game.dropItem = function(item) {
+            if (!item) {
+                // Show drop menu if no item specified
+                if (Game.player.inventory.length === 0) {
+                    Game.addMessage("You have nothing to drop!", 'info');
+                    return;
+                }
+                
+                // Build menu items
+                const menuItems = Game.player.inventory.map(invItem => {
+                    let description = `Weight: ${invItem.weight || 1}`;
+                    if (invItem.cursed) description += ' (cursed)';
+                    if (invItem.equipped) description = 'Currently equipped';
+                    
+                    return {
+                        name: invItem.name,
+                        description: description,
+                        disabled: invItem.equipped,  // Can't drop equipped items
+                        data: invItem
+                    };
+                });
+                
+                Game.MenuSystem.show(
+                    'DROP ITEM',
+                    menuItems,
+                    (selected) => {
+                        Game.dropItem(selected.data);
+                    },
+                    'Choose an item to drop'
+                );
+                return;
+            }
+            
+            // Check if item is equipped
+            const equipped = Game.getAllEquippedItems();
+            if (equipped.includes(item)) {
+                Game.addMessage("You must unequip the item first!", 'warning');
+                return;
+            }
+            
+            // Check if item is cursed and stuck in inventory
+            if (item.cursedStuck) {
+                Game.addMessage(`The ${item.name} is cursed and stuck to you!`, 'danger');
+                return;
+            }
+            
+            // Remove from inventory
+            if (!Game.player.removeFromInventory(item)) {
+                Game.addMessage("You don't have that item!", 'warning');
+                return;
+            }
+            
+            // Place on ground at player's position
+            item.x = Game.player.x;
+            item.y = Game.player.y;
+            delete item.letter;  // Remove inventory letter
+            Game.items.push(item);
+            
+            Game.addMessage(`You drop the ${item.name}.`, 'info');
+            Game.processTurn();
+        };
+        
+        Game.dropMultiple = function() {
+            if (Game.player.inventory.length === 0) {
+                Game.addMessage("You have nothing to drop!", 'info');
+                return;
+            }
+            
+            Game.addMessage("Drop what? (* for all, # for amount)", 'info');
+            // This could open a more complex menu for dropping multiple items
+            // For now, just use the single drop menu
+            Game.dropItem();
         };
 
         // Level persistence functions (stub implementations for now)
