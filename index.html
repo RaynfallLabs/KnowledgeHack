@@ -1213,6 +1213,7 @@
                 this.attachEventListeners();
                 
                 // Focus menu for keyboard input
+                menuContainer.tabIndex = -1;  // Make focusable
                 menuContainer.focus();
             },
             
@@ -1277,6 +1278,7 @@
                 
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 
                 // ESC to cancel
                 if (e.key === 'Escape') {
@@ -3903,8 +3905,9 @@
 
         // ===== INPUT HANDLING =====
         Game.handleKeyPress = function(e) {
-            // Don't handle input during quiz
+            // Don't handle input during quiz or menus
             if (Game.QuizEngine.isActive || document.getElementById('quiz-modal').classList.contains('active')) return;
+            if (Game.MenuSystem.activeMenu) return;  
             
             let dx = 0, dy = 0;
             
